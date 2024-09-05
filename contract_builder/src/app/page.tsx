@@ -1,6 +1,7 @@
-import { Box, Button, Heading, Text } from "@chakra-ui/react";
+import {Box, Button, Heading, Text} from "@chakra-ui/react";
 
 export default function Home() {
+
   return (
     <Box p={5}>
       <Heading as="h1" size="xl" mb={6} textAlign="center">
