@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, VStack, Heading, Text } from "@chakra-ui/react";
-import { CreateContractForm } from "./CreateContractForm";
+import { CreateContractForm } from "@/components/CreateContractForm";
 
 export default function ContractPage() {
   const [action, setAction] = useState<null | "create" | "edit">(null);
