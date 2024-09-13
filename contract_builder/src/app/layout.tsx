@@ -39,6 +39,9 @@ export default function RootLayout({
           <Link href="/contracts" _hover={{textDecoration: "underline"}}>
             Contracts
           </Link>
+          <Link href="/hotels" _hover={{textDecoration: "underline"}}>
+            Hotels
+          </Link>
         </Flex>
       </Flex>
 
