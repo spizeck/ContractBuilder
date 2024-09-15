@@ -1,10 +1,30 @@
 "use client"
 
-import {useState} from "react";
-import {Box, Button, Input, FormControl, FormLabel, VStack} from "@chakra-ui/react";
+import {useState, useEffect, Dispatch, SetStateAction} from "react";
+import {Box, Button, Input, FormControl, FormLabel, VStack, HStack} from "@chakra-ui/react";
 import {addHotel} from "@/services/hotels";
 
-export default function AddHotelForm() {
+interface Hotel {
+  id: string
+  name: string
+  location: string
+  description: string
+  contactInfo: string
+  amenities: string
+  policies: string
+}
+
+interface AddHotelFormProps {
+  setAction: Dispatch<SetStateAction<'create' | 'edit' | null>>
+}
+
+export default function AddHotelForm({
+                                       setAction,
+                                       editingHotel,
+                                     }: {
+  setAction: (action: null) => void;
+  editingHotel?: Hotel | null
+}) {
   const [hotelData, setHotelData] = useState({
     name: '',
     location: '',
@@ -14,6 +34,19 @@ export default function AddHotelForm() {
     policies: '',
   })
 
+  useEffect(() => {
+    if (editingHotel) {
+      setHotelData({
+        name: editingHotel?.name || '',
+        location: editingHotel?.location || '',
+        description: editingHotel?.description || '',
+        contactInfo: editingHotel?.contactInfo || '',
+        amenities: editingHotel?.amenities || '',
+        policies: editingHotel?.policies || '',
+      })
+    }
+  }, [editingHotel])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHotelData({
       ...hotelData,
@@ -22,23 +55,25 @@ export default function AddHotelForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await addHotel(hotelData)
-      alert("Hotel added successfully!")
-      setHotelData({
-        name: '',
-        location: '',
-        description: '',
-        contactInfo: '',
-        amenities: '',
-        policies: '',
-      })
+      if (editingHotel) {
+        // Call update function
+      } else {
+        await addHotel(hotelData);
+      }
+      alert("Hotel saved successfully!");
+      setAction(null); // Go back to the previous state after success
     } catch (error) {
-      console.error("Error adding hotel:", error)
-      alert("Failed to add hotel. Please try again.")
+      console.error("Error saving hotel:", error);
+      alert("Failed to save hotel. Please try again.");
     }
+  };
+
+  const handleCancel = () => {
+    setAction(null)
   }
+
   return (
     <Box p={5} maxW="500px" mx="auto">
       <form onSubmit={handleSubmit}>
@@ -76,7 +111,7 @@ export default function AddHotelForm() {
           <FormControl isRequired>
             <FormLabel>Contact Info</FormLabel>
             <Input
-              name="contact_info"
+              name="contactInfo"
               value={hotelData.contactInfo}
               onChange={handleInputChange}
               placeholder="Enter contact info"
@@ -103,9 +138,14 @@ export default function AddHotelForm() {
             />
           </FormControl>
 
-          <Button type="submit" colorScheme="teal">
-            Add Hotel
-          </Button>
+          <HStack spacing={4}>
+            <Button type="submit" colorScheme="teal">
+              Add Hotel
+            </Button>
+            <Button onClick={handleCancel} colorScheme="gray">
+              Cancel
+            </Button>
+          </HStack>
         </VStack>
       </form>
     </Box>

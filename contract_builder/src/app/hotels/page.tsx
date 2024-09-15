@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Button, VStack, Heading, Text } from "@chakra-ui/react";
-import { CreateContractForm } from "@/components/CreateContractForm";
+import {useState} from "react";
+import {Button, VStack, Heading, Text} from "@chakra-ui/react";
 import AddHotelForm from "@/components/AddHotelForm";
+import ViewHotels from "@/components/ViewHotels";
+
+interface Hotel {
+  id: string;
+  name: string;
+  location: string;
+  description: string;
+  contactInfo: string;
+  amenities: string;
+  policies: string;
+}
 
 export default function HotelsPage() {
   const [action, setAction] = useState<null | "create" | "edit">(null);
+  const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
 
   return (
     <VStack spacing={8} p={5}>
@@ -26,8 +37,11 @@ export default function HotelsPage() {
         </>
       )}
 
-      {action === "create" && <AddHotelForm />}
-      {/* Placeholder for EditContractForm when action === "edit" */}
+      {action === "create" && <AddHotelForm setAction={setAction}/>}
+      {action === "edit" && <ViewHotels setAction={setAction} setEditingHotel={setEditingHotel}/>}
+      {editingHotel && action === "edit" && (
+        <AddHotelForm setAction={setAction} editingHotel={editingHotel}/>
+      )}
     </VStack>
   );
 }
