@@ -75,20 +75,6 @@ export default function AddHotelForm({
     setAction(null)
   }
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this hotel?");
-    if (confirmDelete && editingHotel) {
-      try {
-        await deleteHotel(editingHotel.id);
-        alert("Hotel deleted successfully!");
-        setAction(null); // Go back to the previous state after success
-      } catch (error) {
-        console.error("Error deleting hotel:", error);
-        alert("Failed to delete hotel. Please try again.");
-      }
-    }
-  }
-
   return (
     <Box p={5} maxW="500px" mx="auto">
       <form onSubmit={handleSubmit}>
@@ -160,14 +146,6 @@ export default function AddHotelForm({
             <Button onClick={handleCancel} colorScheme="gray">
               Cancel
             </Button>
-            {editingHotel && (
-              <Button
-                onClick={handleDelete}
-                colorScheme="red"
-              >
-                Delete Hotel
-              </Button>
-            )}
           </HStack>
         </VStack>
       </form>

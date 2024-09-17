@@ -2,7 +2,7 @@
 
 
 import {useEffect, useState} from "react";
-import {Box, Button, Table, Tbody, Td, Th, Thead, Tr, Heading, VStack} from "@chakra-ui/react";
+import {Box, Button, Table, Tbody, Td, Th, Thead, Tr, Heading, VStack, Center} from "@chakra-ui/react";
 import {getHotels} from "@/services/hotels";
 
 interface Hotel {
@@ -12,9 +12,12 @@ interface Hotel {
   description: string;
 }
 
-export default function ViewHotels({setAction, setEditingHotel}: {
-  setAction: (action: "edit" | null) => void,
-  setEditingHotel: (hotel: Hotel | null) => void
+export default function ViewHotels({
+                                     setAction,
+                                     setSelectedHotel,
+                                   }: {
+  setAction: (action: 'details' | null) => void;
+  setSelectedHotel: (hotel: Hotel | null) => void;
 }) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
 
@@ -23,20 +26,18 @@ export default function ViewHotels({setAction, setEditingHotel}: {
       const hotelsData = await getHotels();
       setHotels(hotelsData);
     };
-
     fetchHotels();
   }, []);
 
-  // Handle when user clicks edit on a hotel
-  const handleEdit = (hotel: Hotel) => {
-    setEditingHotel(hotel);  // Set the selected hotel for editing
-    setAction("edit");  // Switch to edit mode
-  };
+  const handleSelect = (hotel: Hotel) => {
+    setSelectedHotel(hotel); // Set the selected hotel
+    setAction('details'); // Switch to details view
+  }
 
   return (
     <VStack spacing={8} p={5}>
       <Heading as="h2" size="lg" textAlign="center">
-        Select Hotel or Edit Basic Hotel Information
+        Select a Hotel
       </Heading>
 
       <Box w="100%" overflowX="auto">
@@ -56,14 +57,24 @@ export default function ViewHotels({setAction, setEditingHotel}: {
                 <Td>{hotel.location}</Td>
                 <Td>{hotel.description}</Td>
                 <Td>
-                  <Button colorScheme="blue" onClick={() => handleEdit(hotel)}>
-                    Edit
+                  <Button colorScheme="blue" onClick={() => handleSelect(hotel)}>
+                    Select
                   </Button>
                 </Td>
               </Tr>
             ))}
+            {hotels.length === 0 && (
+              <Tr>
+                <Td colSpan={4} textAlign="center">No hotels found.</Td>
+              </Tr>
+            )}
           </Tbody>
         </Table>
+        <Center>
+          <Button mt={6} colorScheme="gray" onClick={() => setAction(null)}>
+            Cancel
+          </Button>
+        </Center>
       </Box>
     </VStack>
   );
