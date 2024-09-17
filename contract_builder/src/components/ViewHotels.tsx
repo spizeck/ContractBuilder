@@ -36,7 +36,7 @@ export default function ViewHotels({setAction, setEditingHotel}: {
   return (
     <VStack spacing={8} p={5}>
       <Heading as="h2" size="lg" textAlign="center">
-        View and Edit Hotels
+        Select Hotel or Edit Basic Hotel Information
       </Heading>
 
       <Box w="100%" overflowX="auto">

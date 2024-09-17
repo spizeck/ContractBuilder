@@ -2,7 +2,7 @@
 
 import {useState, useEffect, Dispatch, SetStateAction} from "react";
 import {Box, Button, Input, FormControl, FormLabel, VStack, HStack} from "@chakra-ui/react";
-import {addHotel} from "@/services/hotels";
+import {addHotel, editHotel, deleteHotel} from "@/services/hotels";
 
 interface Hotel {
   id: string
@@ -58,11 +58,12 @@ export default function AddHotelForm({
     e.preventDefault();
     try {
       if (editingHotel) {
-        // Call update function
+        await editHotel(editingHotel.id, hotelData)
+        alert("Hotel updated successfully!");
       } else {
         await addHotel(hotelData);
+        alert("Hotel added successfully!");
       }
-      alert("Hotel saved successfully!");
       setAction(null); // Go back to the previous state after success
     } catch (error) {
       console.error("Error saving hotel:", error);
@@ -72,6 +73,20 @@ export default function AddHotelForm({
 
   const handleCancel = () => {
     setAction(null)
+  }
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this hotel?");
+    if (confirmDelete && editingHotel) {
+      try {
+        await deleteHotel(editingHotel.id);
+        alert("Hotel deleted successfully!");
+        setAction(null); // Go back to the previous state after success
+      } catch (error) {
+        console.error("Error deleting hotel:", error);
+        alert("Failed to delete hotel. Please try again.");
+      }
+    }
   }
 
   return (
@@ -140,11 +155,19 @@ export default function AddHotelForm({
 
           <HStack spacing={4}>
             <Button type="submit" colorScheme="teal">
-              Add Hotel
+              {editingHotel ? "Update Hotel" : "Add Hotel"}
             </Button>
             <Button onClick={handleCancel} colorScheme="gray">
               Cancel
             </Button>
+            {editingHotel && (
+              <Button
+                onClick={handleDelete}
+                colorScheme="red"
+              >
+                Delete Hotel
+              </Button>
+            )}
           </HStack>
         </VStack>
       </form>
