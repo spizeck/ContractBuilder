@@ -1,83 +1,45 @@
-"use client"
-
-import {useState, useEffect, Dispatch, SetStateAction} from "react";
-import {Box, Button, Input, FormControl, FormLabel, VStack, HStack} from "@chakra-ui/react";
-import {addHotel, editHotel, deleteHotel} from "@/services/hotels";
-
-interface Hotel {
-  id: string
-  name: string
-  location: string
-  description: string
-  contactInfo: string
-  amenities: string
-  policies: string
-}
-
-interface AddHotelFormProps {
-  setAction: Dispatch<SetStateAction<'create' | 'edit' | null>>
-}
+import { useState } from "react";
+import { Box, Button, Input, FormControl, FormLabel, VStack, HStack } from "@chakra-ui/react";
+import { addHotel } from "@/services/hotels";
 
 export default function AddHotelForm({
-                                       setAction,
-                                       editingHotel,
-                                     }: {
-  setAction: (action: null) => void;
-  editingHotel?: Hotel | null
+  onCancel,
+  onSubmit,
+}: {
+  onCancel: () => void;
+  onSubmit: () => void;
 }) {
   const [hotelData, setHotelData] = useState({
-    name: '',
-    location: '',
-    description: '',
-    contactInfo: '',
-    amenities: '',
-    policies: '',
-  })
-
-  useEffect(() => {
-    if (editingHotel) {
-      setHotelData({
-        name: editingHotel?.name || '',
-        location: editingHotel?.location || '',
-        description: editingHotel?.description || '',
-        contactInfo: editingHotel?.contactInfo || '',
-        amenities: editingHotel?.amenities || '',
-        policies: editingHotel?.policies || '',
-      })
-    }
-  }, [editingHotel])
+    name: "",
+    location: "",
+    description: "",
+    contactInfo: "",
+    amenities: "",
+    policies: "",
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHotelData({
       ...hotelData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      if (editingHotel) {
-        await editHotel(editingHotel.id, hotelData)
-        alert("Hotel updated successfully!");
-      } else {
-        await addHotel(hotelData);
-        alert("Hotel added successfully!");
-      }
-      setAction(null); // Go back to the previous state after success
+      await addHotel(hotelData);
+      alert("Hotel added successfully!");
+      onSubmit();
     } catch (error) {
-      console.error("Error saving hotel:", error);
-      alert("Failed to save hotel. Please try again.");
+      console.error("Error adding hotel:", error);
+      alert("Failed to add hotel. Please try again.");
     }
   };
 
-  const handleCancel = () => {
-    setAction(null)
-  }
-
   return (
     <Box p={5} maxW="500px" mx="auto">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <VStack spacing={4}>
           <FormControl isRequired>
             <FormLabel>Hotel Name</FormLabel>
@@ -141,9 +103,9 @@ export default function AddHotelForm({
 
           <HStack spacing={4}>
             <Button type="submit" colorScheme="teal">
-              {editingHotel ? "Update Hotel" : "Add Hotel"}
+              Add Hotel
             </Button>
-            <Button onClick={handleCancel} colorScheme="gray">
+            <Button onClick={onCancel} colorScheme="gray">
               Cancel
             </Button>
           </HStack>

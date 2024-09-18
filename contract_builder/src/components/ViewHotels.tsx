@@ -1,38 +1,30 @@
-"use client"
-
-
 import {useEffect, useState} from "react";
-import {Box, Button, Table, Tbody, Td, Th, Thead, Tr, Heading, VStack, Center} from "@chakra-ui/react";
-import {getHotels} from "@/services/hotels";
-
-interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  description: string;
-}
+import {Box, Button, Center, Heading, Table, Tbody, Td, Th, Thead, Tr, VStack} from "@chakra-ui/react";
+import {getHotels, Hotel} from "@/services/hotels";
 
 export default function ViewHotels({
-                                     setAction,
-                                     setSelectedHotel,
+                                     onHotelSelect,
+                                     onCancel,
                                    }: {
-  setAction: (action: 'details' | null) => void;
-  setSelectedHotel: (hotel: Hotel | null) => void;
+  onHotelSelect: (hotel: Hotel) => void;
+  onCancel: () => void;
 }) {
   const [hotels, setHotels] = useState<Hotel[]>([]);
 
   useEffect(() => {
-    const fetchHotels = async () => {
-      const hotelsData = await getHotels();
-      setHotels(hotelsData);
+    const fetchData = async () => {
+      try {
+        const hotelsData = await getHotels();
+        setHotels(hotelsData);
+      } catch (error) {
+        console.error("Failed to fetch hotels:", error);
+        setHotels([]);
+      }
     };
-    fetchHotels();
+
+    fetchData();
   }, []);
 
-  const handleSelect = (hotel: Hotel) => {
-    setSelectedHotel(hotel); // Set the selected hotel
-    setAction('details'); // Switch to details view
-  }
 
   return (
     <VStack spacing={8} p={5}>
@@ -57,7 +49,7 @@ export default function ViewHotels({
                 <Td>{hotel.location}</Td>
                 <Td>{hotel.description}</Td>
                 <Td>
-                  <Button colorScheme="blue" onClick={() => handleSelect(hotel)}>
+                  <Button colorScheme="blue" onClick={() => onHotelSelect(hotel)}>
                     Select
                   </Button>
                 </Td>
@@ -65,13 +57,15 @@ export default function ViewHotels({
             ))}
             {hotels.length === 0 && (
               <Tr>
-                <Td colSpan={4} textAlign="center">No hotels found.</Td>
+                <Td colSpan={4} textAlign="center">
+                  No hotels found.
+                </Td>
               </Tr>
             )}
           </Tbody>
         </Table>
         <Center>
-          <Button mt={6} colorScheme="gray" onClick={() => setAction(null)}>
+          <Button mt={6} colorScheme="gray" onClick={onCancel}>
             Cancel
           </Button>
         </Center>

@@ -1,5 +1,15 @@
 import {db} from '../../firebase';
-import {collection, addDoc, getDocs, doc, updateDoc, deleteDoc} from 'firebase/firestore';
+import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from 'firebase/firestore';
+
+export interface Hotel {
+  id: string;
+  name: string;
+  location: string;
+  description: string;
+  contactInfo: string;
+  amenities: string;
+  policies: string;
+}
 
 // Add a new hotel
 export async function addHotel(hotelData: any) {
@@ -13,13 +23,13 @@ export async function addHotel(hotelData: any) {
 }
 
 // Fetch all hotels
-export async function getHotels() {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'hotels'));
-    return querySnapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-  } catch (e) {
-    console.error("Error fetching hotels: ", e);
-  }
+export async function getHotels(): Promise<Hotel[]> {
+  const querySnapshot = await getDocs(collection(db, "hotels"));
+  const hotels: Hotel[] = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Omit<Hotel, 'id'>), // Cast doc.data() to Omit<Hotel, 'id'>
+  }));
+  return hotels;
 }
 
 // Edit hotel data
