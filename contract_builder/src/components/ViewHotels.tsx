@@ -27,7 +27,7 @@ export default function ViewHotels({
 
 
   return (
-    <VStack spacing={8} p={5}>
+    <VStack spacing={4} p={5} align="stretch">
       <Heading as="h2" size="lg" textAlign="center">
         Select a Hotel
       </Heading>
@@ -65,7 +65,7 @@ export default function ViewHotels({
           </Tbody>
         </Table>
         <Center>
-          <Button mt={6} colorScheme="gray" onClick={onCancel}>
+          <Button mt={6} colorScheme="gray" onClick={onCancel} >
             Cancel
           </Button>
         </Center>

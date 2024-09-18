@@ -3,9 +3,11 @@ import { Box, Button, Input, FormControl, FormLabel, VStack, HStack } from "@cha
 import { addHotel } from "@/services/hotels";
 
 export default function AddHotelForm({
+  editingHotel,
   onCancel,
   onSubmit,
 }: {
+  editingHotel?: Hotel;
   onCancel: () => void;
   onSubmit: () => void;
 }) {
@@ -25,22 +27,27 @@ export default function AddHotelForm({
     });
   };
 
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await addHotel(hotelData);
-      alert("Hotel added successfully!");
-      onSubmit();
+      if (editingHotel) {
+        await updateHotel(editingHotel.id, hotelData);
+        alert("Hotel updated successfully!");
+      } else {
+        await addHotel(hotelData);
+        alert("Hotel added successfully!");
+      }
+      onSubmit(); // Call the onSubmit handler
     } catch (error) {
-      console.error("Error adding hotel:", error);
-      alert("Failed to add hotel. Please try again.");
+      console.error("Error saving hotel:", error);
+      alert("Failed to save hotel. Please try again.");
     }
   };
 
   return (
-    <Box p={5} maxW="500px" mx="auto">
+    <Box p={4} maxW="500px" mx="auto">
       <form onSubmit={handleFormSubmit}>
-        <VStack spacing={4}>
+        <VStack spacing={2} p={5} align="stretch">
           <FormControl isRequired>
             <FormLabel>Hotel Name</FormLabel>
             <Input
@@ -101,7 +108,7 @@ export default function AddHotelForm({
             />
           </FormControl>
 
-          <HStack spacing={4}>
+          <HStack spacing={4} >
             <Button type="submit" colorScheme="teal">
               Add Hotel
             </Button>

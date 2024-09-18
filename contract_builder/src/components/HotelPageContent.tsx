@@ -49,13 +49,14 @@ export default function HotelsPageContent() {
           : action === "viewHotels"
           ? "View and Manage Hotels"
           : action === "viewHotelDetails"
-          ? `Hotel Details: ${selectedHotel?.name}`
+          ? `${selectedHotel?.name} Details`
           : "Manage Hotels"}
       </Heading>
 
       {/* Main Menu */}
       {!action && (
         <>
+          <VStack spacing={4} p={5} align="stretch">
           <Text fontSize="lg">What would you like to do?</Text>
           <Button colorScheme="teal" size="lg" onClick={() => setAction("createHotel")}>
             Add New Hotel
@@ -63,6 +64,7 @@ export default function HotelsPageContent() {
           <Button colorScheme="teal" size="lg" onClick={() => setAction("viewHotels")}>
             View and Manage Hotels
           </Button>
+          </VStack>
         </>
       )}
 
