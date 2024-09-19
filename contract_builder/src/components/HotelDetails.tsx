@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import {useState, useRef} from "react";
 import {
   Box,
   Button,
@@ -14,35 +14,36 @@ import {
   AlertDialogOverlay,
 } from "@chakra-ui/react";
 import AddHotelForm from "./AddHotelForm";
-import { deleteHotel } from "@/services/hotels";
-
-interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  description: string;
-  contactInfo: string;
-  amenities: string;
-  policies: string;
-}
+import {deleteHotel, Hotel} from "@/services/hotels";
 
 export default function HotelDetails({
-  hotel,
-  onBack,
-}: {
+                                       hotel,
+                                       onBack,
+                                     }: {
   hotel: Hotel;
   onBack: () => void;
 }) {
+  const [currentHotel, setCurrentHotel] = useState<Hotel>(hotel);
   const [isEditing, setIsEditing] = useState(false);
 
   // For delete confirmation dialog
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {isOpen, onOpen, onClose} = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
+  const handleSubmitEdit = (updatedHotel: Hotel) => {
+    setIsEditing(false);
+    handleUpdate(updatedHotel);
+  };
+
+  const handleUpdate = (updatedHotel: Hotel) => {
+    if (updatedHotel) {
+      setCurrentHotel(updatedHotel);
+    }
+  }
   const handleDelete = async () => {
     try {
       await deleteHotel(hotel.id);
@@ -58,15 +59,11 @@ export default function HotelDetails({
     setIsEditing(false);
   };
 
-  const handleSubmitEdit = () => {
-    setIsEditing(false);
-    // Optionally refresh hotel details here
-  };
 
   if (isEditing) {
     return (
       <AddHotelForm
-        editingHotel={hotel}
+        editingHotel={currentHotel}
         onCancel={handleCancelEdit}
         onSubmit={handleSubmitEdit}
       />
@@ -75,37 +72,46 @@ export default function HotelDetails({
 
   return (
     <VStack spacing={4} p={5} align="stretch">
+
+        {currentHotel.name} Details
+
       <Box p={5} shadow="md" borderWidth="1px">
         <VStack align="start" spacing={2}>
           <HStack align="start">
             <Text fontWeight="bold" minW="120px">
+              Name:
+            </Text>
+            <Text flex="1">{currentHotel.name}</Text>
+          </HStack>
+          <HStack align="start">
+            <Text fontWeight="bold" minW="120px">
               Location:
             </Text>
-            <Text flex="1">{hotel.location}</Text>
+            <Text flex="1">{currentHotel.location}</Text>
           </HStack>
           <HStack align="start">
             <Text fontWeight="bold" minW="120px">
               Description:
             </Text>
-            <Text flex="1">{hotel.description}</Text>
+            <Text flex="1">{currentHotel.description}</Text>
           </HStack>
           <HStack align="start">
             <Text fontWeight="bold" minW="120px">
               Contact Info:
             </Text>
-            <Text flex="1">{hotel.contactInfo}</Text>
+            <Text flex="1">{currentHotel.contactInfo}</Text>
           </HStack>
           <HStack align="start">
             <Text fontWeight="bold" minW="120px">
               Amenities:
             </Text>
-            <Text flex="1">{hotel.amenities}</Text>
+            <Text flex="1">{currentHotel.amenities}</Text>
           </HStack>
           <HStack align="start">
             <Text fontWeight="bold" minW="120px">
               Policies:
             </Text>
-            <Text flex="1">{hotel.policies}</Text>
+            <Text flex="1">{currentHotel.policies}</Text>
           </HStack>
         </VStack>
 

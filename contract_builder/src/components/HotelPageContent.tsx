@@ -1,21 +1,12 @@
 // HotelsPageContent.tsx
 "use client";
 
-import { useState } from "react";
-import { Button, VStack, Heading, Text } from "@chakra-ui/react";
+import {useState} from "react";
+import {Button, VStack, Heading, Text} from "@chakra-ui/react";
 import AddHotelForm from "@/components/AddHotelForm";
 import ViewHotels from "@/components/ViewHotels";
 import HotelDetails from "@/components/HotelDetails";
-
-interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  description: string;
-  contactInfo: string;
-  amenities: string;
-  policies: string;
-}
+import {Hotel} from "@/services/hotels";
 
 type ActionState = null | "createHotel" | "viewHotels" | "viewHotelDetails";
 
@@ -47,40 +38,40 @@ export default function HotelsPageContent() {
         {action === "createHotel"
           ? "Add New Hotel"
           : action === "viewHotels"
-          ? "View and Manage Hotels"
-          : action === "viewHotelDetails"
-          ? `${selectedHotel?.name} Details`
-          : "Manage Hotels"}
+            ? "View and Manage Hotels"
+            : action === "viewHotelDetails"
+             ? 'Edit Hotel Details'
+              : "Manage Hotels"}
       </Heading>
 
       {/* Main Menu */}
       {!action && (
         <>
           <VStack spacing={4} p={5} align="stretch">
-          <Text fontSize="lg">What would you like to do?</Text>
-          <Button colorScheme="teal" size="lg" onClick={() => setAction("createHotel")}>
-            Add New Hotel
-          </Button>
-          <Button colorScheme="teal" size="lg" onClick={() => setAction("viewHotels")}>
-            View and Manage Hotels
-          </Button>
+            <Text fontSize="lg">What would you like to do?</Text>
+            <Button colorScheme="teal" size="lg" onClick={() => setAction("createHotel")}>
+              Add New Hotel
+            </Button>
+            <Button colorScheme="teal" size="lg" onClick={() => setAction("viewHotels")}>
+              View and Manage Hotels
+            </Button>
           </VStack>
         </>
       )}
 
       {/* Add Hotel Form */}
       {action === "createHotel" && (
-        <AddHotelForm onCancel={resetToMainMenu} onSubmit={resetToMainMenu} />
+        <AddHotelForm onCancel={resetToMainMenu} onSubmit={resetToMainMenu}/>
       )}
 
       {/* View Hotels List */}
       {action === "viewHotels" && (
-        <ViewHotels onHotelSelect={handleHotelSelect} onCancel={resetToMainMenu} />
+        <ViewHotels onHotelSelect={handleHotelSelect} onCancel={resetToMainMenu}/>
       )}
 
       {/* Hotel Details */}
       {action === "viewHotelDetails" && selectedHotel && (
-        <HotelDetails hotel={selectedHotel} onBack={backToHotelList} />
+        <HotelDetails hotel={selectedHotel} onBack={backToHotelList}/>
       )}
     </VStack>
   );

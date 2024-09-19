@@ -33,7 +33,7 @@ export async function getHotels(): Promise<Hotel[]> {
 }
 
 // Edit hotel data
-export async function editHotel(hotelId: string, hotelData: any) {
+export async function updateHotel(hotelId: string, hotelData: any) {
   const hotelRef = doc(db, 'hotels', hotelId);
   try {
     await updateDoc(hotelRef, hotelData);
