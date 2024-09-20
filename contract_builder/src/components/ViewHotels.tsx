@@ -21,7 +21,6 @@ export default function ViewHotels({
         setHotels([]);
       }
     };
-
     fetchData();
   }, []);
 

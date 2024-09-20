@@ -25,11 +25,10 @@ export async function addHotel(hotelData: any) {
 // Fetch all hotels
 export async function getHotels(): Promise<Hotel[]> {
   const querySnapshot = await getDocs(collection(db, "hotels"));
-  const hotels: Hotel[] = querySnapshot.docs.map((doc) => ({
+  return querySnapshot.docs.map((doc) => ({
     id: doc.id,
-    ...(doc.data() as Omit<Hotel, 'id'>), // Cast doc.data() to Omit<Hotel, 'id'>
+    ...(doc.data() as Omit<Hotel, 'id'>),
   }));
-  return hotels;
 }
 
 // Edit hotel data

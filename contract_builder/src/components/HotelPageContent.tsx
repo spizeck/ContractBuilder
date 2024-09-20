@@ -40,7 +40,7 @@ export default function HotelsPageContent() {
           : action === "viewHotels"
             ? "View and Manage Hotels"
             : action === "viewHotelDetails"
-             ? 'Edit Hotel Details'
+             ? `${selectedHotel?.name}: Details`
               : "Manage Hotels"}
       </Heading>
 

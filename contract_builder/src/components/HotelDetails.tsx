@@ -15,6 +15,7 @@ import {
 } from "@chakra-ui/react";
 import AddHotelForm from "./AddHotelForm";
 import {deleteHotel, Hotel} from "@/services/hotels";
+import SeasonsList from "./SeasonsList";
 
 export default function HotelDetails({
                                        hotel,
@@ -25,6 +26,9 @@ export default function HotelDetails({
 }) {
   const [currentHotel, setCurrentHotel] = useState<Hotel>(hotel);
   const [isEditing, setIsEditing] = useState(false);
+  const [view, setView] = useState<
+  "details" | "seasons" | "roomTypes" | "mealPackages" |"rates"
+  >("details");
 
   // For delete confirmation dialog
   const {isOpen, onOpen, onClose} = useDisclosure();
@@ -68,6 +72,15 @@ export default function HotelDetails({
         onSubmit={handleSubmitEdit}
       />
     );
+  }
+
+  if (view === 'seasons') {
+    return (
+      <SeasonsList
+        hotelId={currentHotel.id}
+        onBack={() => setView('details')}
+        />
+    )
   }
 
   return (
@@ -129,7 +142,7 @@ export default function HotelDetails({
         align="stretch"
         spacing={4}
       >
-        <Button colorScheme="blue">View Seasons</Button>
+        <Button colorScheme="blue" onClick={() => setView('seasons')}>View Seasons</Button>
 
         <Button colorScheme="blue">View Room Types</Button>
 
