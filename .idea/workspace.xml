@@ -4,18 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="Completed the hotel details component.">
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/AddEditRateForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/AddEditRoomCategoryForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/AddEditRoomTypeForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/RatesList.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/RoomCategoriesList.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/RoomTypesList.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/services/rates.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/services/roomCategories.ts" afterDir="false" />
+    <list default="true" id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="Add rates implemented. Needs fine tuning.">
+      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/AddEditMealPackageForm.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contract_builder/src/components/MealPackagesList.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contract_builder/src/services/mealPackages.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/contract_builder/src/components/HotelDetails.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/components/HotelDetails.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/services/roomTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/services/roomTypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/RatesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/components/RatesList.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +100,7 @@
       <workItem from="1726836038263" duration="261000" />
       <workItem from="1726836393055" duration="9053000" />
       <workItem from="1726848597042" duration="26000" />
-      <workItem from="1726848649048" duration="844000" />
+      <workItem from="1726848649048" duration="6017000" />
     </task>
     <task id="LOCAL-00001" summary="Initialize contract builder app&#10;&#10;Added base Next.js app setup with Chakra UI integration. Configured eslint, gitignore, CSS globals, and metadata.">
       <option name="closed" value="true" />
@@ -155,7 +150,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726689667180</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Add rates implemented. Needs fine tuning.">
+      <option name="closed" value="true" />
+      <created>1726849520661</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1726849520661</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -166,6 +169,7 @@
     <MESSAGE value="Add Firebase services and improve app layout&#10;&#10;Introduced new service files for hotels, room types, contracts, and seasons with functions for adding and fetching data from Firebase. Also enhanced the app layout with a header and navigation links, including restructuring component imports for better organization." />
     <MESSAGE value="About to refactor how the selected hotel is displayed. Currently add / edit / delete all work." />
     <MESSAGE value="Moving to home computer. Nearly done with refactor." />
-    <option name="LAST_COMMIT_MESSAGE" value="Moving to home computer. Nearly done with refactor." />
+    <MESSAGE value="Add rates implemented. Needs fine tuning." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add rates implemented. Needs fine tuning." />
   </component>
 </project>

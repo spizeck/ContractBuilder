@@ -19,6 +19,7 @@ import SeasonsList from "./SeasonsList";
 import RoomCategoriesList from "./RoomCategoriesList";
 import RoomTypesList from "./RoomTypesList";
 import RatesList from "./RatesList";
+import MealPackagesList from "./MealPackagesList";
 
 export default function HotelDetails({
                                        hotel,
@@ -104,6 +105,15 @@ export default function HotelDetails({
     );
   }
 
+  if (view === "mealPackages") {
+    return (
+      <MealPackagesList
+        hotelId={currentHotel.id}
+        onBack={() => setView("details")}
+      />
+    );
+  }
+
   if (view === "rates") {
     return (
       <RatesList
@@ -175,7 +185,7 @@ export default function HotelDetails({
 
         <Button colorScheme="blue" onClick={() => setView('roomTypes')}>View Room Types</Button>
 
-        <Button colorScheme="blue">View Meal Packages</Button>
+        <Button colorScheme="blue" onClick={() => setView('mealPackages')}>View Meal Packages</Button>
 
         <Button colorScheme="blue" onClick={() => setView('rates')}>View Rates</Button>
       </VStack>
