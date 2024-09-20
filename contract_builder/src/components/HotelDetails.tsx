@@ -16,6 +16,9 @@ import {
 import AddHotelForm from "./AddHotelForm";
 import {deleteHotel, Hotel} from "@/services/hotels";
 import SeasonsList from "./SeasonsList";
+import RoomCategoriesList from "./RoomCategoriesList";
+import RoomTypesList from "./RoomTypesList";
+import RatesList from "./RatesList";
 
 export default function HotelDetails({
                                        hotel,
@@ -27,7 +30,7 @@ export default function HotelDetails({
   const [currentHotel, setCurrentHotel] = useState<Hotel>(hotel);
   const [isEditing, setIsEditing] = useState(false);
   const [view, setView] = useState<
-  "details" | "seasons" | "roomTypes" | "mealPackages" |"rates"
+    "details" | "seasons" | "roomCategories" | "roomTypes" | "mealPackages" | "rates"
   >("details");
 
   // For delete confirmation dialog
@@ -79,15 +82,39 @@ export default function HotelDetails({
       <SeasonsList
         hotelId={currentHotel.id}
         onBack={() => setView('details')}
-        />
+      />
     )
+  }
+
+  if (view === "roomCategories") {
+    return (
+      <RoomCategoriesList
+        hotelId={currentHotel.id}
+        onBack={() => setView("details")}
+      />
+    );
+  }
+
+  if (view === "roomTypes") {
+    return (
+      <RoomTypesList
+        hotelId={currentHotel.id}
+        onBack={() => setView("details")}
+      />
+    );
+  }
+
+  if (view === "rates") {
+    return (
+      <RatesList
+        hotelId={currentHotel.id}
+        onBack={() => setView("details")}
+      />
+    );
   }
 
   return (
     <VStack spacing={4} p={5} align="stretch">
-
-        {currentHotel.name} Details
-
       <Box p={5} shadow="md" borderWidth="1px">
         <VStack align="start" spacing={2}>
           <HStack align="start">
@@ -144,11 +171,13 @@ export default function HotelDetails({
       >
         <Button colorScheme="blue" onClick={() => setView('seasons')}>View Seasons</Button>
 
-        <Button colorScheme="blue">View Room Types</Button>
+        <Button colorScheme="blue" onClick={() => setView('roomCategories')}>View Room Categories</Button>
+
+        <Button colorScheme="blue" onClick={() => setView('roomTypes')}>View Room Types</Button>
 
         <Button colorScheme="blue">View Meal Packages</Button>
 
-        <Button colorScheme="blue">View Rates</Button>
+        <Button colorScheme="blue" onClick={() => setView('rates')}>View Rates</Button>
       </VStack>
 
       <Button colorScheme="gray" onClick={onBack}>
