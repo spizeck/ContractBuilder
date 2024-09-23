@@ -42,6 +42,9 @@ export default function RootLayout({
           <Link href="/hotels" _hover={{textDecoration: "underline"}}>
             Hotels
           </Link>
+          <Link href="/dive-packages" _hover={{textDecoration: "underline"}}>
+            Dive Packages
+          </Link>
         </Flex>
       </Flex>
 

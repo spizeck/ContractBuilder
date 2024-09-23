@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Box, Button, Input, FormControl, FormLabel, VStack, HStack} from "@chakra-ui/react";
+import {Box, Button, FormControl, FormLabel, HStack, Input, Textarea, VStack} from "@chakra-ui/react";
 import {addHotel, Hotel, updateHotel} from "@/services/hotels";
 
 export default function AddHotelForm({
@@ -33,7 +33,7 @@ export default function AddHotelForm({
     }
   }, [editingHotel]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setHotelData({
       ...hotelData,
       [e.target.name]: e.target.value,
@@ -84,7 +84,7 @@ export default function AddHotelForm({
 
           <FormControl isRequired>
             <FormLabel>Description</FormLabel>
-            <Input
+            <Textarea
               name="description"
               value={hotelData.description}
               onChange={handleInputChange}
@@ -104,7 +104,7 @@ export default function AddHotelForm({
 
           <FormControl>
             <FormLabel>Amenities</FormLabel>
-            <Input
+            <Textarea
               name="amenities"
               value={hotelData.amenities}
               onChange={handleInputChange}
@@ -114,7 +114,7 @@ export default function AddHotelForm({
 
           <FormControl>
             <FormLabel>Policies</FormLabel>
-            <Input
+            <Textarea
               name="policies"
               value={hotelData.policies}
               onChange={handleInputChange}

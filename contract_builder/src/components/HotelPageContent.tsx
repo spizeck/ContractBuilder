@@ -1,4 +1,3 @@
-// HotelsPageContent.tsx
 "use client";
 
 import {useState} from "react";
@@ -33,7 +32,7 @@ export default function HotelsPageContent() {
   };
 
   return (
-    <VStack spacing={8} p={5}>
+    <VStack spacing={2} p={5}>
       <Heading as="h1" size="xl" textAlign="center">
         {action === "createHotel"
           ? "Add New Hotel"
