@@ -2,9 +2,9 @@
 
 import {useState} from "react";
 import {Button, VStack, Heading, Text} from "@chakra-ui/react";
-import AddHotelForm from "@/components/AddHotelForm";
-import ViewHotels from "@/components/ViewHotels";
-import HotelDetails from "@/components/HotelDetails";
+import AddHotelForm from "@/app/hotels/AddHotelForm";
+import ViewHotels from "@/app/hotels/ViewHotels";
+import HotelDetails from "@/app/hotels/HotelDetails";
 import {Hotel} from "@/services/hotels";
 
 type ActionState = null | "createHotel" | "viewHotels" | "viewHotelDetails";
@@ -51,7 +51,7 @@ export default function HotelsPageContent() {
             <Button colorScheme="teal" size="lg" onClick={() => setAction("createHotel")}>
               Add New Hotel
             </Button>
-            <Button colorScheme="teal" size="lg" onClick={() => setAction("viewHotels")}>
+            <Button colorScheme="blue" size="lg" onClick={() => setAction("viewHotels")}>
               View and Manage Hotels
             </Button>
           </VStack>

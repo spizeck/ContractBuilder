@@ -146,7 +146,7 @@ export default function RatesList({
     return season ? season.name : "Unknown";
   };
 
-   return (
+  return (
     <VStack spacing={4} align="stretch">
       <HStack justifyContent="space-between">
         <Button onClick={onBack}>Back</Button>
