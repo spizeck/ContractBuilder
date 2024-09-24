@@ -12,6 +12,7 @@ import {
 import { RoomCategory, getRoomCategories } from "@/services/roomCategories";
 import { Rate, getRates } from "@/services/rates";
 import { Season, getSeasons } from "@/services/seasons";
+import {parseDateStringAsUTC} from "@/utils/dateUtils";
 
 interface RoomSelection {
   categoryId: string;
@@ -55,10 +56,10 @@ export default function RoomSelectionForm({
   // Determine applicable seasons based on date range
   const applicableSeasons = seasons.filter((season) => {
     // Implement logic to check if the season overlaps with the contract dates
-    const seasonStart = parseDateAsUTC(season.startDate);
-    const seasonEnd = parseDateAsUTC(season.endDate);
-    const contractStart = parseDateAsUTC(startDate);
-    const contractEnd = parseDateAsUTC(endDate);
+    const seasonStart = parseDateStringAsUTC(season.startDate);
+    const seasonEnd = parseDateStringAsUTC(season.endDate);
+    const contractStart = parseDateStringAsUTC(startDate);
+    const contractEnd = parseDateStringAsUTC(endDate);
 
     return (
       (contractStart <= seasonEnd && contractEnd >= seasonStart) // Overlaps
@@ -134,17 +135,13 @@ export default function RoomSelectionForm({
         </HStack>
       ))}
       <Button onClick={addRoomSelection}>Add Another Room</Button>
-      <HStack spacing={2}>
+      <VStack spacing={2} align="stretch">
         <Button onClick={onBack}>Back</Button>
         <Button colorScheme="teal" onClick={handleSubmit}>
           Next
         </Button>
-      </HStack>
+      </VStack>
     </VStack>
   );
 }
 
-function parseDateAsUTC(dateString: string): Date {
-  const [year, month, day] = dateString.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day));
-}

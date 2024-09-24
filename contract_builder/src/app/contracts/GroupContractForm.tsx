@@ -9,13 +9,6 @@ import {
 } from "@chakra-ui/react";
 import {getHotels, Hotel} from "@/services/hotels";
 
-interface GroupContractData {
-  groupName: string;
-  startDate: string;
-  endDate: string;
-  hotelId: string;
-  bookingType: string;
-}
 
 export default function GroupContractForm({
                                             initialData,

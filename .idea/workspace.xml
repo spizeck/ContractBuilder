@@ -4,33 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="Add rates implemented. Needs fine tuning.">
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/DivePackageSelectionForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractWizard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractsList.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/MealPackageSelectionForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/RoomSelectionForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/TotalCostCalculation.tsx" afterDir="false" />
+    <list default="true" id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="Moving to home computer. Working on the Contracts part of the app.">
+      <change afterPath="$PROJECT_DIR$/contract_builder/src/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/hotels/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddEditMealPackageForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddEditMealPackageForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddEditRateForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddEditRateForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddEditRoomCategoryForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddEditRoomCategoryForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddEditRoomTypeForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddEditRoomTypeForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddEditSeasonForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddEditSeasonForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/AddHotelForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/AddHotelForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/CreateContractForm.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/HotelDetails.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/HotelDetails.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/HotelPageContent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/HotelPageContent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/MealPackagesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/MealPackagesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/RatesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/RatesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/RoomCategoriesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/RoomCategoriesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/RoomTypesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/RoomTypesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/SeasonsList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/SeasonsList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/components/ViewHotels.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/hotels/ViewHotels.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/services/contracts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/services/groupContracts.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractWizard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractWizard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/RoomSelectionForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/RoomSelectionForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract_builder/src/services/groupContracts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/services/groupContracts.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,23 +20,57 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "spizeck"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/spizeck/ContractBuilder.git",
+    "accountId": "aed9ecd2-3ef4-41fd-b209-2933fdb344e3"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2mW8IW6ETwOm2pH6FoApFCdvbct" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\chadn\\PycharmProjects\\ContractBuilder\\contract_builder\\node_modules\\typescript\\lib&quot;
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "C:\\Users\\chadn\\PycharmProjects\\ContractBuilder\\contract_builder\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\chadn\PycharmProjects\ContractBuilder\contract_builder\src\app\hotels" />
       <recent name="C:\Users\chadn\PycharmProjects\ContractBuilder\contract_builder\src\app\contracts" />
     </key>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PY-242.22855.92" />
+        <option value="bundled-python-sdk-b068d85d1acf-399fe30bd8c1-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.22855.92" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="" />
@@ -81,6 +95,7 @@
       <workItem from="1726836393055" duration="9053000" />
       <workItem from="1726848597042" duration="26000" />
       <workItem from="1726848649048" duration="6017000" />
+      <workItem from="1727180896044" duration="10587000" />
     </task>
     <task id="LOCAL-00001" summary="Initialize contract builder app&#10;&#10;Added base Next.js app setup with Chakra UI integration. Configured eslint, gitignore, CSS globals, and metadata.">
       <option name="closed" value="true" />
@@ -138,8 +153,19 @@
       <option name="project" value="LOCAL" />
       <updated>1726849520661</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Moving to home computer. Working on the Contracts part of the app.">
+      <option name="closed" value="true" />
+      <created>1727117150268</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1727117150268</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initialize contract builder app&#10;&#10;Added base Next.js app setup with Chakra UI integration. Configured eslint, gitignore, CSS globals, and metadata." />
@@ -147,6 +173,7 @@
     <MESSAGE value="About to refactor how the selected hotel is displayed. Currently add / edit / delete all work." />
     <MESSAGE value="Moving to home computer. Nearly done with refactor." />
     <MESSAGE value="Add rates implemented. Needs fine tuning." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add rates implemented. Needs fine tuning." />
+    <MESSAGE value="Moving to home computer. Working on the Contracts part of the app." />
+    <option name="LAST_COMMIT_MESSAGE" value="Moving to home computer. Working on the Contracts part of the app." />
   </component>
 </project>

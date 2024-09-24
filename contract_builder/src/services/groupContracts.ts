@@ -21,6 +21,7 @@ export interface GroupContract {
   // Additional fields will be added in later steps
 }
 
+
 export async function getGroupContracts(): Promise<GroupContract[]> {
   const querySnapshot = await getDocs(collection(db, "groupContracts"));
   return querySnapshot.docs.map((doc) => ({
