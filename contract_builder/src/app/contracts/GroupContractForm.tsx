@@ -8,6 +8,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import {getHotels, Hotel} from "@/services/hotels";
+import {ContractData} from "@/types";
 
 
 export default function GroupContractForm({
@@ -15,8 +16,8 @@ export default function GroupContractForm({
                                             onNext,
                                             onCancel,
                                           }: {
-  initialData?: Partial<GroupContractData>;
-  onNext: (data: GroupContractData) => void;
+  initialData?: Partial<ContractData>;
+  onNext: (data: Partial<ContractData>) => void;
   onCancel: () => void;
 }) {
   const [groupName, setGroupName] = useState(initialData?.groupName || "");
