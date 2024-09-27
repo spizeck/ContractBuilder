@@ -1,21 +1,20 @@
-import {useState} from "react";
+import { useState } from "react";
 import GroupContractForm from "./GroupContractForm";
 import RoomSelectionForm from "./RoomSelectionForm";
 import DivePackageSelectionForm from "./DivePackageSelectionForm";
 import MealPackageSelectionForm from "./MealPackageSelectionForm";
 import TotalCostCalculation from "./TotalCostCalculation";
-import {ContractData} from "@/types"
 
 export default function GroupContractWizard({
-                                              onCancel,
-                                            }: {
+  onCancel,
+}: {
   onCancel: () => void;
 }) {
   const [step, setStep] = useState(1);
-  const [contractData, setContractData] = useState<ContractData>({});
+  const [contractData, setContractData] = useState<any>({});
 
-  const nextStep = (data: Partial<ContractData>) => {
-    setContractData({...contractData, ...data});
+  const nextStep = (data: any) => {
+    setContractData({ ...contractData, ...data });
     setStep(step + 1);
   };
 
@@ -33,9 +32,6 @@ export default function GroupContractWizard({
         />
       );
     case 2:
-      if (!contractData.hotelId || !contractData.startDate || !contractData.endDate) {
-        return <div>Error: Missing required data.</div>;
-      }
       return (
         <RoomSelectionForm
           hotelId={contractData.hotelId}
@@ -45,11 +41,7 @@ export default function GroupContractWizard({
           onBack={prevStep}
         />
       );
-    case
-    3:
-      if (!contractData.hotelId) {
-        return <div>Error: Missing hotel ID.</div>;
-      }
+    case 3:
       return (
         <DivePackageSelectionForm
           hotelId={contractData.hotelId}
@@ -57,11 +49,7 @@ export default function GroupContractWizard({
           onBack={prevStep}
         />
       );
-    case
-    4:
-      if (!contractData.hotelId) {
-        return <div>Error: Missing hotel ID.</div>;
-      }
+    case 4:
       return (
         <MealPackageSelectionForm
           hotelId={contractData.hotelId}
@@ -69,8 +57,7 @@ export default function GroupContractWizard({
           onBack={prevStep}
         />
       );
-    case
-    5:
+    case 5:
       return (
         <TotalCostCalculation
           contractData={contractData}

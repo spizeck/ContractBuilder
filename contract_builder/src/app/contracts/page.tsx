@@ -1,60 +1,51 @@
 "use client";
 
-import {useState} from "react";
-import {Button, Heading, Text, VStack} from "@chakra-ui/react";
-import GroupContractForm from "./GroupContractForm";
+import { useState } from "react";
+import { Button, Heading, Text, VStack } from "@chakra-ui/react";
+import GroupContractWizard from "./GroupContractWizard";
 import GroupContractsList from "./GroupContractsList";
 
-
 export default function ContractPage() {
-  const [action, setAction] = useState<null | "create" | "edit">(null);
-  const [step, setStep] = useState<number>(1);
-  const [contractData, setContractData] = useState<any>({})
+  const [view, setView] = useState<"home" | "add" | "list">("home");
 
-  const handleNext = (data: any) => {
-    setContractData({...contractData, ...data});
-    setStep(step + 1);
-  }
+  const handleAddContract = () => {
+    setView("add");
+  };
 
-  const handleBack = () => {
-    setStep(step - 1);
-  }
+  const handleViewEditContracts = () => {
+    setView("list");
+  };
 
-  const handleCancel = () => {
-    setAction(null);
-    setStep(1);
-    setContractData({});
-  }
-
-const handleEditContract = (contractId: string) => {
-    setAction("edit");
-    setStep(1);
-    fetchContract(contractId).then(data => setContractData(data));
-
-}
+  const handleBackToHome = () => {
+    setView("home");
+  };
 
   return (
-    <VStack spacing={2} p={5}>
+    <VStack spacing={4} p={5}>
       <Heading as="h1" size="xl" textAlign="center">
         Group Contracts
       </Heading>
 
-      {!action && (
-        <>
-          <VStack spacing={4} p={5} align="stretch">
-            <Text fontSize="lg">What would you like to do?</Text>
-            <Button colorScheme="teal" size="lg" onClick={() => setAction("create")}>
-              Create New Contract
-            </Button>
-            <Button colorScheme="blue" size="lg" onClick={() => setAction("edit")}>
-              View/Edit Existing Contract
-            </Button>
-          </VStack>
-        </>
+      {view === "home" && (
+        <VStack spacing={4} p={5} align="stretch">
+          <Text fontSize="lg">What would you like to do?</Text>
+          <Button colorScheme="teal" size="lg" onClick={handleAddContract}>
+            Create New Contract
+          </Button>
+          <Button colorScheme="blue" size="lg" onClick={handleViewEditContracts}>
+            View/Edit Existing Contracts
+          </Button>
+        </VStack>
       )}
 
-      {action === "create" && <GroupContractForm onNext={handleNext} onCancel={handleCancel}/>}
+      {view === "add" && <GroupContractWizard onCancel={handleBackToHome} />}
 
+      {view === "list" && (
+        <GroupContractsList
+          onBack={handleBackToHome}
+          onCreateNew={handleAddContract}
+        />
+      )}
     </VStack>
   );
 }

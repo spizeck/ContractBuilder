@@ -18,7 +18,6 @@ export interface GroupContract {
   startDate: string; // 'YYYY-MM-DD'
   endDate: string;   // 'YYYY-MM-DD'
   bookingType: string; // 'tourOperator' or 'diveShop'
-  // Additional fields will be added in later steps
 }
 
 

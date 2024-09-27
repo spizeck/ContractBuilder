@@ -1,23 +1,22 @@
-import {useState, useEffect} from "react";
-import {
-  VStack,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Button,
-} from "@chakra-ui/react";
+import {useEffect, useState} from "react";
+import {Button, FormControl, FormLabel, HStack, Input, Select, VStack,} from "@chakra-ui/react";
 import {getHotels, Hotel} from "@/services/hotels";
-import {ContractData} from "@/types";
 
+interface GroupContractData {
+  groupName: string;
+  startDate: string;
+  endDate: string;
+  hotelId: string;
+  bookingType: string;
+}
 
 export default function GroupContractForm({
                                             initialData,
                                             onNext,
                                             onCancel,
                                           }: {
-  initialData?: Partial<ContractData>;
-  onNext: (data: Partial<ContractData>) => void;
+  initialData?: Partial<GroupContractData>;
+  onNext: (data: GroupContractData) => void;
   onCancel: () => void;
 }) {
   const [groupName, setGroupName] = useState(initialData?.groupName || "");
@@ -86,12 +85,12 @@ export default function GroupContractForm({
             <option value="diveShop">Dive Shop</option>
           </Select>
         </FormControl>
-        <VStack spacing={2} align="stretch">
-          <Button type="submit" colorScheme="teal">
+        <HStack spacing={2} width={'100%'}>
+          <Button onClick={onCancel} flex={1}>Cancel</Button>
+          <Button type="submit" colorScheme="teal" flex={1}>
             Next
           </Button>
-          <Button onClick={onCancel}>Cancel</Button>
-        </VStack>
+        </HStack>
       </VStack>
     </form>
   );

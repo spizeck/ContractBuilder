@@ -67,8 +67,8 @@ export default function DivePackageSelectionForm({
         />
       </FormControl>
       <HStack spacing={2}>
-        <Button onClick={onBack}>Back</Button>
-        <Button colorScheme="teal" onClick={handleSubmit}>
+        <Button onClick={onBack} flex={1}>Back</Button>
+        <Button colorScheme="teal" onClick={handleSubmit} flex={1}>
           Next
         </Button>
       </HStack>

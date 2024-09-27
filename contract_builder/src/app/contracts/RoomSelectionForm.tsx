@@ -135,12 +135,12 @@ export default function RoomSelectionForm({
         </HStack>
       ))}
       <Button onClick={addRoomSelection}>Add Another Room</Button>
-      <VStack spacing={2} align="stretch">
-        <Button onClick={onBack}>Back</Button>
-        <Button colorScheme="teal" onClick={handleSubmit}>
+      <HStack spacing={2} align="stretch">
+        <Button onClick={onBack} flex={1}>Back</Button>
+        <Button colorScheme="teal" onClick={handleSubmit} flex={1}>
           Next
         </Button>
-      </VStack>
+      </HStack>
     </VStack>
   );
 }

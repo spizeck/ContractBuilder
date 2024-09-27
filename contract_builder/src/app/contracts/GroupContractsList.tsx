@@ -12,26 +12,28 @@ import {
   Input,
   Select,
 } from "@chakra-ui/react";
-import { getGroupContracts, deleteGroupContract, GroupContract } from "@/services/groupContracts";
+import {
+  getGroupContracts,
+  deleteGroupContract,
+  GroupContract,
+} from "@/services/groupContracts";
 import { getHotels, Hotel } from "@/services/hotels";
 
-interface Filters {
-  groupName: string;
-  hotelId: string;
-  startDate: string;
-}
-
 export default function GroupContractsList({
+  onBack,
   onCreateNew,
-  onEditContract,
 }: {
+  onBack: () => void;
   onCreateNew: () => void;
-  onEditContract: (contractId: string) => void;
 }) {
   const [contracts, setContracts] = useState<GroupContract[]>([]);
   const [filteredContracts, setFilteredContracts] = useState<GroupContract[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
-  const [filters, setFilters] = useState<Filters>({
+  const [filters, setFilters] = useState<{
+    groupName: string;
+    hotelId: string;
+    startDate: string;
+  }>({
     groupName: "",
     hotelId: "",
     startDate: "",
@@ -53,25 +55,28 @@ export default function GroupContractsList({
     setHotels(hotelsData);
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
-    applyFilters({ ...filters, [name]: value });
+    const updatedFilters = { ...filters, [name]: value };
+    setFilters(updatedFilters);
+    applyFilters(updatedFilters);
   };
 
-  const applyFilters = (filters: Filters) => {
+  const applyFilters = (updatedFilters: typeof filters) => {
     let filtered = contracts;
 
-    if (filters.groupName) {
+    if (updatedFilters.groupName) {
       filtered = filtered.filter((contract) =>
-        contract.groupName.toLowerCase().includes(filters.groupName.toLowerCase())
+        contract.groupName.toLowerCase().includes(updatedFilters.groupName.toLowerCase())
       );
     }
-    if (filters.hotelId) {
-      filtered = filtered.filter((contract) => contract.hotelId === filters.hotelId);
+    if (updatedFilters.hotelId) {
+      filtered = filtered.filter((contract) => contract.hotelId === updatedFilters.hotelId);
     }
-    if (filters.startDate) {
-      filtered = filtered.filter((contract) => contract.startDate === filters.startDate);
+    if (updatedFilters.startDate) {
+      filtered = filtered.filter((contract) => contract.startDate === updatedFilters.startDate);
     }
 
     setFilteredContracts(filtered);
@@ -92,6 +97,7 @@ export default function GroupContractsList({
   return (
     <VStack spacing={4} align="stretch">
       <HStack justifyContent="space-between">
+        <Button onClick={onBack}>Back</Button>
         <Button colorScheme="teal" onClick={onCreateNew}>
           Create New Contract
         </Button>
@@ -103,7 +109,12 @@ export default function GroupContractsList({
           value={filters.groupName}
           onChange={handleFilterChange}
         />
-        <Select placeholder="Filter by Hotel" name="hotelId" value={filters.hotelId} onChange={handleFilterChange}>
+        <Select
+          placeholder="Filter by Hotel"
+          name="hotelId"
+          value={filters.hotelId}
+          onChange={handleFilterChange}
+        >
           {hotels.map((hotel) => (
             <option key={hotel.id} value={hotel.id}>
               {hotel.name}
@@ -139,10 +150,14 @@ export default function GroupContractsList({
               <Td>{contract.bookingType}</Td>
               <Td>
                 <HStack spacing={2}>
-                  <Button size="sm" onClick={() => onEditContract(contract.id)}>
+                  <Button size="sm" onClick={() => /* Implement edit functionality */ {}}>
                     Edit
                   </Button>
-                  <Button size="sm" colorScheme="red" onClick={() => handleDeleteContract(contract.id)}>
+                  <Button
+                    size="sm"
+                    colorScheme="red"
+                    onClick={() => handleDeleteContract(contract.id)}
+                  >
                     Delete
                   </Button>
                 </HStack>
