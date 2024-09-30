@@ -1,5 +1,5 @@
 import {db} from "../../firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc,} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, getDoc} from "firebase/firestore";
 
 export interface DivePackage {
   id: string;
@@ -34,4 +34,10 @@ export async function updateDivePackage(
 export async function deleteDivePackage(divePackageId: string): Promise<void> {
   const docRef = doc(db, "divePackages", divePackageId);
   await deleteDoc(docRef);
+}
+
+export async function getDivePackageById(divePackageId: string): Promise<DivePackage | null> {
+  const docRef = doc(db, "divePackages", divePackageId);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists()? docSnap.data() as DivePackage : null;
 }

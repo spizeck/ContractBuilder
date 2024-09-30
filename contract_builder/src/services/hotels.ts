@@ -1,5 +1,5 @@
 import {db} from '../../firebase';
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from 'firebase/firestore';
+import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, getDoc} from 'firebase/firestore';
 
 export interface Hotel {
   id: string;
@@ -51,5 +51,15 @@ export async function deleteHotel(hotelId: string) {
     console.log("Hotel deleted: ", hotelId);
   } catch (e) {
     console.error("Error deleting hotel: ", e);
+  }
+}
+
+export async function getHotelById(hotelId: string): Promise<Hotel | null> {
+const hotelRef = doc(db, 'hotels', hotelId);
+  const docSnap = await getDoc(hotelRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...(docSnap.data() as Omit<Hotel, 'id'>) };
+  } else {
+    return null;
   }
 }

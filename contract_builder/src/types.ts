@@ -15,3 +15,4 @@ export interface RoomSelection {
   occupancyType: string;
   numRooms: number;
 }
+

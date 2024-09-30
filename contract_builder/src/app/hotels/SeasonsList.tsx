@@ -89,6 +89,7 @@ export default function SeasonsList({
           </Tr>
         </Thead>
         <Tbody>
+          {/* TODO: Sort Seasons by start date */}
           {seasons.map((season) => (
             <Tr key={season.id}>
               <Td>{season.name}</Td>

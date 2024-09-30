@@ -10,14 +10,32 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import {RoomSelection} from "@/types";
 
 export interface GroupContract {
-  id: string;
   groupName: string;
+  startDate: string;
+  endDate: string;
   hotelId: string;
-  startDate: string; // 'YYYY-MM-DD'
-  endDate: string;   // 'YYYY-MM-DD'
-  bookingType: string; // 'tourOperator' or 'diveShop'
+  hotelName: string;
+  seasonId: string;
+  seasonName: string;
+  bookingType: string;
+  rooms: RoomSelection[];
+  roomCosts: { description: string; cost: number }[];
+  totalRoomCost: number;
+  totalGuests: number;
+  numDivers: number;
+  totalNonDivers: number;
+  divePackageId?: string;
+  divePackageName?: string;
+  divePackageCost?: number;
+  mealPackageId?: string;
+  mealPackageName?: string;
+  mealPackageCost?: number;
+  totalCost: number;
+  createdAt: Date;
+  // Add other fields as needed
 }
 
 
@@ -44,12 +62,8 @@ export async function deleteGroupContract(contractId: string): Promise<void> {
   await deleteDoc(docRef);
 }
 
-export async function getGroupContractById(contractId: string): Promise<GroupContract | null> {
+export async function getGroupContractById(contractId: string): Promise<GroupContract | undefined> {
   const docRef = doc(db, "groupContracts", contractId);
   const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...(docSnap.data() as Omit<GroupContract, "id">) };
-  } else {
-    return null;
-  }
+  return docSnap.exists()? docSnap.data() as GroupContract : undefined;
 }

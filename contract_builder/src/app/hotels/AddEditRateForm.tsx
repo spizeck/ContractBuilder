@@ -97,6 +97,8 @@ export default function AddEditRateForm({
     }
   };
 
+  // TODO: Change form to add all of the occupancy rates at the same time
+
   return (
     <Box p={4} maxW="500px" mx="auto">
       <form onSubmit={handleSubmit}>

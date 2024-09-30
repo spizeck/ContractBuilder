@@ -8,6 +8,7 @@ import {
   deleteDoc,
   query,
   where,
+  getDoc,
 } from "firebase/firestore";
 
 export interface MealPackage {
@@ -43,4 +44,10 @@ export async function updateMealPackage(
 export async function deleteMealPackage(mealPackageId: string): Promise<void> {
   const docRef = doc(db, "mealPackages", mealPackageId);
   await deleteDoc(docRef);
+}
+
+export async function getMealPackageById(mealPackageId: string): Promise<MealPackage | null> {
+  const docRef = doc(db, "mealPackages", mealPackageId);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists()? docSnap.data() as MealPackage : null;
 }
