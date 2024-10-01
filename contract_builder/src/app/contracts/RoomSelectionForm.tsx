@@ -9,10 +9,11 @@ import {
   Button,
   Text,
 } from "@chakra-ui/react";
-import { RoomCategory, getRoomCategories } from "@/services/roomCategories";
-import { Rate, getRates } from "@/services/rates";
-import { Season, getSeasons } from "@/services/seasons";
+import { getRoomCategories } from "@/services/roomCategories";
+import { getRates } from "@/services/rates";
+import { getSeasons } from "@/services/seasons";
 import {parseDateStringAsUTC} from "@/utils/dateUtils";
+import {Rate, RoomCategory, Season} from "@/types";
 
 interface RoomSelection {
   categoryId: string;

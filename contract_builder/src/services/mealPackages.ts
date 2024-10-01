@@ -1,23 +1,6 @@
-import { db } from "../../firebase";
-import {
-  collection,
-  doc,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  getDoc,
-} from "firebase/firestore";
-
-export interface MealPackage {
-  id: string;
-  hotelId: string;
-  name: string;
-  description: string;
-  price: number; // Price per person total
-}
+import {db} from "../../firebase";
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where,} from "firebase/firestore";
+import {MealPackage} from "@/types";
 
 export async function getMealPackages(hotelId: string): Promise<MealPackage[]> {
   const q = query(collection(db, "mealPackages"), where("hotelId", "==", hotelId));

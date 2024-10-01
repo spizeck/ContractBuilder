@@ -14,10 +14,11 @@ import {
 import {
   getRoomTypes,
   deleteRoomType,
-  RoomType,
+
 } from "@/services/roomTypes";
-import { getRoomCategories, RoomCategory } from "@/services/roomCategories";
+import { getRoomCategories } from "@/services/roomCategories";
 import AddEditRoomTypeForm from "./AddEditRoomTypeForm";
+import {RoomCategory, RoomType} from "@/types";
 
 export default function RoomTypesList({
   hotelId,

@@ -13,8 +13,9 @@ import {
 import {
   addRoomCategory,
   updateRoomCategory,
-  RoomCategory,
+
 } from "@/services/roomCategories";
+import {RoomCategory} from "@/types";
 
 export default function AddEditRoomCategoryForm({
   hotelId,

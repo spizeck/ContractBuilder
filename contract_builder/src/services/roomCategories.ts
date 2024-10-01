@@ -1,21 +1,6 @@
-import { db } from "../../firebase";
-import {
-  collection,
-  doc,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-} from "firebase/firestore";
-
-export interface RoomCategory {
-  id: string;
-  hotelId: string;
-  name: string;
-  occupancyTypes: string[]; // e.g., ["Single", "Double", "Triple", "Quad"]
-}
+import {db} from "../../firebase";
+import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where,} from "firebase/firestore";
+import {RoomCategory} from "@/types";
 
 export async function getRoomCategories(hotelId: string): Promise<RoomCategory[]> {
   const q = query(collection(db, "roomCategories"), where("hotelId", "==", hotelId));

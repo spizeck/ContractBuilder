@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Button, FormControl, FormLabel, HStack, Input, Select, VStack,} from "@chakra-ui/react";
-import {getHotels, Hotel} from "@/services/hotels";
+import {getHotels} from "@/services/hotels";
+import {Hotel} from "@/types";
 
 interface GroupContractData {
   groupName: string;

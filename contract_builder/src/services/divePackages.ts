@@ -1,12 +1,6 @@
 import {db} from "../../firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, getDoc} from "firebase/firestore";
-
-export interface DivePackage {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc} from "firebase/firestore";
+import {DivePackage} from "@/types";
 
 const divePackagesCollection = collection(db, "divePackages");
 

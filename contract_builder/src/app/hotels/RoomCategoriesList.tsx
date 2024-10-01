@@ -13,9 +13,10 @@ import {
 import {
   getRoomCategories,
   deleteRoomCategory,
-  RoomCategory,
+
 } from "@/services/roomCategories";
 import AddEditRoomCategoryForm from "./AddEditRoomCategoryForm";
+import {RoomCategory} from "@/types";
 
 export default function RoomCategoriesList({
   hotelId,

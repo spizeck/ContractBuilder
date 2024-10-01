@@ -1,13 +1,6 @@
 import {db} from "../../firebase";
-import {doc, collection, addDoc, getDocs, updateDoc, deleteDoc, query, where} from "firebase/firestore";
-
-export interface Season {
-  id: string;
-  hotelId: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} from "firebase/firestore";
+import {Season} from "@/types";
 
 // Add a season to the root-level 'seasons' collection
 export async function addSeason(seasonData: Omit<Season, "id">): Promise<string> {

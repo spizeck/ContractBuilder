@@ -14,12 +14,13 @@ import {
   AlertDialogOverlay,
 } from "@chakra-ui/react";
 import AddHotelForm from "./AddHotelForm";
-import {deleteHotel, Hotel} from "@/services/hotels";
+import {deleteHotel} from "@/services/hotels";
 import SeasonsList from "./SeasonsList";
 import RoomCategoriesList from "./RoomCategoriesList";
 import RoomTypesList from "./RoomTypesList";
 import RatesList from "./RatesList";
 import MealPackagesList from "./MealPackagesList";
+import {Hotel} from "@/types";
 
 export default function HotelDetails({
                                        hotel,

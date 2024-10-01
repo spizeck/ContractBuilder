@@ -1,42 +1,6 @@
-import { db } from "../../firebase";
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-} from "firebase/firestore";
-import {RoomSelection} from "@/types";
-
-export interface GroupContract {
-  groupName: string;
-  startDate: string;
-  endDate: string;
-  hotelId: string;
-  hotelName: string;
-  seasonId: string;
-  seasonName: string;
-  bookingType: string;
-  rooms: RoomSelection[];
-  roomCosts: { description: string; cost: number }[];
-  totalRoomCost: number;
-  totalGuests: number;
-  numDivers: number;
-  totalNonDivers: number;
-  divePackageId?: string;
-  divePackageName?: string;
-  divePackageCost?: number;
-  mealPackageId?: string;
-  mealPackageName?: string;
-  mealPackageCost?: number;
-  totalCost: number;
-  createdAt: Date;
-  // Add other fields as needed
-}
+import {db} from "../../firebase";
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc,} from "firebase/firestore";
+import {GroupContract} from "@/types";
 
 
 export async function getGroupContracts(): Promise<GroupContract[]> {

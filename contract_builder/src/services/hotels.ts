@@ -1,15 +1,6 @@
 import {db} from '../../firebase';
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, getDoc} from 'firebase/firestore';
-
-export interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  description: string;
-  contactInfo: string;
-  amenities: string;
-  policies: string;
-}
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc} from 'firebase/firestore';
+import {Hotel} from "@/types";
 
 // Add a new hotel
 export async function addHotel(hotelData: any) {

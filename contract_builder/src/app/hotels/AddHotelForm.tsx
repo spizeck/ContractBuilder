@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {Box, Button, FormControl, FormLabel, HStack, Input, Textarea, VStack} from "@chakra-ui/react";
-import {addHotel, Hotel, updateHotel} from "@/services/hotels";
+import {addHotel, updateHotel} from "@/services/hotels";
+import {Hotel} from "@/types";
 
 export default function AddHotelForm({
                                        editingHotel,

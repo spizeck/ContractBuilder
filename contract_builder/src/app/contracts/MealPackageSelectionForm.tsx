@@ -8,7 +8,8 @@ import {
   Text,
   HStack,
 } from "@chakra-ui/react";
-import { MealPackage, getMealPackages } from "@/services/mealPackages";
+import { getMealPackages } from "@/services/mealPackages";
+import {MealPackage} from "@/types";
 
 export default function MealPackageSelectionForm({
   hotelId,

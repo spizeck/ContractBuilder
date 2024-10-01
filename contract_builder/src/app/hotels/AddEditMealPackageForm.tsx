@@ -12,8 +12,9 @@ import {
 import {
   addMealPackage,
   updateMealPackage,
-  MealPackage,
+
 } from "@/services/mealPackages";
+import {MealPackage} from "@/types";
 
 export default function AddEditMealPackageForm({
   hotelId,

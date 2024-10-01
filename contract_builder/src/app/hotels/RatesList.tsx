@@ -14,11 +14,12 @@ import {
 import {
   getRates,
   deleteRate,
-  Rate,
+
 } from "@/services/rates";
-import {getRoomCategories, RoomCategory} from "@/services/roomCategories";
-import {getSeasons, Season} from "@/services/seasons";
+import {getRoomCategories} from "@/services/roomCategories";
+import {getSeasons} from "@/services/seasons";
 import AddEditRateForm from "./AddEditRateForm";
+import {Rate, RoomCategory, Season} from "@/types";
 
 export default function RatesList({
                                     hotelId,

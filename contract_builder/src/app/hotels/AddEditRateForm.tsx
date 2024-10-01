@@ -12,10 +12,9 @@ import {
 import {
   addRate,
   updateRate,
-  Rate,
+
 } from "@/services/rates";
-import {RoomCategory} from "@/services/roomCategories";
-import {Season} from "@/services/seasons";
+import {Rate, RoomCategory, Season} from "@/types";
 
 export default function AddEditRateForm({
                                           hotelId,

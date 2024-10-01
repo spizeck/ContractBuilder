@@ -1,24 +1,6 @@
-import { db } from "../../firebase";
-import {
-  collection,
-  doc,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  getDoc,
-} from "firebase/firestore";
-
-export interface Rate {
-  id: string;
-  hotelId: string;
-  categoryId: string;
-  seasonId: string;
-  occupancyType: string;
-  price: number;
-}
+import {db} from "../../firebase";
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where,} from "firebase/firestore";
+import {Rate} from "@/types";
 
 export async function getRates(hotelId: string): Promise<Rate[]> {
   const ratesRef = collection(db, "rates");

@@ -5,7 +5,8 @@ import {Button, VStack, Heading, Text} from "@chakra-ui/react";
 import AddHotelForm from "@/app/hotels/AddHotelForm";
 import ViewHotels from "@/app/hotels/ViewHotels";
 import HotelDetails from "@/app/hotels/HotelDetails";
-import {Hotel} from "@/services/hotels";
+
+import {Hotel} from "@/types";
 
 type ActionState = null | "createHotel" | "viewHotels" | "viewHotelDetails";
 

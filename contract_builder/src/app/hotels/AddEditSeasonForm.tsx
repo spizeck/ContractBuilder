@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
 import {Box, Button, FormControl, FormLabel, HStack, Input, VStack,} from "@chakra-ui/react";
-import {addSeason, Season, updateSeason} from "@/services/seasons";
+import {addSeason, updateSeason} from "@/services/seasons";
 import { parseDateStringAsUTC } from "@/utils/dateUtils";
+import {Season} from "@/types";
 
 export default function AddEditSeasonForm({
                                             hotelId,

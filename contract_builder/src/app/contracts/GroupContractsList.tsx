@@ -15,9 +15,10 @@ import {
 import {
   getGroupContracts,
   deleteGroupContract,
-  GroupContract,
+
 } from "@/services/groupContracts";
-import { getHotels, Hotel } from "@/services/hotels";
+import { getHotels } from "@/services/hotels";
+import {GroupContract, Hotel} from "@/types";
 
 export default function GroupContractsList({
   onBack,

@@ -12,8 +12,9 @@ import {
 import {
   addDivePackage,
   updateDivePackage,
-  DivePackage,
+
 } from "@/services/divePackages";
+import {DivePackage} from "@/types";
 
 export default function AddEditDivePackageForm({
   divePackage,
