@@ -51,7 +51,7 @@ export default function TotalCostCalculation ({
   const handleConfirm = async () => {
     try {
       // Prepare the contract data
-      const groupContract: GroupContract = {
+      const groupContract: Omit<GroupContract, "id"> = {
         groupName: contractData.groupName!,
         startDate: contractData.startDate!,
         endDate: contractData.endDate!,
@@ -69,17 +69,17 @@ export default function TotalCostCalculation ({
         ...(contractData.divePackageId && {
           divePackageId: contractData.divePackageId,
           divePackageName: divePackage?.name ?? null,
-          divePackageCost: divePackageCost ?? null
+          divePackageCost: divePackageCost ?? null,
         }),
         ...(contractData.mealPackageId && {
           mealPackageId: contractData.mealPackageId,
           mealPackageName: mealPackage?.name ?? null,
-          mealPackageCost: mealPackageCost ?? null
+          mealPackageCost: mealPackageCost ?? null,
         }),
         totalCost,
-        createdAt: new Date()
+        createdAt: new Date(),
         // Add other fields as needed
-      }
+      };
 
       // Save the contract to Firestore
       const contractId = await addGroupContract(groupContract)

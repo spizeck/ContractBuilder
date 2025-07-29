@@ -49,6 +49,7 @@ export interface RoomCategory {
 }
 
 export interface GroupContract {
+  id: string;
   groupName: string;
   startDate: string;
   endDate: string;

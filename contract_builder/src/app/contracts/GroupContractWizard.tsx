@@ -5,6 +5,7 @@ import DivePackageSelectionForm from "./DivePackageSelectionForm";
 import MealPackageSelectionForm from "./MealPackageSelectionForm";
 import TotalCostCalculation from "./TotalCostCalculation";
 
+
 export default function GroupContractWizard({
   onCancel,
 }: {
