@@ -64,11 +64,11 @@ export interface GroupContract {
   numDivers: number;
   totalNonDivers: number;
   divePackageId?: string;
-  divePackageName?: string;
-  divePackageCost?: number;
+  divePackageName?: string | null;
+  divePackageCost?: number | null;
   mealPackageId?: string;
-  mealPackageName?: string;
-  mealPackageCost?: number;
+  mealPackageName?: string | null;
+  mealPackageCost?: number | null;
   totalCost: number;
   createdAt: Date;
   // Add other fields as needed
