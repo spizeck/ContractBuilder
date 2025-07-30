@@ -13,7 +13,8 @@ import { getRoomCategories } from '@/services/roomCategories'
 import { getRates } from '@/services/rates'
 import { getSeasons } from '@/services/seasons'
 import { parseDateStringAsUTC } from '@/utils/dateUtils'
-import { Rate, RoomCategory, Season } from '@/types'
+import { getRoomTypes } from '@/services/roomTypes'
+import { Rate, RoomCategory, Season, RoomType } from '@/types'
 
 interface RoomSelection {
   categoryId: string
@@ -38,63 +39,65 @@ export default function RoomSelectionForm ({
   const [rates, setRates] = useState<Rate[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
   const [roomSelections, setRoomSelections] = useState<RoomSelection[]>([])
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null)
   const [seasonCheckDone, setSeasonCheckDone] = useState(false)
 
   useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    const [categoriesData, ratesData, seasonsData] = await Promise.all([
-      getRoomCategories(hotelId),
-      getRates(hotelId),
-      getSeasons(hotelId)
-    ])
-    setRoomCategories(categoriesData)
-    setRates(ratesData)
-    setSeasons(seasonsData)
-  }
-
-  const getSeasonWithMostOverlap = () => {
-    const contractStart = parseDateStringAsUTC(startDate)
-    const contractEnd = parseDateStringAsUTC(endDate)
-
-    let bestSeason: Season | null = null
-    let maxOverlapDays = 0
-
-    for (const season of seasons) {
-      const seasonStart = parseDateStringAsUTC(season.startDate)
-      const seasonEnd = parseDateStringAsUTC(season.endDate)
-
-      // Find overlap range
-      const overlapStart =
-        contractStart > seasonStart ? contractStart : seasonStart
-      const overlapEnd = contractEnd < seasonEnd ? contractEnd : seasonEnd
-
-      const overlapMs = overlapEnd.getTime() - overlapStart.getTime()
-      const overlapDays = Math.max(
-        0,
-        Math.ceil(overlapMs / (1000 * 60 * 60 * 24))
-      )
-
-      if (overlapDays > maxOverlapDays) {
-        maxOverlapDays = overlapDays
-        bestSeason = season
-      }
+    const fetchData = async () => {
+      const [categoriesData, ratesData, seasonsData, roomTypesData] =
+        await Promise.all([
+          getRoomCategories(hotelId),
+          getRates(hotelId),
+          getSeasons(hotelId),
+          getRoomTypes(hotelId)
+        ])
+      setRoomCategories(categoriesData)
+      setRates(ratesData)
+      setSeasons(seasonsData)
+      setRoomTypes(roomTypesData)
     }
-    return bestSeason
-  }
+
+    fetchData()
+  }, [hotelId])
 
   useEffect(() => {
     if (seasons.length === 0) return
 
-    // Determine applicable seasons based on date range
-    const bestSeason = getSeasonWithMostOverlap()
+    const getSeasonWithMostOverlap = () => {
+      const contractStart = parseDateStringAsUTC(startDate)
+      const contractEnd = parseDateStringAsUTC(endDate)
 
+      let bestSeason: Season | null = null
+      let maxOverlapDays = 0
+
+      for (const season of seasons) {
+        const seasonStart = parseDateStringAsUTC(season.startDate)
+        const seasonEnd = parseDateStringAsUTC(season.endDate)
+
+        const overlapStart =
+          contractStart > seasonStart ? contractStart : seasonStart
+        const overlapEnd = contractEnd < seasonEnd ? contractEnd : seasonEnd
+
+        const overlapMs = overlapEnd.getTime() - overlapStart.getTime()
+        const overlapDays = Math.max(
+          0,
+          Math.ceil(overlapMs / (1000 * 60 * 60 * 24))
+        )
+
+        if (overlapDays > maxOverlapDays) {
+          maxOverlapDays = overlapDays
+          bestSeason = season
+        }
+      }
+
+      return bestSeason
+    }
+
+    const bestSeason = getSeasonWithMostOverlap()
     if (bestSeason) {
       setSeasonCheckDone(true)
-      setSelectedSeason(bestSeason) // optionally store it in state if needed
+      setSelectedSeason(bestSeason)
     } else {
       alert('No seasons found for the selected date range...')
       onBack()
@@ -102,6 +105,14 @@ export default function RoomSelectionForm ({
   }, [seasons, startDate, endDate, onBack])
 
   const occupancyTypes = ['Single', 'Double', 'Triple', 'Quad']
+
+  const availableCategoryIds = rates
+    .filter(rate => rate.seasonId === selectedSeason?.id)
+    .map(rate => rate.categoryId)
+
+  const filteredRoomCategories = roomCategories.filter(category =>
+    availableCategoryIds.includes(category.id)
+  )
 
   const addRoomSelection = () => {
     setRoomSelections([
@@ -120,7 +131,26 @@ export default function RoomSelectionForm ({
   }
 
   const handleSubmit = () => {
-    // Validate selections
+    const roomTypeQuantities: { [key: string]: number } = {}
+
+    roomSelections.forEach(sel => {
+      const key = `${sel.categoryId}-${sel.occupancyType}`
+      roomTypeQuantities[key] = (roomTypeQuantities[key] || 0) + sel.numRooms
+    })
+
+    for (const key in roomTypeQuantities) {
+      const [categoryId, occupancyType] = key.split('-')
+      const matched = roomTypes.find(
+        (rt: RoomType) =>
+          rt.categoryId === categoryId && rt.name === occupancyType
+      )
+      if (matched && roomTypeQuantities[key] > matched.quantity) {
+        alert(
+          `You requested ${roomTypeQuantities[key]} rooms for ${occupancyType}, but only ${matched.quantity} are available.`
+        )
+        return
+      }
+    }
 
     onNext({ rooms: roomSelections })
   }
@@ -145,7 +175,7 @@ export default function RoomSelectionForm ({
               }
             >
               <option value=''>Select a category</option>
-              {roomCategories.map(category => (
+              {filteredRoomCategories.map(category => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
@@ -160,12 +190,19 @@ export default function RoomSelectionForm ({
                 updateRoomSelection(index, 'occupancyType', e.target.value)
               }
             >
-              <option value=''>Select occupancy type</option>
-              {occupancyTypes.map(type => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
+              {rates
+                .filter(
+                  rate =>
+                    rate.seasonId === selectedSeason?.id &&
+                    rate.categoryId === selection.categoryId
+                )
+                .map(rate => rate.occupancyType)
+                .filter((value, index, self) => self.indexOf(value) === index) // unique
+                .map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
             </Select>
           </FormControl>
           <FormControl isRequired>
