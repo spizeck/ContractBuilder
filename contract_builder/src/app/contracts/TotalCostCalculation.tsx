@@ -216,7 +216,7 @@ export default function TotalCostCalculation ({
         </Text>
         <Text flex={1}>Season: {seasonName}</Text>
       </HStack>
-
+      <Text>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
       {/* Room Breakdown */}
       <Text fontWeight='bold'>Room Breakdown:</Text>
       {roomCosts.map((roomCost, index) => (
@@ -246,10 +246,14 @@ export default function TotalCostCalculation ({
         </Text>
       )}
 
-      <Text fontWeight='bold'>Total Cost: ${totalCost.toFixed(2)}</Text>
+      <Text fontWeight='bold'>Gross Cost: ${totalCost.toFixed(2)}</Text>
 
-      <Text>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
+
       <Text>Commission Amount: ${commissionAmount.toFixed(2)}</Text>
+
+      <Text fontWeight='bold'>
+        Net Cost: ${(totalCost - commissionAmount).toFixed(2)}
+      </Text>
 
       <HStack spacing={2}>
         <Button onClick={onBack} flex={1}>
