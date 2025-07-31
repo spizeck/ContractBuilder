@@ -1,22 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Button, HStack, Text, VStack } from '@chakra-ui/react'
-import {
-  ContractData,
-  DivePackage,
-  GroupContract,
-  Hotel,
-  MealPackage,
-  Rate,
-  RoomCategory,
-  Season
-} from '@/types'
-import { getSeasons } from '@/services/seasons'
-import { getRates } from '@/services/rates'
-import { getDivePackageById } from '@/services/divePackages'
-import { getMealPackageById } from '@/services/mealPackages'
-import { getHotelById } from '@/services/hotels'
-import { getRoomCategories } from '@/services/roomCategories'
-import { addGroupContract } from '@/services/groupContracts'
+import {useEffect, useState} from 'react'
+import {Button, HStack, Text, VStack} from '@chakra-ui/react'
+import {ContractData, DivePackage, GroupContract, Hotel, MealPackage, Rate, RoomCategory, Season} from '@/types'
+import {getSeasons} from '@/services/seasons'
+import {getRates} from '@/services/rates'
+import {getDivePackageById} from '@/services/divePackages'
+import {getMealPackageById} from '@/services/mealPackages'
+import {getHotelById} from '@/services/hotels'
+import {getRoomCategories} from '@/services/roomCategories'
+import {addGroupContract} from '@/services/groupContracts'
 import {
   calculateNumberOfNights,
   calculateTotalCost,
@@ -24,11 +15,11 @@ import {
   getCommissionRate
 } from '@/utils/contractCalculations'
 
-export default function TotalCostCalculation ({
-  contractData,
-  onConfirm,
-  onBack
-}: {
+export default function TotalCostCalculation({
+                                               contractData,
+                                               onConfirm,
+                                               onBack
+                                             }: {
   contractData: ContractData
   onConfirm: () => void
   onBack: () => void
@@ -98,7 +89,7 @@ export default function TotalCostCalculation ({
   }
 
   useEffect(() => {
-    async function fetchData () {
+    async function fetchData() {
       try {
         // Check for required contract data
         if (
@@ -201,7 +192,11 @@ export default function TotalCostCalculation ({
         Review and Confirm details for: {contractData.groupName}
       </Text>
 
-      <Text>Hotel: {hotel.name}</Text>
+      <HStack spacing={2}>
+        <Text flex={1}>Hotel: {hotel.name}</Text>
+        <Text flex={1}>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
+      </HStack>
+
       <HStack spacing={2}>
         <Text flex={1}>Check-in: {contractData.startDate}</Text>
         <Text flex={1}>Check-out: {contractData.endDate}</Text>
@@ -217,7 +212,11 @@ export default function TotalCostCalculation ({
         </Text>
         <Text flex={1}>Season: {seasonName}</Text>
       </HStack>
-      <Text>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
+      <HStack spacing={2}>
+        <Text flex={1}>Total Divers: {contractData.numDivers}</Text>
+        <Text flex={1}>Total Non-Divers: {totalGuests - contractData.numDivers || 0}</Text>
+      </HStack>
+
       {/* Room Breakdown */}
       <Text fontWeight='bold'>Room Breakdown:</Text>
       {roomCosts.map((roomCost, index) => (
@@ -225,30 +224,36 @@ export default function TotalCostCalculation ({
           {roomCost.description}: ${roomCost.cost.toFixed(2)}
         </Text>
       ))}
-
-      <Text>Total Guests: {totalGuests}</Text>
-
       <HStack spacing={2}>
-        <Text flex={1}>Total Divers: {contractData.numDivers}</Text>
-        <Text flex={1}>
-          Total Non-Divers: {totalGuests - (contractData.numDivers || 0)}
-        </Text>
+        <Text flex={1}>Total Hotel Guests: {totalGuests}</Text>
+        <Text flex={1}>Total Hotel FOC: </Text>
       </HStack>
+      <Text>Total Room Cost: </Text>
+      <Text>Total Room Commission</Text>
 
-      {divePackage && (
-        <Text>
-          Dive Package ({divePackage.name}): ${divePackageCost.toFixed(2)}
-        </Text>
+      {/* Meal Package Breakdown */}
+      {mealPackage && (
+        <VStack align="start" spacing={4}>
+          <Text>
+            <Text as="span" fontWeight="bold">Meal Package Selected:</Text> {mealPackage.name}
+          </Text>
+          <Text>Total Meal Package Cost: ${mealPackageCost.toFixed(2)}</Text>
+          <Text>Commission on Meal Package: ${(mealPackageCost * commissionRate).toFixed(2)}</Text>
+        </VStack>
       )}
 
-      {mealPackage && (
-        <Text>
-          Meal Package ({mealPackage.name}): ${mealPackageCost.toFixed(2)}
-        </Text>
+      {/* Diving Breakdown */}
+      {divePackage && (
+        <VStack align="start" spacing={4}>
+          <Text>
+            <Text as="span" fontWeight="bold">Dive Package Selected:</Text> {divePackage.name}
+          </Text>
+          <Text>Total Dive Package Cost: ${divePackageCost.toFixed(2)}</Text>
+          <Text>Commission on Dive Package: ${(divePackageCost * commissionRate).toFixed(2)}</Text>
+        </VStack>
       )}
 
       <Text fontWeight='bold'>Gross Cost: ${totalCost.toFixed(2)}</Text>
-
 
       <Text>Commission Amount: ${commissionAmount.toFixed(2)}</Text>
 
