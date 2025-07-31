@@ -6,15 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="849ceef4-7e4c-4626-b530-6613bc94e25a" name="Changes" comment="Add rates implemented. Needs fine tuning.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/DivePackageSelectionForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/DivePackageSelectionForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractWizard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractWizard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractsList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/GroupContractsList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/MealPackageSelectionForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/MealPackageSelectionForm.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/RoomSelectionForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/RoomSelectionForm.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/TotalCostCalculation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/TotalCostCalculation.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/app/contracts/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/app/contracts/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract_builder/src/services/groupContracts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/contract_builder/src/services/groupContracts.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +33,7 @@
   &quot;associatedIndex&quot;: 6
 }</component>
   <component name="ProjectId" id="2mcSzFmr9hwgzwitXB30BxeFPUY" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+  <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">

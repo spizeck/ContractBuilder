@@ -50,6 +50,7 @@ export default function TotalCostCalculation ({
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
   const [commissionRate, setCommissionRate] = useState(0)
   const [commissionAmount, setCommissionAmount] = useState(0)
+  console.log(contractData)
 
   const handleConfirm = async () => {
     try {
@@ -91,7 +92,7 @@ export default function TotalCostCalculation ({
       onConfirm()
     } catch (error: any) {
       // console.error('Error saving contract:', error)
-      // console.log('contractData', contractData)
+      console.log('contractData', contractData)
       setError('An error occurred while saving the contract.')
     }
   }

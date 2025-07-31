@@ -1,20 +1,11 @@
-import { useState, useEffect } from 'react'
-import {
-  VStack,
-  HStack,
-  FormControl,
-  FormLabel,
-  Select,
-  Input,
-  Button,
-  Text
-} from '@chakra-ui/react'
-import { getRoomCategories } from '@/services/roomCategories'
-import { getRates } from '@/services/rates'
-import { getSeasons } from '@/services/seasons'
-import { parseDateStringAsUTC } from '@/utils/dateUtils'
-import { getRoomTypes } from '@/services/roomTypes'
-import { Rate, RoomCategory, Season, RoomType } from '@/types'
+import {useEffect, useState} from 'react'
+import {Button, FormControl, FormLabel, HStack, Input, Select, Text, VStack} from '@chakra-ui/react'
+import {getRoomCategories} from '@/services/roomCategories'
+import {getRates} from '@/services/rates'
+import {getSeasons} from '@/services/seasons'
+import {parseDateStringAsUTC} from '@/utils/dateUtils'
+import {getRoomTypes} from '@/services/roomTypes'
+import {Rate, RoomCategory, RoomType, Season} from '@/types'
 
 interface RoomSelection {
   categoryId: string
@@ -22,14 +13,14 @@ interface RoomSelection {
   numRooms: number
 }
 
-export default function RoomSelectionForm ({
-  hotelId,
-  startDate,
-  endDate,
-  onNext,
-  onBack,
-  initialRooms = []
-}: {
+export default function RoomSelectionForm({
+                                            hotelId,
+                                            startDate,
+                                            endDate,
+                                            onNext,
+                                            onBack,
+                                            initialRooms = []
+                                          }: {
   hotelId: string
   startDate: string
   endDate: string
@@ -118,7 +109,7 @@ export default function RoomSelectionForm ({
   const addRoomSelection = () => {
     setRoomSelections([
       ...roomSelections,
-      { categoryId: '', occupancyType: '', numRooms: 0 }
+      {categoryId: '', occupancyType: '', numRooms: 0}
     ])
   }
 
@@ -144,8 +135,7 @@ export default function RoomSelectionForm ({
       updatedSelections[index] = {
         ...updatedSelections[index],
         categoryId: value,
-        occupancyType:
-          uniqueOccupancies.length === 1 ? uniqueOccupancies[0] : ''
+        occupancyType: ''
       }
     } else {
       updatedSelections[index] = {
@@ -165,6 +155,16 @@ export default function RoomSelectionForm ({
       roomTypeQuantities[key] = (roomTypeQuantities[key] || 0) + sel.numRooms
     })
 
+    const hasInvalidSelection = roomSelections.some(
+      sel =>
+        !sel.categoryId || !sel.occupancyType || sel.numRooms <= 0
+    );
+
+    if (hasInvalidSelection) {
+      alert("Please complete all room selections before proceeding.");
+      return;
+    }
+
     for (const key in roomTypeQuantities) {
       const [categoryId, occupancyType] = key.split('-')
       const matched = roomTypes.find(
@@ -179,7 +179,7 @@ export default function RoomSelectionForm ({
       }
     }
     // console.log('Room selections are valid:', roomSelections)
-    onNext({ rooms: roomSelections })
+    onNext({rooms: roomSelections})
   }
 
   if (!seasonCheckDone) {
@@ -213,23 +213,34 @@ export default function RoomSelectionForm ({
             <FormLabel>Occupancy Type</FormLabel>
             <Select
               value={selection.occupancyType}
+              isDisabled={!selection.categoryId}
               onChange={e =>
                 updateRoomSelection(index, 'occupancyType', e.target.value)
               }
             >
-              {rates
-                .filter(
-                  rate =>
-                    rate.seasonId === selectedSeason?.id &&
-                    rate.categoryId === selection.categoryId
-                )
-                .map(rate => rate.occupancyType)
-                .filter((value, index, self) => self.indexOf(value) === index) // unique
-                .map(type => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
+              <option value=''></option>
+              {(() => {
+                const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad'];
+                return rates
+                  .filter(
+                    rate =>
+                      rate.seasonId === selectedSeason?.id &&
+                      rate.categoryId === selection.categoryId
+                  )
+                  .map(rate => rate.occupancyType)
+                  .filter((value, index, self) => self.indexOf(value) === index) // unique
+                  .sort((a, b) => {
+                    const indexA = occupancyOrder.indexOf(a);
+                    const indexB = occupancyOrder.indexOf(b);
+                    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+                  })
+                  .map(type => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ));
+              })()}
+
             </Select>
           </FormControl>
           <FormControl isRequired>
