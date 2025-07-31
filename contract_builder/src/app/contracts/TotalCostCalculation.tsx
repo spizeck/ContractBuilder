@@ -20,7 +20,8 @@ import { addGroupContract } from '@/services/groupContracts'
 import {
   calculateNumberOfNights,
   calculateTotalCost,
-  determineSeason
+  determineSeason,
+  getCommissionRate
 } from '@/utils/contractCalculations'
 
 export default function TotalCostCalculation ({
@@ -47,11 +48,13 @@ export default function TotalCostCalculation ({
   const [mealPackageCost, setMealPackageCost] = useState<number>(0)
   const [totalGuests, setTotalGuests] = useState<number>(0)
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
+  const [commissionRate, setCommissionRate] = useState(0)
+  const [commissionAmount, setCommissionAmount] = useState(0)
 
   const handleConfirm = async () => {
     try {
       // Prepare the contract data
-      const groupContract: Omit<GroupContract, "id"> = {
+      const groupContract: Omit<GroupContract, 'id'> = {
         groupName: contractData.groupName!,
         startDate: contractData.startDate!,
         endDate: contractData.endDate!,
@@ -69,30 +72,26 @@ export default function TotalCostCalculation ({
         ...(contractData.divePackageId && {
           divePackageId: contractData.divePackageId,
           divePackageName: divePackage?.name ?? null,
-          divePackageCost: divePackageCost ?? null,
+          divePackageCost: divePackageCost ?? null
         }),
         ...(contractData.mealPackageId && {
           mealPackageId: contractData.mealPackageId,
           mealPackageName: mealPackage?.name ?? null,
-          mealPackageCost: mealPackageCost ?? null,
+          mealPackageCost: mealPackageCost ?? null
         }),
         totalCost,
-        createdAt: new Date(),
+        createdAt: new Date()
         // Add other fields as needed
-      };
+      }
 
       // Save the contract to Firestore
       const contractId = await addGroupContract(groupContract)
-
-      // Optionally, display a success message or redirect the user
       alert('Contract saved successfully!')
 
-      // Proceed to the next step
       onConfirm()
     } catch (error: any) {
-      console.error('Error saving contract:', error)
-      console.log('contractData', contractData)
-
+      // console.error('Error saving contract:', error)
+      // console.log('contractData', contractData)
       setError('An error occurred while saving the contract.')
     }
   }
@@ -163,6 +162,12 @@ export default function TotalCostCalculation ({
         )
 
         setTotalCost(totalCost)
+
+        const commissionRate = getCommissionRate(contractData.bookingType!)
+        const commissionAmount = totalCost * commissionRate
+
+        setCommissionRate(commissionRate)
+        setCommissionAmount(commissionAmount)
         setRoomCosts(roomCosts)
         setDivePackageCost(divePackageCost)
         setMealPackageCost(mealPackageCost)
@@ -242,6 +247,10 @@ export default function TotalCostCalculation ({
       )}
 
       <Text fontWeight='bold'>Total Cost: ${totalCost.toFixed(2)}</Text>
+
+      <Text>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
+      <Text>Commission Amount: ${commissionAmount.toFixed(2)}</Text>
+
       <HStack spacing={2}>
         <Button onClick={onBack} flex={1}>
           Back

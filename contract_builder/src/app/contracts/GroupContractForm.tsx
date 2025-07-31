@@ -1,77 +1,96 @@
-import {useEffect, useState} from "react";
-import {Button, FormControl, FormLabel, HStack, Input, Select, VStack,} from "@chakra-ui/react";
-import {getHotels} from "@/services/hotels";
-import {Hotel} from "@/types";
+import { useEffect, useState } from 'react'
+import {
+  Button,
+  FormControl,
+  FormLabel,
+  HStack,
+  Input,
+  Select,
+  VStack
+} from '@chakra-ui/react'
+import { getHotels } from '@/services/hotels'
+import { Hotel } from '@/types'
 
 interface GroupContractData {
-  groupName: string;
-  startDate: string;
-  endDate: string;
-  hotelId: string;
-  bookingType: string;
+  groupName: string
+  startDate: string
+  endDate: string
+  hotelId: string
+  bookingType: string
 }
 
-export default function GroupContractForm({
-                                            initialData,
-                                            onNext,
-                                            onCancel,
-                                          }: {
-  initialData?: Partial<GroupContractData>;
-  onNext: (data: GroupContractData) => void;
-  onCancel: () => void;
+export default function GroupContractForm ({
+  initialData,
+  onNext,
+  onCancel
+}: {
+  initialData?: Partial<GroupContractData>
+  onNext: (data: GroupContractData) => void
+  onCancel: () => void
 }) {
-  const [groupName, setGroupName] = useState(initialData?.groupName || "");
-  const [startDate, setStartDate] = useState(initialData?.startDate || "");
-  const [endDate, setEndDate] = useState(initialData?.endDate || "");
-  const [hotelId, setHotelId] = useState(initialData?.hotelId || "");
-  const [bookingType, setBookingType] = useState(initialData?.bookingType || "");
+  const [groupName, setGroupName] = useState(initialData?.groupName || '')
+  const [startDate, setStartDate] = useState(initialData?.startDate || '')
+  const [endDate, setEndDate] = useState(initialData?.endDate || '')
+  const [hotelId, setHotelId] = useState(initialData?.hotelId || '')
+  const [bookingType, setBookingType] = useState(initialData?.bookingType || '')
 
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([])
 
   useEffect(() => {
-    fetchHotels();
-  }, []);
+    fetchHotels()
+  }, [])
 
   const fetchHotels = async () => {
-    const hotelsData = await getHotels();
-    setHotels(hotelsData);
-  };
+    const hotelsData = await getHotels()
+    setHotels(hotelsData)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!groupName || !startDate || !endDate || !hotelId || !bookingType) {
-      alert("Please fill in all required fields.");
-      return;
+      alert('Please fill in all required fields.')
+      return
     }
     onNext({
       groupName,
       startDate,
       endDate,
       hotelId,
-      bookingType,
-    });
-  };
+      bookingType
+    })
+  }
 
   return (
     <form onSubmit={handleSubmit}>
-      <VStack spacing={4} align="stretch">
+      <VStack spacing={4} align='stretch'>
         <FormControl isRequired>
           <FormLabel>Group Name</FormLabel>
-          <Input value={groupName} onChange={(e) => setGroupName(e.target.value)}/>
+          <Input
+            value={groupName}
+            onChange={e => setGroupName(e.target.value)}
+          />
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Start Date</FormLabel>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}/>
+          <Input
+            type='date'
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+          />
         </FormControl>
         <FormControl isRequired>
           <FormLabel>End Date</FormLabel>
-          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}/>
+          <Input
+            type='date'
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+          />
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Hotel</FormLabel>
-          <Select value={hotelId} onChange={(e) => setHotelId(e.target.value)}>
-            <option value="">Select a hotel</option>
-            {hotels.map((hotel) => (
+          <Select value={hotelId} onChange={e => setHotelId(e.target.value)}>
+            <option value=''>Select a hotel</option>
+            {hotels.map(hotel => (
               <option key={hotel.id} value={hotel.id}>
                 {hotel.name}
               </option>
@@ -80,19 +99,26 @@ export default function GroupContractForm({
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Booking Type</FormLabel>
-          <Select value={bookingType} onChange={(e) => setBookingType(e.target.value)}>
-            <option value="">Select booking type</option>
-            <option value="tourOperator">Tour Operator</option>
-            <option value="diveShop">Dive Shop</option>
+          <Select
+            value={bookingType}
+            onChange={e => setBookingType(e.target.value)}
+          >
+            <option value=''>Select booking type</option>
+            <option value='diveShop10'>Dive Shop 10%</option>
+            <option value='diveShop15'>Dive Shop 15%</option>
+            <option value='tourOperator20'>Tour Operator 20%</option>
+            <option value='tourOperator25'>Tour Operator 25%</option>
           </Select>
         </FormControl>
         <HStack spacing={2} width={'100%'}>
-          <Button onClick={onCancel} flex={1}>Cancel</Button>
-          <Button type="submit" colorScheme="teal" flex={1}>
+          <Button onClick={onCancel} flex={1}>
+            Cancel
+          </Button>
+          <Button type='submit' colorScheme='teal' flex={1}>
             Next
           </Button>
         </HStack>
       </VStack>
     </form>
-  );
+  )
 }
