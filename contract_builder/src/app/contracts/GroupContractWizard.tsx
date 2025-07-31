@@ -46,6 +46,8 @@ export default function GroupContractWizard ({
       return (
         <DivePackageSelectionForm
           hotelId={contractData.hotelId}
+          initialDivePackageId={contractData.divePackageId}
+          initialNumDivers={contractData.numDivers}
           onNext={nextStep}
           onBack={prevStep}
         />
@@ -54,6 +56,7 @@ export default function GroupContractWizard ({
       return (
         <MealPackageSelectionForm
           hotelId={contractData.hotelId}
+          initialMealPackageId={contractData.mealPackageId}
           onNext={nextStep}
           onBack={prevStep}
         />
