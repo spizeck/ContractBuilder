@@ -27,18 +27,21 @@ export default function RoomSelectionForm ({
   startDate,
   endDate,
   onNext,
-  onBack
+  onBack,
+  initialRooms = []
 }: {
   hotelId: string
   startDate: string
   endDate: string
   onNext: (data: { rooms: RoomSelection[] }) => void
   onBack: () => void
+  initialRooms?: RoomSelection[]
 }) {
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
   const [rates, setRates] = useState<Rate[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
-  const [roomSelections, setRoomSelections] = useState<RoomSelection[]>([])
+  const [roomSelections, setRoomSelections] =
+    useState<RoomSelection[]>(initialRooms)
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null)
   const [seasonCheckDone, setSeasonCheckDone] = useState(false)
@@ -104,8 +107,6 @@ export default function RoomSelectionForm ({
     }
   }, [seasons, startDate, endDate, onBack])
 
-  const occupancyTypes = ['Single', 'Double', 'Triple', 'Quad']
-
   const availableCategoryIds = rates
     .filter(rate => rate.seasonId === selectedSeason?.id)
     .map(rate => rate.categoryId)
@@ -121,12 +122,38 @@ export default function RoomSelectionForm ({
     ])
   }
 
+  const removeRoomSelection = (index: number) => {
+    const updatedSelections = [...roomSelections]
+    updatedSelections.splice(index, 1)
+    setRoomSelections(updatedSelections)
+  }
+
   const updateRoomSelection = (index: number, field: string, value: any) => {
     const updatedSelections = [...roomSelections]
-    updatedSelections[index] = {
-      ...updatedSelections[index],
-      [field]: field === 'numRooms' ? parseInt(value) : value
+
+    if (field === 'categoryId') {
+      const matchingRates = rates.filter(
+        rate =>
+          rate.seasonId === selectedSeason?.id && rate.categoryId === value
+      )
+
+      const uniqueOccupancies = Array.from(
+        new Set(matchingRates.map(rate => rate.occupancyType))
+      )
+
+      updatedSelections[index] = {
+        ...updatedSelections[index],
+        categoryId: value,
+        occupancyType:
+          uniqueOccupancies.length === 1 ? uniqueOccupancies[0] : ''
+      }
+    } else {
+      updatedSelections[index] = {
+        ...updatedSelections[index],
+        [field]: field === 'numRooms' ? parseInt(value) : value
+      }
     }
+
     setRoomSelections(updatedSelections)
   }
 
@@ -151,7 +178,7 @@ export default function RoomSelectionForm ({
         return
       }
     }
-
+    // console.log('Room selections are valid:', roomSelections)
     onNext({ rooms: roomSelections })
   }
 
@@ -215,6 +242,13 @@ export default function RoomSelectionForm ({
               }
             />
           </FormControl>
+          <Button
+            onClick={() => removeRoomSelection(index)}
+            colorScheme='red'
+            alignSelf='flex-end'
+          >
+            X
+          </Button>
         </HStack>
       ))}
       <Button onClick={addRoomSelection}>Add Another Room</Button>
