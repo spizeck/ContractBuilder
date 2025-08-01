@@ -39,6 +39,8 @@ export interface Hotel {
   contactInfo: string;
   amenities: string;
   policies: string;
+  focRule?: string; // Free of Charge rule, e.g. "7+1"
+  mealCommissionRate?: number; // Commission rate for meal packages
 }
 
 export interface RoomCategory {
