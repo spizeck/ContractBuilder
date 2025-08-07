@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 import {
   VStack,
   HStack,
@@ -10,127 +10,142 @@ import {
   Th,
   Td,
   Input,
-  Select,
-} from "@chakra-ui/react";
+  Select
+} from '@chakra-ui/react'
 import {
   getGroupContracts,
-  deleteGroupContract,
+  deleteGroupContract
+} from '@/services/groupContracts'
+import { getHotels } from '@/services/hotels'
+import { GroupContract, Hotel } from '@/types'
 
-} from "@/services/groupContracts";
-import { getHotels } from "@/services/hotels";
-import {GroupContract, Hotel} from "@/types";
-
-export default function GroupContractsList({
+export default function GroupContractsList ({
   onBack,
   onCreateNew,
+  onEditContract
 }: {
-  onBack: () => void;
-  onCreateNew: () => void;
+  onBack: () => void
+  onCreateNew: () => void
+  onEditContract: (contract: any) => void
 }) {
-  const [contracts, setContracts] = useState<GroupContract[]>([]);
-  const [filteredContracts, setFilteredContracts] = useState<GroupContract[]>([]);
-  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [contracts, setContracts] = useState<GroupContract[]>([])
+  const [filteredContracts, setFilteredContracts] = useState<GroupContract[]>(
+    []
+  )
+  const [hotels, setHotels] = useState<Hotel[]>([])
   const [filters, setFilters] = useState<{
-    groupName: string;
-    hotelId: string;
-    startDate: string;
+    groupName: string
+    hotelId: string
+    startDate: string
   }>({
-    groupName: "",
-    hotelId: "",
-    startDate: "",
-  });
+    groupName: '',
+    hotelId: '',
+    startDate: ''
+  })
 
   useEffect(() => {
-    fetchContracts();
-    fetchHotels();
-  }, []);
+    fetchContracts()
+    fetchHotels()
+  }, [])
 
   const fetchContracts = async () => {
-    const contractsData = await getGroupContracts();
-    setContracts(contractsData);
-    setFilteredContracts(contractsData);
-  };
+    const contractsData = await getGroupContracts()
+    setContracts(contractsData)
+    setFilteredContracts(contractsData)
+  }
 
   const fetchHotels = async () => {
-    const hotelsData = await getHotels();
-    setHotels(hotelsData);
-  };
+    const hotelsData = await getHotels()
+    setHotels(hotelsData)
+  }
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    const updatedFilters = { ...filters, [name]: value };
-    setFilters(updatedFilters);
-    applyFilters(updatedFilters);
-  };
+    const { name, value } = e.target
+    const updatedFilters = { ...filters, [name]: value }
+    setFilters(updatedFilters)
+    applyFilters(updatedFilters)
+  }
 
   const applyFilters = (updatedFilters: typeof filters) => {
-    let filtered = contracts;
+    let filtered = contracts
 
     if (updatedFilters.groupName) {
-      filtered = filtered.filter((contract) =>
-        contract.groupName.toLowerCase().includes(updatedFilters.groupName.toLowerCase())
-      );
+      filtered = filtered.filter(contract =>
+        contract.groupName
+          .toLowerCase()
+          .includes(updatedFilters.groupName.toLowerCase())
+      )
     }
     if (updatedFilters.hotelId) {
-      filtered = filtered.filter((contract) => contract.hotelId === updatedFilters.hotelId);
+      filtered = filtered.filter(
+        contract => contract.hotelId === updatedFilters.hotelId
+      )
     }
     if (updatedFilters.startDate) {
-      filtered = filtered.filter((contract) => contract.startDate === updatedFilters.startDate);
+      filtered = filtered.filter(
+        contract => contract.startDate === updatedFilters.startDate
+      )
     }
 
-    setFilteredContracts(filtered);
-  };
+    setFilteredContracts(filtered)
+  }
+
+function parseCreatedAt(dateStr: unknown): Date {
+  if (typeof dateStr !== 'string' || !dateStr) return new Date(NaN); // Always return a Date
+  const cleaned = dateStr.replace(' at ', ', ').replace('UTC', 'GMT');
+  return new Date(cleaned);
+}
 
   const handleDeleteContract = async (contractId: string) => {
-    if (confirm("Are you sure you want to delete this contract?")) {
-      await deleteGroupContract(contractId);
-      fetchContracts();
+    if (confirm('Are you sure you want to archive this contract?')) {
+      await deleteGroupContract(contractId)
+      fetchContracts()
     }
-  };
+  }
 
   const getHotelName = (hotelId: string) => {
-    const hotel = hotels.find((h) => h.id === hotelId);
-    return hotel ? hotel.name : "Unknown";
-  };
+    const hotel = hotels.find(h => h.id === hotelId)
+    return hotel ? hotel.name : 'Unknown'
+  }
 
   return (
-    <VStack spacing={4} align="stretch">
-      <HStack justifyContent="space-between">
+    <VStack spacing={4} align='stretch'>
+      <HStack justifyContent='space-between'>
         <Button onClick={onBack}>Back</Button>
-        <Button colorScheme="teal" onClick={onCreateNew}>
+        <Button colorScheme='teal' onClick={onCreateNew}>
           Create New Contract
         </Button>
       </HStack>
       <HStack spacing={2}>
         <Input
-          placeholder="Filter by Group Name"
-          name="groupName"
+          placeholder='Filter by Group Name'
+          name='groupName'
           value={filters.groupName}
           onChange={handleFilterChange}
         />
         <Select
-          placeholder="Filter by Hotel"
-          name="hotelId"
+          placeholder='Filter by Hotel'
+          name='hotelId'
           value={filters.hotelId}
           onChange={handleFilterChange}
         >
-          {hotels.map((hotel) => (
+          {hotels.map(hotel => (
             <option key={hotel.id} value={hotel.id}>
               {hotel.name}
             </option>
           ))}
         </Select>
         <Input
-          type="date"
-          placeholder="Filter by Start Date"
-          name="startDate"
+          type='date'
+          placeholder='Filter by Start Date'
+          name='startDate'
           value={filters.startDate}
           onChange={handleFilterChange}
         />
       </HStack>
-      <Table variant="simple">
+      <Table variant='simple'>
         <Thead>
           <Tr>
             <Th>Group Name</Th>
@@ -138,25 +153,32 @@ export default function GroupContractsList({
             <Th>Start Date</Th>
             <Th>End Date</Th>
             <Th>Booking Type</Th>
+            <Th>Created At</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {filteredContracts.map((contract) => (
+          {filteredContracts.map(contract => (
             <Tr key={contract.id}>
               <Td>{contract.groupName}</Td>
               <Td>{getHotelName(contract.hotelId)}</Td>
               <Td>{contract.startDate}</Td>
               <Td>{contract.endDate}</Td>
               <Td>{contract.bookingType}</Td>
+              <Td>{parseCreatedAt(contract.createdAt).toLocaleString()}</Td>
               <Td>
                 <HStack spacing={2}>
-                  <Button size="sm" onClick={() => /* Implement edit functionality */ {}}>
+                  <Button
+                    size='sm'
+                    flex='1'
+                    onClick={() => onEditContract(contract)}
+                  >
                     Edit
                   </Button>
                   <Button
-                    size="sm"
-                    colorScheme="red"
+                    size='sm'
+                    flex='1'
+                    colorScheme='red'
                     onClick={() => handleDeleteContract(contract.id)}
                   >
                     Delete
@@ -168,5 +190,5 @@ export default function GroupContractsList({
         </Tbody>
       </Table>
     </VStack>
-  );
+  )
 }

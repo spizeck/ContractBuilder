@@ -8,6 +8,7 @@ export interface ContractData {
   divePackageId?: string;
   numDivers?: number;
   mealPackageId?: string;
+  createdAt?: Date;
 }
 
 export interface RoomSelection {

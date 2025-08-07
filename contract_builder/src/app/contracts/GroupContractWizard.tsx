@@ -6,12 +6,14 @@ import MealPackageSelectionForm from './MealPackageSelectionForm'
 import TotalCostCalculation from './TotalCostCalculation'
 
 export default function GroupContractWizard ({
-  onCancel
+  onCancel,
+  initialData = null
 }: {
   onCancel: () => void
+  initialData?: any
 }) {
-  const [step, setStep] = useState(1)
-  const [contractData, setContractData] = useState<any>({})
+  const [step, setStep] = useState(initialData ? 5 : 1)
+  const [contractData, setContractData] = useState<any>(initialData || {})
 
   const nextStep = (data: any) => {
     setContractData({ ...contractData, ...data })
