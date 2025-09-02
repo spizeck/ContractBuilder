@@ -1,4 +1,5 @@
 export interface ContractData {
+  id?: string;
   groupName?: string;
   startDate?: string;
   endDate?: string;
@@ -75,6 +76,7 @@ export interface GroupContract {
   mealPackageCost?: number | null;
   totalCost: number;
   createdAt: Date;
+  archived: boolean;
   // Add other fields as needed
 }
 

@@ -16,7 +16,7 @@ import { getDivePackageById } from '@/services/divePackages'
 import { getMealPackageById } from '@/services/mealPackages'
 import { getHotelById, parseFocRule } from '@/services/hotels'
 import { getRoomCategories } from '@/services/roomCategories'
-import { addGroupContract } from '@/services/groupContracts'
+import { addGroupContract, archiveGroupContract } from '@/services/groupContracts'
 import {
   calculateNumberOfNights,
   calculateTotalCost,
@@ -50,7 +50,12 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
   const handleConfirm = async () => {
     try {
+      if (contractData.id) {
+        await archiveGroupContract(contractData.id)
+      }
+
       const groupContract: Omit<GroupContract, 'id'> = {
+        archived: false,
         groupName: contractData.groupName!,
         startDate: contractData.startDate!,
         endDate: contractData.endDate!,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Timestamp } from 'firebase/firestore'
 import {
   VStack,
   HStack,
@@ -14,7 +15,8 @@ import {
 } from '@chakra-ui/react'
 import {
   getGroupContracts,
-  deleteGroupContract
+  archiveGroupContract,
+  formatBookingType
 } from '@/services/groupContracts'
 import { getHotels } from '@/services/hotels'
 import { GroupContract, Hotel } from '@/types'
@@ -50,8 +52,9 @@ export default function GroupContractsList ({
 
   const fetchContracts = async () => {
     const contractsData = await getGroupContracts()
-    setContracts(contractsData)
-    setFilteredContracts(contractsData)
+    const activeContracts = contractsData.filter(c => !c.archived)
+    setContracts(activeContracts)
+    setFilteredContracts(activeContracts)
   }
 
   const fetchHotels = async () => {
@@ -92,15 +95,32 @@ export default function GroupContractsList ({
     setFilteredContracts(filtered)
   }
 
-function parseCreatedAt(dateStr: unknown): Date {
-  if (typeof dateStr !== 'string' || !dateStr) return new Date(NaN); // Always return a Date
-  const cleaned = dateStr.replace(' at ', ', ').replace('UTC', 'GMT');
-  return new Date(cleaned);
-}
+  function parseCreatedAt (dateVal: any): Date {
+    if (!dateVal) return new Date(NaN)
 
-  const handleDeleteContract = async (contractId: string) => {
+    if (dateVal instanceof Timestamp) {
+      return dateVal.toDate()
+    }
+
+    if (dateVal instanceof Date) {
+      return dateVal
+    }
+
+    if (
+      typeof dateVal === 'object' &&
+      typeof dateVal.seconds === 'number' &&
+      typeof dateVal.nanoseconds === 'number'
+    ) {
+      return new Date(dateVal.seconds * 1000)
+    }
+
+    const parsed = new Date(dateVal)
+    return isNaN(parsed.getTime()) ? new Date(NaN) : parsed
+  }
+
+  const handleArchiveContract = async (contractId: string) => {
     if (confirm('Are you sure you want to archive this contract?')) {
-      await deleteGroupContract(contractId)
+      await archiveGroupContract(contractId)
       fetchContracts()
     }
   }
@@ -164,7 +184,7 @@ function parseCreatedAt(dateStr: unknown): Date {
               <Td>{getHotelName(contract.hotelId)}</Td>
               <Td>{contract.startDate}</Td>
               <Td>{contract.endDate}</Td>
-              <Td>{contract.bookingType}</Td>
+              <Td>{formatBookingType(contract.bookingType)}</Td>
               <Td>{parseCreatedAt(contract.createdAt).toLocaleString()}</Td>
               <Td>
                 <HStack spacing={2}>
@@ -179,9 +199,9 @@ function parseCreatedAt(dateStr: unknown): Date {
                     size='sm'
                     flex='1'
                     colorScheme='red'
-                    onClick={() => handleDeleteContract(contract.id)}
+                    onClick={() => handleArchiveContract(contract.id)}
                   >
-                    Delete
+                    Archive
                   </Button>
                 </HStack>
               </Td>
