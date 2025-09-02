@@ -16,7 +16,10 @@ import { getDivePackageById } from '@/services/divePackages'
 import { getMealPackageById } from '@/services/mealPackages'
 import { getHotelById, parseFocRule } from '@/services/hotels'
 import { getRoomCategories } from '@/services/roomCategories'
-import { addGroupContract, archiveGroupContract } from '@/services/groupContracts'
+import {
+  addGroupContract,
+  archiveGroupContract
+} from '@/services/groupContracts'
 import {
   calculateNumberOfNights,
   calculateTotalCost,
@@ -24,7 +27,15 @@ import {
   getCommissionRate
 } from '@/utils/contractCalculations'
 
-export default function TotalCostCalculation({ contractData, onConfirm, onBack }: { contractData: ContractData; onConfirm: () => void; onBack: () => void }) {
+export default function TotalCostCalculation ({
+  contractData,
+  onConfirm,
+  onBack
+}: {
+  contractData: ContractData
+  onConfirm: () => void
+  onBack: () => void
+}) {
   const [totalCost, setTotalCost] = useState<number>(0)
   const [seasonName, setSeasonName] = useState<string>('Calculating...')
   const [season, setSeason] = useState<Season | null>(null)
@@ -33,7 +44,9 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
   const [mealPackage, setMealPackage] = useState<MealPackage | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
-  const [roomCosts, setRoomCosts] = useState<{ description: string; cost: number }[]>([])
+  const [roomCosts, setRoomCosts] = useState<
+    { description: string; cost: number }[]
+  >([])
   const [divePackageCost, setDivePackageCost] = useState<number>(0)
   const [mealPackageCost, setMealPackageCost] = useState<number>(0)
   const [totalGuests, setTotalGuests] = useState<number>(0)
@@ -43,7 +56,8 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
   const [totalFreeRooms, setTotalFreeRooms] = useState<number>(0)
   const [adjustedRoomCost, setAdjustedRoomCost] = useState<number>(0)
-  const [adjustedRoomCommission, setAdjustedRoomCommission] = useState<number>(0)
+  const [adjustedRoomCommission, setAdjustedRoomCommission] =
+    useState<number>(0)
   const [diveCommission, setDiveCommission] = useState<number>(0)
   const [mealCommission, setMealCommission] = useState<number>(0)
   const [divingFocCount, setDivingFocCount] = useState<number>(0)
@@ -94,9 +108,13 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
   }
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData () {
       try {
-        if (!contractData.hotelId || !contractData.startDate || !contractData.endDate) {
+        if (
+          !contractData.hotelId ||
+          !contractData.startDate ||
+          !contractData.endDate
+        ) {
           setError('Missing required contract data.')
           return
         }
@@ -108,7 +126,11 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
         setRoomCategories(categories)
 
         const seasons = await getSeasons(contractData.hotelId!)
-        const seasonResult = determineSeason(contractData.startDate!, contractData.endDate!, seasons)
+        const seasonResult = determineSeason(
+          contractData.startDate!,
+          contractData.endDate!,
+          seasons
+        )
         setSeasonName(seasonResult.name)
         setSeason(seasonResult)
 
@@ -127,8 +149,19 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
           setMealPackage(mealPkg)
         }
 
-        const { totalCost, roomCosts, divePackageCost, mealPackageCost, totalGuests } = await calculateTotalCost(
-          contractData, seasonResult, ratesData, divePkg, mealPkg, categories
+        const {
+          totalCost,
+          roomCosts,
+          divePackageCost,
+          mealPackageCost,
+          totalGuests
+        } = await calculateTotalCost(
+          contractData,
+          seasonResult,
+          ratesData,
+          divePkg,
+          mealPkg,
+          categories
         )
 
         setTotalCost(totalCost)
@@ -142,16 +175,20 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
         setTotalGuests(totalGuests)
 
         const roomFoc = parseFocRule(hotelData?.focRule)
+        const focDenominator = roomFoc.paid + roomFoc.free
         const divingFoc = { paid: 7, free: 1 }
 
-        const calculatedFreeRooms = Math.floor(totalGuests / (roomFoc.paid + roomFoc.free))
+        const calculatedFreeRooms =
+          focDenominator > 0 ? Math.floor(totalGuests / focDenominator) : 0
         setTotalFreeRooms(calculatedFreeRooms)
 
         const roomTotal = roomCosts.reduce((sum, rc) => sum + rc.cost, 0)
         setAdjustedRoomCost(roomTotal)
         setAdjustedRoomCommission(roomTotal * commissionRate)
 
-        const focDivers = Math.floor((contractData.numDivers || 0) / (divingFoc.paid + divingFoc.free))
+        const focDivers = Math.floor(
+          (contractData.numDivers || 0) / (divingFoc.paid + divingFoc.free)
+        )
         setDivingFocCount(focDivers)
         const adjustedNumDivers = (contractData.numDivers || 0) - focDivers
         const diveTotal = (divePkg?.price || 0) * adjustedNumDivers
@@ -183,11 +220,15 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
   return (
     <VStack spacing={4} align='stretch'>
-      <Text fontSize='xl' fontWeight='bold'>Review and Confirm details for: {contractData.groupName}</Text>
+      <Text fontSize='xl' fontWeight='bold'>
+        Review and Confirm details for: {contractData.groupName}
+      </Text>
 
       <HStack spacing={2}>
         <Text flex={1}>Hotel: {hotel.name}</Text>
-        <Text flex={1}>Commission Rate: {(commissionRate * 100).toFixed(0)}%</Text>
+        <Text flex={1}>
+          Commission Rate: {(commissionRate * 100).toFixed(0)}%
+        </Text>
       </HStack>
 
       <HStack spacing={2}>
@@ -196,18 +237,28 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
       </HStack>
 
       <HStack spacing={2}>
-        <Text flex={1}>Number of Nights: {calculateNumberOfNights(contractData.startDate!, contractData.endDate!)}</Text>
+        <Text flex={1}>
+          Number of Nights:{' '}
+          {calculateNumberOfNights(
+            contractData.startDate!,
+            contractData.endDate!
+          )}
+        </Text>
         <Text flex={1}>Season: {seasonName}</Text>
       </HStack>
 
       <HStack spacing={2}>
         <Text flex={1}>Total Divers: {contractData.numDivers}</Text>
-        <Text flex={1}>Total Non-Divers: {totalGuests - (contractData.numDivers || 0)}</Text>
+        <Text flex={1}>
+          Total Non-Divers: {totalGuests - (contractData.numDivers || 0)}
+        </Text>
       </HStack>
 
       <Text fontWeight='bold'>Room Breakdown:</Text>
       {roomCosts.map((roomCost, index) => (
-        <Text key={index}>{roomCost.description}: ${roomCost.cost.toFixed(2)}</Text>
+        <Text key={index}>
+          {roomCost.description}: ${roomCost.cost.toFixed(2)}
+        </Text>
       ))}
 
       <HStack spacing={2}>
@@ -220,7 +271,12 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
       {mealPackage && (
         <VStack align='start' spacing={4}>
-          <Text><Text as='span' fontWeight='bold'>Meal Package Selected:</Text> {mealPackage.name}</Text>
+          <Text>
+            <Text as='span' fontWeight='bold'>
+              Meal Package Selected:
+            </Text>{' '}
+            {mealPackage.name}
+          </Text>
           <Text>Gross Meal Package Cost: ${mealPackageCost.toFixed(2)}</Text>
           <Text>Commission on Meal Package: ${mealCommission.toFixed(2)}</Text>
         </VStack>
@@ -228,7 +284,12 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
       {divePackage && (
         <VStack align='start' spacing={4}>
-          <Text><Text as='span' fontWeight='bold'>Dive Package Selected:</Text> {divePackage.name}</Text>
+          <Text>
+            <Text as='span' fontWeight='bold'>
+              Dive Package Selected:
+            </Text>{' '}
+            {divePackage.name}
+          </Text>
           <Text>Gross Dive Package Cost: ${divePackageCost.toFixed(2)}</Text>
           <Text>Commission on Dive Package: ${diveCommission.toFixed(2)}</Text>
         </VStack>
@@ -236,13 +297,30 @@ export default function TotalCostCalculation({ contractData, onConfirm, onBack }
 
       <Text fontWeight='bold'>Total Cost Breakdown:</Text>
       <Text>Gross Cost: ${totalCost.toFixed(2)}</Text>
-      <Text>Total Commission: ${(adjustedRoomCommission + mealCommission + diveCommission).toFixed(2)}</Text>
-      <Text>Total FOC Value: ${(divePackage?.price || 0) * divingFocCount}</Text>
-      <Text fontWeight='bold'>Net Cost: ${(totalCost - adjustedRoomCommission - mealCommission - diveCommission).toFixed(2)}</Text>
+      <Text>
+        Total Commission: $
+        {(adjustedRoomCommission + mealCommission + diveCommission).toFixed(2)}
+      </Text>
+      <Text>
+        Total FOC Value: ${(divePackage?.price || 0) * divingFocCount}
+      </Text>
+      <Text fontWeight='bold'>
+        Net Cost: $
+        {(
+          totalCost -
+          adjustedRoomCommission -
+          mealCommission -
+          diveCommission
+        ).toFixed(2)}
+      </Text>
 
       <HStack spacing={2}>
-        <Button onClick={onBack} flex={1}>Back</Button>
-        <Button colorScheme='teal' onClick={handleConfirm} flex={1}>Save</Button>
+        <Button onClick={onBack} flex={1}>
+          Back
+        </Button>
+        <Button colorScheme='teal' onClick={handleConfirm} flex={1}>
+          Save
+        </Button>
       </HStack>
     </VStack>
   )
