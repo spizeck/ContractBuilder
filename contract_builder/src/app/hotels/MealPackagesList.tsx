@@ -1,6 +1,5 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from 'react'
 import {
-  Box,
   Text,
   VStack,
   HStack,
@@ -10,61 +9,58 @@ import {
   Tbody,
   Tr,
   Th,
-  Td,
-} from "@chakra-ui/react";
-import {
-  getMealPackages,
-  deleteMealPackage,
+  Td
+} from '@chakra-ui/react'
+import { getMealPackages, deleteMealPackage } from '@/services/mealPackages'
+import AddEditMealPackageForm from './AddEditMealPackageForm'
+import { MealPackage } from '@/types'
 
-} from "@/services/mealPackages";
-import AddEditMealPackageForm from "./AddEditMealPackageForm";
-import {MealPackage} from "@/types";
-
-export default function MealPackagesList({
-                                           hotelId,
-                                           onBack,
-                                         }: {
-  hotelId: string;
-  onBack: () => void;
+export default function MealPackagesList ({
+  hotelId,
+  onBack
+}: {
+  hotelId: string
+  onBack: () => void
 }) {
-  const [mealPackages, setMealPackages] = useState<MealPackage[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingMealPackage, setEditingMealPackage] = useState<MealPackage | null>(null);
+  const [mealPackages, setMealPackages] = useState<MealPackage[]>([])
+  const [isAdding, setIsAdding] = useState(false)
+  const [editingMealPackage, setEditingMealPackage] =
+    useState<MealPackage | null>(null)
 
   useEffect(() => {
-    fetchMealPackages();
-  }, []);
+    fetchMealPackages()
+  }, [])
 
   const fetchMealPackages = async () => {
-    const mealPackagesData = await getMealPackages(hotelId);
-    setMealPackages(mealPackagesData);
-  };
+    const mealPackagesData = await getMealPackages(hotelId)
+    setMealPackages(mealPackagesData)
+  }
 
   const handleAddMealPackage = () => {
-    setIsAdding(true);
-  };
+    setIsAdding(true)
+  }
 
   const handleEditMealPackage = (mealPackage: MealPackage) => {
-    setEditingMealPackage(mealPackage);
-  };
+    setEditingMealPackage(mealPackage)
+  }
 
   const handleDeleteMealPackage = async (mealPackageId: string) => {
-    if (confirm("Are you sure you want to delete this meal package?")) {
-      await deleteMealPackage(mealPackageId);
-      fetchMealPackages();
+    if (confirm('Are you sure you want to delete this meal package?')) {
+      await deleteMealPackage(mealPackageId)
+      fetchMealPackages()
     }
-  };
+  }
 
   const handleFormSubmit = () => {
-    setIsAdding(false);
-    setEditingMealPackage(null);
-    fetchMealPackages();
-  };
+    setIsAdding(false)
+    setEditingMealPackage(null)
+    fetchMealPackages()
+  }
 
   const handleFormCancel = () => {
-    setIsAdding(false);
-    setEditingMealPackage(null);
-  };
+    setIsAdding(false)
+    setEditingMealPackage(null)
+  }
 
   if (isAdding || editingMealPackage) {
     return (
@@ -74,14 +70,16 @@ export default function MealPackagesList({
         onCancel={handleFormCancel}
         onSubmit={handleFormSubmit}
       />
-    );
+    )
   }
 
   return (
     <VStack spacing={4} align="stretch">
       <HStack justifyContent="space-between">
         <Button onClick={onBack}>Back</Button>
-        <Text as={'b'} fontSize={"2xl"}>Meal Packages</Text>
+        <Text as={"b"} fontSize={"2xl"}>
+          Meal Packages
+        </Text>
         <Button colorScheme="teal" onClick={handleAddMealPackage}>
           Add Meal Package
         </Button>
@@ -92,6 +90,7 @@ export default function MealPackagesList({
             <Th>Name</Th>
             <Th>Description</Th>
             <Th>Price</Th>
+            <Th>Commission Rate</Th>
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -100,10 +99,22 @@ export default function MealPackagesList({
             <Tr key={mealPackage.id}>
               <Td>{mealPackage.name}</Td>
               <Td>{mealPackage.description}</Td>
-              <Td>${mealPackage.price.toFixed(2)}</Td>
+              <Td>
+                $
+                {mealPackage.price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </Td>
+              <Td textAlign={"center"}>
+                {(mealPackage.commissionRate * 100).toFixed(0)} %
+              </Td>
               <Td>
                 <HStack spacing={2}>
-                  <Button size="sm" onClick={() => handleEditMealPackage(mealPackage)}>
+                  <Button
+                    size="sm"
+                    onClick={() => handleEditMealPackage(mealPackage)}
+                  >
                     Edit
                   </Button>
                   <Button

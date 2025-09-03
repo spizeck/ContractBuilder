@@ -257,7 +257,10 @@ export default function TotalCostCalculation ({
       <Text fontWeight='bold'>Room Breakdown:</Text>
       {roomCosts.map((roomCost, index) => (
         <Text key={index}>
-          {roomCost.description}: ${roomCost.cost.toFixed(2)}
+          {roomCost.description}: ${roomCost.cost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
         </Text>
       ))}
 
@@ -266,8 +269,14 @@ export default function TotalCostCalculation ({
         <Text flex={1}>Total Hotel FOC: {totalFreeRooms}</Text>
       </HStack>
 
-      <Text>Gross Room Cost: ${adjustedRoomCost.toFixed(2)}</Text>
-      <Text>Total Room Commission: ${adjustedRoomCommission.toFixed(2)}</Text>
+      <Text>Gross Room Cost: ${adjustedRoomCost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
+      <Text>Total Room Commission: ${adjustedRoomCommission.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
 
       {mealPackage && (
         <VStack align='start' spacing={4}>
@@ -277,8 +286,14 @@ export default function TotalCostCalculation ({
             </Text>{' '}
             {mealPackage.name}
           </Text>
-          <Text>Gross Meal Package Cost: ${mealPackageCost.toFixed(2)}</Text>
-          <Text>Commission on Meal Package: ${mealCommission.toFixed(2)}</Text>
+          <Text>Gross Meal Package Cost: ${mealPackageCost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
+          <Text>Commission on Meal Package: ${mealCommission.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
         </VStack>
       )}
 
@@ -290,16 +305,28 @@ export default function TotalCostCalculation ({
             </Text>{' '}
             {divePackage.name}
           </Text>
-          <Text>Gross Dive Package Cost: ${divePackageCost.toFixed(2)}</Text>
-          <Text>Commission on Dive Package: ${diveCommission.toFixed(2)}</Text>
+          <Text>Gross Dive Package Cost: ${divePackageCost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
+          <Text>Commission on Dive Package: ${diveCommission.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
         </VStack>
       )}
 
       <Text fontWeight='bold'>Total Cost Breakdown:</Text>
-      <Text>Gross Cost: ${totalCost.toFixed(2)}</Text>
+      <Text>Gross Cost: ${totalCost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</Text>
       <Text>
         Total Commission: $
-        {(adjustedRoomCommission + mealCommission + diveCommission).toFixed(2)}
+        {(adjustedRoomCommission + mealCommission + diveCommission).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
       </Text>
       <Text>
         Total FOC Value: ${(divePackage?.price || 0) * divingFocCount}
@@ -311,7 +338,10 @@ export default function TotalCostCalculation ({
           adjustedRoomCommission -
           mealCommission -
           diveCommission
-        ).toFixed(2)}
+        ).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
       </Text>
 
       <HStack spacing={2}>

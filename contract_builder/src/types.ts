@@ -31,6 +31,7 @@ export interface MealPackage {
   name: string;
   description: string;
   price: number; // Price per person total
+  commissionRate: number; // Commission rate as a decimal (e.g., 0.1 for 10%)
 }
 
 export interface Hotel {
