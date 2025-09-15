@@ -1,31 +1,16 @@
-import { useEffect, useState } from 'react'
-import { Timestamp } from 'firebase/firestore'
-import {
-  VStack,
-  HStack,
-  Button,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Input,
-  Select
-} from '@chakra-ui/react'
-import {
-  getGroupContracts,
-  archiveGroupContract,
-  formatBookingType
-} from '@/services/groupContracts'
-import { getHotels } from '@/services/hotels'
-import { GroupContract, Hotel } from '@/types'
+import {useEffect, useState} from 'react'
+import NextLink from 'next/link'
+import {Timestamp} from 'firebase/firestore'
+import {Button, HStack, Input, Select, Table, Tbody, Td, Th, Thead, Tr, VStack} from '@chakra-ui/react'
+import {archiveGroupContract, formatBookingType, getGroupContracts} from '@/services/groupContracts'
+import {getHotels} from '@/services/hotels'
+import {GroupContract, Hotel} from '@/types'
 
-export default function GroupContractsList ({
-  onBack,
-  onCreateNew,
-  onEditContract
-}: {
+export default function GroupContractsList({
+                                             onBack,
+                                             onCreateNew,
+                                             onEditContract
+                                           }: {
   onBack: () => void
   onCreateNew: () => void
   onEditContract: (contract: any) => void
@@ -65,8 +50,8 @@ export default function GroupContractsList ({
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target
-    const updatedFilters = { ...filters, [name]: value }
+    const {name, value} = e.target
+    const updatedFilters = {...filters, [name]: value}
     setFilters(updatedFilters)
     applyFilters(updatedFilters)
   }
@@ -95,7 +80,7 @@ export default function GroupContractsList ({
     setFilteredContracts(filtered)
   }
 
-  function parseCreatedAt (dateVal: any): Date {
+  function parseCreatedAt(dateVal: any): Date {
     if (!dateVal) return new Date(NaN)
 
     if (dateVal instanceof Timestamp) {
@@ -187,7 +172,16 @@ export default function GroupContractsList ({
               <Td>{formatBookingType(contract.bookingType)}</Td>
               <Td>{parseCreatedAt(contract.createdAt).toLocaleString()}</Td>
               <Td>
-                <HStack spacing={2}>
+                <HStack spacing={3}>
+                  <Button
+                    as={NextLink}
+                    href={`/contracts/${contract.id}/view`}
+                    size={'sm'}
+                    flex='1'
+                    variant={'outline'}
+                  >
+                    View
+                  </Button>
                   <Button
                     size='sm'
                     flex='1'
