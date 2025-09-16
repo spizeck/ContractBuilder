@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -8,78 +8,93 @@ import {
   VStack,
   HStack,
   CheckboxGroup,
-  Checkbox,
-} from "@chakra-ui/react";
-import {
-  addRoomCategory,
-  updateRoomCategory,
+  Checkbox
+} from '@chakra-ui/react'
+import { addRoomCategory, updateRoomCategory } from '@/services/roomCategories'
+import { ensureRatesForCategory } from '@/services/rateSync'
+import { RoomCategory } from '@/types'
 
-} from "@/services/roomCategories";
-import {RoomCategory} from "@/types";
-
-export default function AddEditRoomCategoryForm({
+export default function AddEditRoomCategoryForm ({
   hotelId,
   category,
   onCancel,
-  onSubmit,
+  onSubmit
 }: {
-  hotelId: string;
-  category?: RoomCategory;
-  onCancel: () => void;
-  onSubmit: () => void;
+  hotelId: string
+  category?: RoomCategory
+  onCancel: () => void
+  onSubmit: () => void
 }) {
-  const [categoryData, setCategoryData] = useState<Omit<RoomCategory, "id" | "hotelId">>({
-    name: "",
-    occupancyTypes: [],
-  });
+  const [categoryData, setCategoryData] = useState<
+    Omit<RoomCategory, 'id' | 'hotelId'>
+  >({
+    name: '',
+    occupancyTypes: []
+  })
 
   useEffect(() => {
     if (category) {
       setCategoryData({
-        name: category.name || "",
-        occupancyTypes: category.occupancyTypes || [],
-      });
+        name: category.name || '',
+        occupancyTypes: category.occupancyTypes || []
+      })
     }
-  }, [category]);
+  }, [category])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCategoryData({
       ...categoryData,
-      [e.target.name]: e.target.value,
-    });
-  };
+      [e.target.name]: e.target.value
+    })
+  }
 
   const handleOccupancyChange = (values: string[]) => {
     setCategoryData({
       ...categoryData,
-      occupancyTypes: values,
-    });
-  };
+      occupancyTypes: values
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
+
+    let savedCategory: RoomCategory
 
     if (category) {
-      await updateRoomCategory(category.id, categoryData);
+      await updateRoomCategory(category.id, categoryData)
+      savedCategory = { ...category, ...categoryData }
     } else {
-      await addRoomCategory({ ...categoryData, hotelId });
+      // addRoomCategory returns the new document ID (string)
+      const newId = await addRoomCategory({ ...categoryData, hotelId })
+      savedCategory = {
+        id: newId,
+        hotelId,
+        name: categoryData.name,
+        occupancyTypes: categoryData.occupancyTypes
+      }
     }
-    onSubmit();
-  };
 
-  const occupancyOptions = ["Single", "Double", "Triple", "Quad"];
+    await ensureRatesForCategory(hotelId, {
+      id: savedCategory.id,
+      occupancyTypes: savedCategory.occupancyTypes
+    })
+
+    onSubmit()
+  }
+
+  const occupancyOptions = ['Single', 'Double', 'Triple', 'Quad']
 
   return (
-    <Box p={4} maxW="500px" mx="auto">
+    <Box p={4} maxW='500px' mx='auto'>
       <form onSubmit={handleSubmit}>
-        <VStack spacing={2} p={5} align="stretch">
+        <VStack spacing={2} p={5} align='stretch'>
           <FormControl isRequired>
             <FormLabel>Category Name</FormLabel>
             <Input
-              name="name"
+              name='name'
               value={categoryData.name}
               onChange={handleInputChange}
-              placeholder="Enter category name"
+              placeholder='Enter category name'
             />
           </FormControl>
           <FormControl>
@@ -89,7 +104,7 @@ export default function AddEditRoomCategoryForm({
               onChange={handleOccupancyChange}
             >
               <HStack spacing={4}>
-                {occupancyOptions.map((option) => (
+                {occupancyOptions.map(option => (
                   <Checkbox key={option} value={option}>
                     {option}
                   </Checkbox>
@@ -97,16 +112,16 @@ export default function AddEditRoomCategoryForm({
               </HStack>
             </CheckboxGroup>
           </FormControl>
-          <HStack spacing={4} mt={2} width={"100%"}>
-            <Button type="submit" colorScheme="teal" flex={"1"}>
-              {category ? "Update Category" : "Add Category"}
+          <HStack spacing={4} mt={2} width={'100%'}>
+            <Button type='submit' colorScheme='teal' flex={'1'}>
+              {category ? 'Update Category' : 'Add Category'}
             </Button>
-            <Button onClick={onCancel} colorScheme="gray" flex={"1"}>
+            <Button onClick={onCancel} colorScheme='gray' flex={'1'}>
               Cancel
             </Button>
           </HStack>
         </VStack>
       </form>
     </Box>
-  );
+  )
 }
