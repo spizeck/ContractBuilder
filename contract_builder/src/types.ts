@@ -42,7 +42,9 @@ export interface Hotel {
   contactInfo: string;
   amenities: string;
   policies: string;
+  restrictions: string;
   focRule?: string; // Free of Charge rule, e.g. "7+1"
+  focBaseRate?: string; // Base room type for FOC rule
   mealCommissionRate?: number; // Commission rate for meal packages
 }
 
@@ -105,4 +107,5 @@ export interface RoomType {
   name: string;
   description: string;
   quantity: number;
+  isFocBase: boolean;
 }

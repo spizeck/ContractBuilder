@@ -27,10 +27,12 @@ export default function AddHotelForm ({
     name: '',
     location: '',
     focRule: '',
+    focBaseRate: '',
     description: '',
     contactInfo: '',
     amenities: '',
-    policies: ''
+    policies: '',
+    restrictions: ''
   })
 
   useEffect(() => {
@@ -39,10 +41,12 @@ export default function AddHotelForm ({
         name: editingHotel.name || '',
         location: editingHotel.location || '',
         focRule: editingHotel.focRule || '',
+        focBaseRate: editingHotel.focBaseRate || '',
         description: editingHotel.description || '',
         contactInfo: editingHotel.contactInfo || '',
         amenities: editingHotel.amenities || '',
-        policies: editingHotel.policies || ''
+        policies: editingHotel.policies || '',
+        restrictions: editingHotel.restrictions || ''
       })
     }
   }, [editingHotel])
@@ -53,7 +57,9 @@ export default function AddHotelForm ({
   }
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     setHotelData({
       ...hotelData,
@@ -91,6 +97,9 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter hotel name'
             />
+            <FormHelperText>
+              Enter the official name of the hotel.
+            </FormHelperText>
           </FormControl>
 
           <FormControl isRequired>
@@ -123,6 +132,9 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter hotel location'
             />
+            <FormHelperText>
+              Enter the physical location of the hotel.
+            </FormHelperText>
           </FormControl>
 
           <FormControl isRequired>
@@ -133,6 +145,9 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter hotel description'
             />
+            <FormHelperText>
+              Provide a brief description of the hotel.
+            </FormHelperText>
           </FormControl>
 
           <FormControl isRequired>
@@ -143,6 +158,9 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter contact info'
             />
+            <FormHelperText>
+              Provide the contact information for the hotel.
+            </FormHelperText>
           </FormControl>
 
           <FormControl>
@@ -153,6 +171,7 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter hotel amenities'
             />
+            <FormHelperText>List the amenities of the hotel.</FormHelperText>
           </FormControl>
 
           <FormControl>
@@ -163,7 +182,22 @@ export default function AddHotelForm ({
               onChange={handleInputChange}
               placeholder='Enter hotel policies'
             />
+            <FormHelperText>List the policies of the hotel.</FormHelperText>
           </FormControl>
+
+          <FormControl>
+            <FormLabel>Restrictions</FormLabel>
+            <Textarea
+              name='restrictions'
+              value={hotelData.restrictions}
+              onChange={handleInputChange}
+              placeholder='Enter hotel restrictions'
+            />
+            <FormHelperText>
+              List any restrictions or conditions the hotel may have.
+            </FormHelperText>
+          </FormControl>
+
           <HStack spacing={4} mt={2} width={'100%'}>
             <Button type='submit' colorScheme='teal' flex={'1'}>
               {editingHotel ? 'Update Hotel' : 'Add Hotel'}
