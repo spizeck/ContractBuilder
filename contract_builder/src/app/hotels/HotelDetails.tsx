@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -20,7 +20,9 @@ import RoomCategoriesList from './RoomCategoriesList'
 import RoomTypesList from './RoomTypesList'
 import RatesList from './RatesList'
 import MealPackagesList from './MealPackagesList'
-import { Hotel } from '@/types'
+import { Hotel, RoomType } from '@/types'
+import { getRoomTypes } from '@/services/roomTypes'
+import { formatFocRule } from '@/utils/formatters'
 
 export default function HotelDetails ({
   hotel,
@@ -31,6 +33,7 @@ export default function HotelDetails ({
 }) {
   const [currentHotel, setCurrentHotel] = useState<Hotel>(hotel)
   const [isEditing, setIsEditing] = useState(false)
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [view, setView] = useState<
     | 'details'
     | 'seasons'
@@ -39,6 +42,18 @@ export default function HotelDetails ({
     | 'mealPackages'
     | 'rates'
   >('details')
+
+  useEffect(() => {
+    if (currentHotel.id) {
+      getRoomTypes(currentHotel.id).then(setRoomTypes)
+    }
+  }, [currentHotel.id])
+
+  const getFocBaseRoomName = () => {
+    if (!currentHotel.focBaseRate) return 'Not set'
+    const rt = roomTypes.find(r => r.id === currentHotel.focBaseRate)
+    return rt ? rt.name : currentHotel.focBaseRate
+  }
 
   // For delete confirmation dialog
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -176,7 +191,7 @@ export default function HotelDetails ({
               <Text fontWeight='bold' minW='120px'>
                 FOC Rule:
               </Text>
-              <Text flex='1'>{currentHotel.focRule}</Text>
+              <Text flex='1'>{formatFocRule(currentHotel.focRule)}</Text>
             </HStack>
           )}
           {currentHotel.focBaseRate && (
@@ -184,7 +199,7 @@ export default function HotelDetails ({
               <Text fontWeight='bold' minW='120px'>
                 FOC Base Rate:
               </Text>
-              <Text flex='1'>{currentHotel.focBaseRate}</Text>
+              <Text flex='1'>{getFocBaseRoomName()}</Text>
             </HStack>
           )}
           {typeof currentHotel.mealCommissionRate === 'number' && (

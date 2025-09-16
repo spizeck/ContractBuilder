@@ -38,7 +38,7 @@ export default function ViewHotels({
             <Tr>
               <Th>Name</Th>
               <Th>Location</Th>
-              <Th>Description</Th>
+              <Th>Contact Info</Th>
               <Th>Actions</Th>
             </Tr>
           </Thead>
@@ -47,7 +47,7 @@ export default function ViewHotels({
               <Tr key={hotel.id}>
                 <Td>{hotel.name}</Td>
                 <Td>{hotel.location}</Td>
-                <Td>{hotel.description}</Td>
+                <Td>{hotel.contactInfo}</Td>
                 <Td>
                   <Button colorScheme="blue" onClick={() => onHotelSelect(hotel)}>
                     Select
