@@ -1,9 +1,11 @@
 import {db} from "../../firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where,} from "firebase/firestore";
 import {Season} from "@/types";
 
 // Add a season to the root-level 'seasons' collection
-export async function addSeason(seasonData: Omit<Season, "id">): Promise<string> {
+export async function addSeason(
+  seasonData: Omit<Season, "id">
+): Promise<string> {
   try {
     const seasonRef = await addDoc(collection(db, "seasons"), seasonData);
     console.log("Season added with ID: ", seasonRef.id);
@@ -14,14 +16,19 @@ export async function addSeason(seasonData: Omit<Season, "id">): Promise<string>
   }
 }
 
-// Fetch all seasons for a specific hotel
+// Fetch all seasons for a specific hotel, sorted by startDate
 export async function getSeasons(hotelId: string): Promise<Season[]> {
   try {
     const seasonsRef = collection(db, "seasons");
-    const q = query(seasonsRef, where("hotelId", "==", hotelId));
+    const q = query(
+      seasonsRef,
+      where("hotelId", "==", hotelId),
+      orderBy("startDate") // ascending by default
+    );
     const seasonsSnapshot = await getDocs(q);
+
     return seasonsSnapshot.docs.map((doc) => {
-      const data = doc.data() as Omit<Season, 'id'>; // Exclude 'id' from data
+      const data = doc.data() as Omit<Season, "id">;
       return { id: doc.id, ...data };
     });
   } catch (e) {
@@ -31,7 +38,10 @@ export async function getSeasons(hotelId: string): Promise<Season[]> {
 }
 
 // Update a season
-export async function updateSeason(seasonId: string, seasonData: Partial<Season>): Promise<void> {
+export async function updateSeason(
+  seasonId: string,
+  seasonData: Partial<Season>
+): Promise<void> {
   try {
     const seasonRef = doc(db, "seasons", seasonId);
     await updateDoc(seasonRef, seasonData);

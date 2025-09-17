@@ -1,15 +1,41 @@
 import {db} from "../../firebase";
 import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where,} from "firebase/firestore";
-import {Rate} from "@/types";
+import {Rate, RoomCategory} from "@/types";
 
 export async function getRates(hotelId: string): Promise<Rate[]> {
   const ratesRef = collection(db, "rates");
   const q = query(ratesRef, where("hotelId", "==", hotelId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({
+
+  const rates: Rate[] = querySnapshot.docs.map((doc) => ({
     id: doc.id,
     ...(doc.data() as Omit<Rate, "id">),
   }));
+
+  // 🔹 Load categories for names
+  const categoriesRef = collection(db, "roomCategories");
+  const catQ = query(categoriesRef, where("hotelId", "==", hotelId));
+  const catSnap = await getDocs(catQ);
+  const categories: Record<string, RoomCategory> = {};
+  catSnap.forEach((doc) => {
+    categories[doc.id] = { id: doc.id, ...(doc.data() as Omit<RoomCategory, "id">) };
+  });
+
+  // 🔹 Define occupancy order
+  const occupancyOrder = ["Single", "Double", "Triple", "Quad"];
+
+  // 🔹 Sort rates by Category Name → Occupancy Type
+  rates.sort((a, b) => {
+    const catA = categories[a.categoryId]?.name || "";
+    const catB = categories[b.categoryId]?.name || "";
+    if (catA !== catB) return catA.localeCompare(catB);
+
+    const occA = occupancyOrder.indexOf(a.occupancyType);
+    const occB = occupancyOrder.indexOf(b.occupancyType);
+    return occA - occB;
+  });
+
+  return rates;
 }
 
 export async function addRate(rateData: Omit<Rate, "id">): Promise<string> {

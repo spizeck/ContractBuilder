@@ -1,23 +1,34 @@
-import {useEffect, useState} from "react";
-import {Box, Button, FormControl, FormLabel, HStack, Input, VStack,} from "@chakra-ui/react";
-import {addSeason, updateSeason} from "@/services/seasons";
+import { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  HStack,
+  Input,
+  VStack,
+} from "@chakra-ui/react";
+import { addSeason, updateSeason } from "@/services/seasons";
 import { parseDateStringAsUTC } from "@/utils/dateUtils";
-import {Season} from "@/types";
+import { Season } from "@/types";
+import { ensureRatesForSeason } from "@/services/rateSync";
 
 export default function AddEditSeasonForm({
-                                            hotelId,
-                                            season,
-                                            onCancel,
-                                            onSubmit,
-                                          }: {
+  hotelId,
+  season,
+  onCancel,
+  onSubmit,
+}: {
   hotelId: string;
   season?: Season;
   onCancel: () => void;
   onSubmit: () => void;
 }) {
-  const [seasonData, setSeasonData] = useState<Omit<Season, "id" | "hotelId">>({
+  const [seasonData, setSeasonData] = useState<
+    Omit<Season, "id" | "hotelId">
+  >({
     name: "",
-    startDate: "", // ISO String Format with time
+    startDate: "",
     endDate: "",
   });
 
@@ -53,7 +64,9 @@ export default function AddEditSeasonForm({
         await updateSeason(season.id, seasonData);
         alert("Season updated successfully!");
       } else {
-        await addSeason({...seasonData, hotelId});
+        const newSeasonId = await addSeason({ ...seasonData, hotelId });
+        // 🔹 Backfill rates for all categories
+        await ensureRatesForSeason(hotelId, newSeasonId);
         alert("Season added successfully!");
       }
       onSubmit();
