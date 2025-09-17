@@ -1,24 +1,24 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useParams} from 'next/navigation'
-import {Box, Divider, Heading, Spinner, Text, VStack} from '@chakra-ui/react'
-import {getGroupContractById} from '@/services/groupContracts'
-import {getHotelById} from '@/services/hotels'
-import {GroupContract, Hotel} from '@/types'
-import {formatDateRange, formatFocRule} from '@/utils/formatters'
-import {getCommissionRate} from '@/utils/contractCalculations'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Box, Divider, Heading, Spinner, Text, VStack } from '@chakra-ui/react'
+import { getGroupContractById } from '@/services/groupContracts'
+import { getHotelById } from '@/services/hotels'
+import { GroupContract, Hotel } from '@/types'
+import { formatDateRange, formatFocRule } from '@/utils/formatters'
+import { getCommissionRate } from '@/utils/contractCalculations'
 
-export default function ViewContractPage() {
+export default function ViewContractPage () {
   const params = useParams()
-  const {id} = params // Firestore contract id
+  const { id } = params // Firestore contract id
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData () {
       try {
         const contractData = await getGroupContractById(id as string)
         if (contractData) {
@@ -44,7 +44,7 @@ export default function ViewContractPage() {
   if (loading) {
     return (
       <VStack p={10}>
-        <Spinner size='lg'/>
+        <Spinner size='lg' />
         <Text>Loading contract...</Text>
       </VStack>
     )
@@ -61,7 +61,7 @@ export default function ViewContractPage() {
   return (
     <VStack p={10} spacing={6} align='stretch'>
       <Heading size='lg'>Group Contract</Heading>
-      <Divider/>
+      <Divider />
 
       {/* Contract Details */}
       <Box>
@@ -81,7 +81,8 @@ export default function ViewContractPage() {
           <b>Dates:</b> {formatDateRange(contract.startDate, contract.endDate)}
         </Text>
         <Text>
-          <b>Commission Rate:</b> {getCommissionRate(contract.bookingType) * 100}%
+          <b>Commission Rate:</b>{' '}
+          {getCommissionRate(contract.bookingType) * 100}%
         </Text>
         <Text>
           <b>FOC Rules:</b> {formatFocRule(hotel.focRule)}
@@ -109,7 +110,7 @@ export default function ViewContractPage() {
           {contract.roomCosts.map((rc, idx) => (
             <Text key={idx}>
               {rc.description}: $
-              {rc.cost.toLocaleString(undefined, {minimumFractionDigits: 2})}
+              {rc.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Text>
           ))}
         </Box>
@@ -121,7 +122,9 @@ export default function ViewContractPage() {
           <Heading size='md' mb={2}>
             Dive Package
           </Heading>
-          <Text>{contract.divePackageName}</Text>
+          <Text>
+            {contract.numDivers} Divers with {contract.divePackageName}
+          </Text>
           <Text>
             Cost: $
             {contract.divePackageCost?.toLocaleString(undefined, {
@@ -137,7 +140,9 @@ export default function ViewContractPage() {
           <Heading size='md' mb={2}>
             Meal Package
           </Heading>
-          <Text>{contract.mealPackageName}</Text>
+          <Text>
+            {contract.totalGuests} Guests with {contract.mealPackageName}
+          </Text>
           <Text>
             Cost: $
             {contract.mealPackageCost?.toLocaleString(undefined, {
@@ -147,7 +152,7 @@ export default function ViewContractPage() {
         </Box>
       )}
 
-      <Divider/>
+      <Divider />
 
       {/* Hotel Details */}
       <Box>
@@ -171,7 +176,7 @@ export default function ViewContractPage() {
         </Text>
       </Box>
 
-      <Divider/>
+      <Divider />
 
       {/* Signature */}
       <Box mt={6}>
