@@ -61,12 +61,3 @@ export async function getHotelById (hotelId: string): Promise<Hotel | null> {
     return null
   }
 }
-
-export function parseFocRule (rule: string | undefined): {
-  paid: number
-  free: number
-} {
-  if (!rule || !rule.includes('+')) return { paid: 0, free: 0 }
-  const [paid, free] = rule.split('+').map(Number)
-  return { paid, free }
-}

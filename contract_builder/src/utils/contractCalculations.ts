@@ -1,28 +1,15 @@
-import { parseDateStringAsUTC } from '@/utils/dateUtils'
-import {
-  ContractData,
-  DivePackage,
-  MealPackage,
-  Rate,
-  RoomCategory,
-  Season
-} from '@/types'
+import {parseDateStringAsUTC} from '@/utils/dateUtils'
+import {ContractData, DivePackage, Hotel, MealPackage, Rate, RoomCategory, Season} from '@/types'
+import {parseFocRule} from "@/utils/formatters"
 
-export function calculateNumberOfNights (
-  startDate: string,
-  endDate: string
-): number {
+export function calculateNumberOfNights(startDate: string, endDate: string): number {
   const start = parseDateStringAsUTC(startDate)
   const end = parseDateStringAsUTC(endDate)
   const diffInMilliseconds = end.getTime() - start.getTime()
-  return diffInMilliseconds / (1000 * 3600 * 24) // converting milliseconds to days
+  return diffInMilliseconds / (1000 * 3600 * 24) // converting ms to days
 }
 
-export function determineSeason (
-  startDate: string,
-  endDate: string,
-  seasons: Season[]
-): Season {
+export function determineSeason(startDate: string, endDate: string, seasons: Season[]): Season {
   const start = parseDateStringAsUTC(startDate)
   const end = parseDateStringAsUTC(endDate)
 
@@ -37,7 +24,6 @@ export function determineSeason (
     const overlapEnd = Math.min(end.getTime(), seasonEnd.getTime())
 
     const overlapDays = (overlapEnd - overlapStart) / (1000 * 3600 * 24)
-
     if (overlapDays > maxOverlapDays) {
       maxOverlapDays = overlapDays
       maxOverlapSeason = season
@@ -50,113 +36,124 @@ export function determineSeason (
   return maxOverlapSeason
 }
 
-export function getOccupancyNumber (occupancyType: string): number {
+export function getOccupancyNumber(occupancyType: string): number {
   const occupancyMap: { [key: string]: number } = {
     single: 1,
     double: 2,
     triple: 3,
-    quad: 4
+    quad: 4,
   }
-
   const occupancy = occupancyMap[occupancyType.toLowerCase()]
-  if (occupancy !== undefined) {
-    return occupancy
-  } else {
-    throw new Error(`Unknown occupancy type: ${occupancyType}`)
-  }
+  if (occupancy !== undefined) return occupancy
+  throw new Error(`Unknown occupancy type: ${occupancyType}`)
 }
 
-export function calculateTotalCost (
+export function getCommissionRate(bookingType: string): number {
+  const match = bookingType.match(/\d+/)
+  return match ? parseInt(match[0], 10) / 100 : 0
+}
+
+export function calculateTotalCost(
   contractData: ContractData,
   season: Season,
   rates: Rate[],
   divePackage: DivePackage | null,
   mealPackage: MealPackage | null,
-  roomCategories: RoomCategory[]
+  roomCategories: RoomCategory[],
+  hotel: Hotel
 ): {
-  mealPackageCost: number
-  divePackageCost: number
   totalGuests: number
-  totalCost: number
-  roomCosts: { description: string; cost: number }[]
+  roomCosts: { description: string; gross: number; foc: number; commission: number; net: number }[]
+  roomTotals: { gross: number; foc: number; commission: number; net: number }
+  diveTotals: { gross: number; foc: number; commission: number; net: number }
+  mealTotals: { gross: number; commission: number; net: number }
+  overall: { gross: number; foc: number; commission: number; net: number }
 } {
-  const { startDate, endDate, rooms, numDivers } = contractData
+  const {startDate, endDate, rooms, numDivers, bookingType} = contractData
+  if (!startDate || !endDate || !rooms) throw new Error('Missing required contract data.')
 
-  if (!startDate || !endDate || !rooms) {
-    throw new Error('Missing required contract data.')
-  }
+  const nights = calculateNumberOfNights(startDate, endDate)
+  const commissionRate = getCommissionRate(bookingType || "")
+  const focRule = parseFocRule(hotel.focRule || "0+0")
 
-  const numberOfNights = calculateNumberOfNights(startDate, endDate)
-
-  // Initialize totals
+  // ---- Rooms ----
   let totalGuests = 0
-  let totalRoomCost = 0
-  const roomCosts: { description: string; cost: number }[] = []
+  let grossRoomCost = 0
+  let focDeduction = 0
+  const roomCosts: { description: string; gross: number; foc: number; commission: number; net: number }[] = []
 
-  // Calculate Room Costs and Total Guests
   for (const room of rooms) {
     if (room.numRooms > 0 && room.categoryId && room.occupancyType) {
-      const occupancyNumber = getOccupancyNumber(room.occupancyType)
-      totalGuests += occupancyNumber * room.numRooms
+      const occNum = getOccupancyNumber(room.occupancyType)
+      totalGuests += occNum * room.numRooms
 
-      // Find the matching rate
       const rate = rates.find(
         r =>
           r.categoryId === room.categoryId &&
           r.occupancyType.toLowerCase() === room.occupancyType.toLowerCase() &&
           r.seasonId === season.id
       )
+      if (!rate) throw new Error(`No rate found for category ${room.categoryId}, occupancy ${room.occupancyType}, season ${season.name}`)
 
-      if (!rate) {
-        throw new Error(
-          `No rate found for category ${room.categoryId}, occupancy ${room.occupancyType}, season ${season.name}`
-        )
+      const gross = room.numRooms * nights * rate.price
+      grossRoomCost += gross
+
+      let foc = 0
+      if (hotel.focBaseRate && room.categoryId === hotel.focBaseRate) {
+        const focGuests = Math.floor(totalGuests / (focRule.paid + focRule.free))
+        foc = focGuests * rate.price * nights
       }
 
-      // Calculate room cost
-      const roomCost = room.numRooms * numberOfNights * rate.price
-      totalRoomCost += roomCost
+      const commission = (gross - foc) * commissionRate
+      const net = gross - foc - commission
 
-      // Get Room Category Name
       const category = roomCategories.find(c => c.id === room.categoryId)
       const categoryName = category ? category.name : room.categoryId
 
-      // Create description
-      const description = `${room.numRooms} x ${
-        room.occupancyType
-      } rooms in category ${categoryName} for ${numberOfNights} nights at $${rate.price.toFixed(
-        2
-      )}/night`
+      roomCosts.push({
+        description: `${room.numRooms} x ${room.occupancyType} rooms in category ${categoryName} for ${nights} nights @ $${rate.price.toFixed(2)}/night`,
+        gross,
+        foc,
+        commission,
+        net,
+      })
 
-      roomCosts.push({ description, cost: roomCost })
+      focDeduction += foc
     }
   }
 
-  // Calculate Dive Package Cost
-  let divePackageCost = 0
+  const roomTotals = {
+    gross: grossRoomCost,
+    foc: focDeduction,
+    commission: (grossRoomCost - focDeduction) * commissionRate,
+    net: (grossRoomCost - focDeduction) * (1 - commissionRate),
+  }
+
+  // ---- Dives ----
+  let diveTotals = {gross: 0, foc: 0, commission: 0, net: 0}
   if (divePackage && numDivers) {
-    divePackageCost = divePackage.price * numDivers
+    const gross = divePackage.price * numDivers
+    const foc = Math.floor(numDivers / 8) * divePackage.price
+    const commission = (gross - foc) * commissionRate
+    diveTotals = {gross, foc, commission, net: gross - foc - commission}
   }
 
-  // Calculate Meal Package Cost
-  let mealPackageCost = 0
+  // ---- Meals ----
+  let mealTotals = {gross: 0, commission: 0, net: 0}
   if (mealPackage && totalGuests) {
-    mealPackageCost = mealPackage.price * totalGuests
+    const gross = mealPackage.price * totalGuests
+    const mealRate = hotel.mealCommissionRate ?? 0
+    const commission = gross * mealRate
+    mealTotals = {gross, commission, net: gross - commission}
   }
 
-  // Total Cost
-  const totalCost = totalRoomCost + divePackageCost + mealPackageCost
-
-  return {
-    totalCost,
-    roomCosts,
-    divePackageCost,
-    mealPackageCost,
-    totalGuests
+  // ---- Overall ----
+  const overall = {
+    gross: roomTotals.gross + diveTotals.gross + mealTotals.gross,
+    foc: roomTotals.foc + diveTotals.foc,
+    commission: roomTotals.commission + diveTotals.commission + mealTotals.commission,
+    net: roomTotals.net + diveTotals.net + mealTotals.net,
   }
-}
 
-export function getCommissionRate (bookingType: string): number {
-  const match = bookingType.match(/\d+/)
-  return match ? parseInt(match[0], 10) / 100 : 0
+  return {totalGuests, roomCosts, roomTotals, diveTotals, mealTotals, overall}
 }

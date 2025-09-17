@@ -59,6 +59,13 @@ export interface RoomCategory {
   archived?: boolean;
 }
 
+export interface Totals {
+  gross: number
+  foc?: number
+  commission: number
+  net: number
+}
+
 export interface GroupContract {
   id: string;
   groupName: string;
@@ -84,7 +91,10 @@ export interface GroupContract {
   totalCost: number;
   createdAt: Date;
   archived?: boolean;
-  // Add other fields as needed
+  roomTotals?: Totals;
+  diveTotals?: Totals;
+  mealTotals?: Totals;
+  overall?: Totals;
 }
 
 export interface Rate {

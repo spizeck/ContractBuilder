@@ -5,10 +5,27 @@ export function formatFocRule(rule?: string): string {
   return `${paid} paid, ${free} free`
 }
 
+export function parseFocRule(rule: string): { paid: number; free: number } {
+  const [paid, free] = rule.split("+").map(Number)
+  return { paid: paid!, free: free! }
+}
+
 function parseDateOnly(dateStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number)
   return new Date(year, month - 1, day) // Local midnight, no UTC shift
 }
+
+export function formatDate(date: string | Date): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }
+  return d.toLocaleDateString(undefined, options)
+}
+
+
 export function formatDateRange(start: string, end: string): string {
   const format = (dateStr: string) => {
     const date = parseDateOnly(dateStr)
@@ -35,4 +52,12 @@ export function formatDateRange(start: string, end: string): string {
   }
 
   return `${format(start)} to ${format(end)}`
+}
+
+export function formatCurrency(value: number | null | undefined): string {
+  if (value == null) return "-"
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
 }

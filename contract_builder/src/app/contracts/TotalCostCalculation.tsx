@@ -1,66 +1,31 @@
-import { useEffect, useState } from 'react'
-import { Button, HStack, Text, VStack } from '@chakra-ui/react'
-import {
-  ContractData,
-  DivePackage,
-  GroupContract,
-  Hotel,
-  MealPackage,
-  Rate,
-  RoomCategory,
-  Season
-} from '@/types'
-import { getSeasons } from '@/services/seasons'
-import { getRates } from '@/services/rates'
-import { getDivePackageById } from '@/services/divePackages'
-import { getMealPackageById } from '@/services/mealPackages'
-import { getHotelById, parseFocRule } from '@/services/hotels'
-import { getRoomCategories } from '@/services/roomCategories'
-import {
-  addGroupContract,
-  archiveGroupContract
-} from '@/services/groupContracts'
-import {
-  calculateNumberOfNights,
-  calculateTotalCost,
-  determineSeason,
-  getCommissionRate
-} from '@/utils/contractCalculations'
+import {useEffect, useState} from 'react'
+import {Button, HStack, Text, VStack} from '@chakra-ui/react'
+import {ContractData, DivePackage, GroupContract, Hotel, MealPackage, Season} from '@/types'
+import {getSeasons} from '@/services/seasons'
+import {getRates} from '@/services/rates'
+import {getDivePackageById} from '@/services/divePackages'
+import {getMealPackageById} from '@/services/mealPackages'
+import {getHotelById} from '@/services/hotels'
+import {getRoomCategories} from '@/services/roomCategories'
+import {addGroupContract, archiveGroupContract} from '@/services/groupContracts'
+import {calculateNumberOfNights, calculateTotalCost, determineSeason} from '@/utils/contractCalculations'
+import {formatCurrency, formatDate} from '@/utils/formatters'
 
-export default function TotalCostCalculation ({
-  contractData,
-  onConfirm,
-  onBack
-}: {
+export default function TotalCostCalculation({
+                                               contractData,
+                                               onConfirm,
+                                               onBack
+                                             }: {
   contractData: ContractData
   onConfirm: () => void
   onBack: () => void
 }) {
-  const [totalCost, setTotalCost] = useState<number>(0)
-  const [seasonName, setSeasonName] = useState<string>('Calculating...')
   const [season, setSeason] = useState<Season | null>(null)
-  const [rates, setRates] = useState<Rate[]>([])
+  const [hotel, setHotel] = useState<Hotel | null>(null)
   const [divePackage, setDivePackage] = useState<DivePackage | null>(null)
   const [mealPackage, setMealPackage] = useState<MealPackage | null>(null)
+  const [results, setResults] = useState<ReturnType<typeof calculateTotalCost> | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [hotel, setHotel] = useState<Hotel | null>(null)
-  const [roomCosts, setRoomCosts] = useState<
-    { description: string; cost: number }[]
-  >([])
-  const [divePackageCost, setDivePackageCost] = useState<number>(0)
-  const [mealPackageCost, setMealPackageCost] = useState<number>(0)
-  const [totalGuests, setTotalGuests] = useState<number>(0)
-  const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
-  const [commissionRate, setCommissionRate] = useState(0)
-  const [commissionAmount, setCommissionAmount] = useState(0)
-
-  const [totalFreeRooms, setTotalFreeRooms] = useState<number>(0)
-  const [adjustedRoomCost, setAdjustedRoomCost] = useState<number>(0)
-  const [adjustedRoomCommission, setAdjustedRoomCommission] =
-    useState<number>(0)
-  const [diveCommission, setDiveCommission] = useState<number>(0)
-  const [mealCommission, setMealCommission] = useState<number>(0)
-  const [divingFocCount, setDivingFocCount] = useState<number>(0)
 
   const handleConfirm = async () => {
     try {
@@ -78,43 +43,46 @@ export default function TotalCostCalculation ({
         seasonId: season!.id,
         seasonName: season!.name,
         bookingType: contractData.bookingType!,
+        roomTotals: results?.roomTotals,
+        diveTotals: results?.diveTotals,
+        mealTotals: results?.mealTotals,
+        overall: results?.overall,
         rooms: contractData.rooms!,
-        roomCosts,
-        totalRoomCost: roomCosts.reduce((sum, room) => sum + room.cost, 0),
-        totalGuests,
+        roomCosts: results?.roomCosts.map(rc => ({
+          description: rc.description,
+          cost: rc.net // save net cost
+        })) || [],
+        totalRoomCost: results?.roomTotals.net || 0,
+        totalGuests: results?.totalGuests || 0,
         numDivers: contractData.numDivers!,
-        totalNonDivers: totalGuests - (contractData.numDivers || 0),
+        totalNonDivers: (results?.totalGuests || 0) - (contractData.numDivers || 0),
         ...(contractData.divePackageId && {
           divePackageId: contractData.divePackageId,
           divePackageName: divePackage?.name ?? null,
-          divePackageCost: divePackageCost ?? null
+          divePackageCost: results?.diveTotals.net ?? null
         }),
         ...(contractData.mealPackageId && {
           mealPackageId: contractData.mealPackageId,
           mealPackageName: mealPackage?.name ?? null,
-          mealPackageCost: mealPackageCost ?? null
+          mealPackageCost: results?.mealTotals.net ?? null
         }),
-        totalCost,
+        totalCost: results?.overall.net || 0,
         createdAt: new Date()
       }
 
       await addGroupContract(groupContract)
       alert('Contract saved successfully!')
       onConfirm()
-    } catch (error: any) {
-      console.log('contractData', contractData)
+    } catch (error) {
+      console.error('Error saving contract:', error)
       setError('An error occurred while saving the contract.')
     }
   }
 
   useEffect(() => {
-    async function fetchData () {
+    async function fetchData() {
       try {
-        if (
-          !contractData.hotelId ||
-          !contractData.startDate ||
-          !contractData.endDate
-        ) {
+        if (!contractData.hotelId || !contractData.startDate || !contractData.endDate) {
           setError('Missing required contract data.')
           return
         }
@@ -123,19 +91,12 @@ export default function TotalCostCalculation ({
         setHotel(hotelData)
 
         const categories = await getRoomCategories(contractData.hotelId)
-        setRoomCategories(categories)
 
         const seasons = await getSeasons(contractData.hotelId!)
-        const seasonResult = determineSeason(
-          contractData.startDate!,
-          contractData.endDate!,
-          seasons
-        )
-        setSeasonName(seasonResult.name)
+        const seasonResult = determineSeason(contractData.startDate!, contractData.endDate!, seasons)
         setSeason(seasonResult)
 
         const ratesData = await getRates(contractData.hotelId!)
-        setRates(ratesData)
 
         let divePkg: DivePackage | null = null
         if (contractData.divePackageId) {
@@ -149,206 +110,116 @@ export default function TotalCostCalculation ({
           setMealPackage(mealPkg)
         }
 
-        const {
-          totalCost,
-          roomCosts,
-          divePackageCost,
-          mealPackageCost,
-          totalGuests
-        } = await calculateTotalCost(
+        if (!hotelData) {
+          setError("Hotel data missing")
+          return
+        }
+
+        const calc = calculateTotalCost(
           contractData,
           seasonResult,
           ratesData,
           divePkg,
           mealPkg,
-          categories
+          categories,
+          hotelData
         )
-
-        setTotalCost(totalCost)
-        const commissionRate = getCommissionRate(contractData.bookingType!)
-        const commissionAmount = totalCost * commissionRate
-        setCommissionRate(commissionRate)
-        setCommissionAmount(commissionAmount)
-        setRoomCosts(roomCosts)
-        setDivePackageCost(divePackageCost)
-        setMealPackageCost(mealPackageCost)
-        setTotalGuests(totalGuests)
-
-        const roomFoc = parseFocRule(hotelData?.focRule)
-        const focDenominator = roomFoc.paid + roomFoc.free
-        const divingFoc = { paid: 7, free: 1 }
-
-        const calculatedFreeRooms =
-          focDenominator > 0 ? Math.floor(totalGuests / focDenominator) : 0
-        setTotalFreeRooms(calculatedFreeRooms)
-
-        const roomTotal = roomCosts.reduce((sum, rc) => sum + rc.cost, 0)
-        setAdjustedRoomCost(roomTotal)
-        setAdjustedRoomCommission(roomTotal * commissionRate)
-
-        const focDivers = Math.floor(
-          (contractData.numDivers || 0) / (divingFoc.paid + divingFoc.free)
-        )
-        setDivingFocCount(focDivers)
-        const adjustedNumDivers = (contractData.numDivers || 0) - focDivers
-        const diveTotal = (divePkg?.price || 0) * adjustedNumDivers
-        setDiveCommission(diveTotal * commissionRate)
-
-        const mealRate = hotelData?.mealCommissionRate || 0
-        const mealTotal = (mealPkg?.price || 0) * totalGuests
-        setMealCommission(mealTotal * mealRate)
+        setResults(calc)
       } catch (error) {
         console.error('Error fetching data:', error)
         setError('An error occurred while calculating the total cost.')
       }
     }
+
     fetchData()
   }, [contractData])
 
   if (error) {
     return (
-      <VStack spacing={4} align='stretch'>
-        <Text color='red.500'>{error}</Text>
+      <VStack spacing={4} align="stretch">
+        <Text color="red.500">{error}</Text>
         <Button onClick={onBack}>Back</Button>
       </VStack>
     )
   }
 
-  if (!hotel || !season) {
+  if (!hotel || !season || !results) {
     return <Text>Loading data...</Text>
   }
 
+  const {roomCosts, roomTotals, diveTotals, mealTotals, overall, totalGuests} = results
+
   return (
-    <VStack spacing={4} align='stretch'>
-      <Text fontSize='xl' fontWeight='bold'>
+    <VStack spacing={4} align="stretch">
+      <Text fontSize="xl" fontWeight="bold">
         Review and Confirm details for: {contractData.groupName}
       </Text>
 
       <HStack spacing={2}>
         <Text flex={1}>Hotel: {hotel.name}</Text>
-        <Text flex={1}>
-          Commission Rate: {(commissionRate * 100).toFixed(0)}%
-        </Text>
+        <Text flex={1}>Season: {season.name}</Text>
       </HStack>
 
       <HStack spacing={2}>
-        <Text flex={1}>Check-in: {contractData.startDate}</Text>
-        <Text flex={1}>Check-out: {contractData.endDate}</Text>
+        <Text flex={1}>Check-in: {formatDate(contractData.startDate!)}</Text>
+        <Text flex={1}>Check-out: {formatDate(contractData.endDate!)}</Text>
       </HStack>
 
       <HStack spacing={2}>
         <Text flex={1}>
-          Number of Nights:{' '}
-          {calculateNumberOfNights(
-            contractData.startDate!,
-            contractData.endDate!
-          )}
+          Nights: {calculateNumberOfNights(contractData.startDate!, contractData.endDate!)}
         </Text>
-        <Text flex={1}>Season: {seasonName}</Text>
+        <Text flex={1}>Total Guests: {totalGuests}</Text>
       </HStack>
 
-      <HStack spacing={2}>
-        <Text flex={1}>Total Divers: {contractData.numDivers}</Text>
-        <Text flex={1}>
-          Total Non-Divers: {totalGuests - (contractData.numDivers || 0)}
-        </Text>
-      </HStack>
-
-      <Text fontWeight='bold'>Room Breakdown:</Text>
-      {roomCosts.map((roomCost, index) => (
-        <Text key={index}>
-          {roomCost.description}: ${roomCost.cost.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-        </Text>
+      {/* Rooms */}
+      <Text fontWeight="bold">Room Breakdown:</Text>
+      {roomCosts.map((rc, idx) => (
+        <VStack key={idx} align="start" spacing={1}>
+          <Text>{rc.description}</Text>
+          <Text>Gross: ${formatCurrency(rc.gross)}</Text>
+          <Text>FOC Value: $({formatCurrency(rc.foc)})</Text>
+          <Text>Commission: $({formatCurrency(rc.commission)})</Text>
+          <Text>Net: ${formatCurrency(rc.net)}</Text>
+        </VStack>
       ))}
+      <Text fontWeight="bold">
+        Rooms Total Net: ${formatCurrency(roomTotals.net)}
+      </Text>
 
-      <HStack spacing={2}>
-        <Text flex={1}>Total Hotel Guests: {totalGuests}</Text>
-        <Text flex={1}>Total Hotel FOC: {totalFreeRooms}</Text>
-      </HStack>
-
-      <Text>Gross Room Cost: ${adjustedRoomCost.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-      <Text>Total Room Commission: ${adjustedRoomCommission.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-
-      {mealPackage && (
-        <VStack align='start' spacing={4}>
-          <Text>
-            <Text as='span' fontWeight='bold'>
-              Meal Package Selected:
-            </Text>{' '}
-            {mealPackage.name}
-          </Text>
-          <Text>Gross Meal Package Cost: ${mealPackageCost.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-          <Text>Commission on Meal Package: ${mealCommission.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-        </VStack>
-      )}
-
+      {/* Dives */}
       {divePackage && (
-        <VStack align='start' spacing={4}>
-          <Text>
-            <Text as='span' fontWeight='bold'>
-              Dive Package Selected:
-            </Text>{' '}
-            {divePackage.name}
-          </Text>
-          <Text>Gross Dive Package Cost: ${divePackageCost.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-          <Text>Commission on Dive Package: ${diveCommission.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
+        <VStack align="start" spacing={1}>
+          <Text fontWeight="bold">Dive Package: {divePackage.name}</Text>
+          <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
+          <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
+          <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
+          <Text>Net: ${formatCurrency(diveTotals.net)}</Text>
         </VStack>
       )}
 
-      <Text fontWeight='bold'>Total Cost Breakdown:</Text>
-      <Text>Gross Cost: ${totalCost.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</Text>
-      <Text>
-        Total Commission: $
-        {(adjustedRoomCommission + mealCommission + diveCommission).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-      </Text>
-      <Text>
-        Total FOC Value: ${(divePackage?.price || 0) * divingFocCount}
-      </Text>
-      <Text fontWeight='bold'>
-        Net Cost: $
-        {(
-          totalCost -
-          adjustedRoomCommission -
-          mealCommission -
-          diveCommission
-        ).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-      </Text>
+      {/* Meals */}
+      {mealPackage && (
+        <VStack align="start" spacing={1}>
+          <Text fontWeight="bold">Meal Package: {mealPackage.name}</Text>
+          <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
+          <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
+          <Text>Net: ${formatCurrency(mealTotals.net)}</Text>
+        </VStack>
+      )}
+
+      {/* Overall */}
+      <Text fontWeight="bold">Overall Totals:</Text>
+      <Text>Gross: ${formatCurrency(overall.gross)}</Text>
+      <Text>FOC: $({formatCurrency(overall.foc)})</Text>
+      <Text>Commission: $({formatCurrency(overall.commission)})</Text>
+      <Text fontWeight="bold">Net: ${formatCurrency(overall.net)}</Text>
 
       <HStack spacing={2}>
         <Button onClick={onBack} flex={1}>
           Back
         </Button>
-        <Button colorScheme='teal' onClick={handleConfirm} flex={1}>
+        <Button colorScheme="teal" onClick={handleConfirm} flex={1}>
           Save
         </Button>
       </HStack>

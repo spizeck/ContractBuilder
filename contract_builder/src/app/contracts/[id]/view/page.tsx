@@ -1,24 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { Box, Divider, Heading, Spinner, Text, VStack } from '@chakra-ui/react'
-import { getGroupContractById } from '@/services/groupContracts'
-import { getHotelById } from '@/services/hotels'
-import { GroupContract, Hotel } from '@/types'
-import { formatDateRange, formatFocRule } from '@/utils/formatters'
-import { getCommissionRate } from '@/utils/contractCalculations'
+import {useEffect, useState} from 'react'
+import {useParams} from 'next/navigation'
+import {Box, Divider, Heading, Spinner, Text, VStack} from '@chakra-ui/react'
+import {getGroupContractById} from '@/services/groupContracts'
+import {getHotelById} from '@/services/hotels'
+import {GroupContract, Hotel} from '@/types'
+import {formatCurrency, formatDateRange, formatFocRule} from '@/utils/formatters'
+import {getCommissionRate} from '@/utils/contractCalculations'
 
-export default function ViewContractPage () {
+export default function ViewContractPage() {
   const params = useParams()
-  const { id } = params // Firestore contract id
+  const {id} = params // Firestore contract id
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchData () {
+    async function fetchData() {
       try {
         const contractData = await getGroupContractById(id as string)
         if (contractData) {
@@ -44,7 +44,7 @@ export default function ViewContractPage () {
   if (loading) {
     return (
       <VStack p={10}>
-        <Spinner size='lg' />
+        <Spinner size='lg'/>
         <Text>Loading contract...</Text>
       </VStack>
     )
@@ -61,7 +61,7 @@ export default function ViewContractPage () {
   return (
     <VStack p={10} spacing={6} align='stretch'>
       <Heading size='lg'>Group Contract</Heading>
-      <Divider />
+      <Divider/>
 
       {/* Contract Details */}
       <Box>
@@ -93,12 +93,15 @@ export default function ViewContractPage () {
         <Text>
           <b>Total Divers:</b> {contract.numDivers}
         </Text>
-        <Text>
-          <b>Total Cost:</b> $
-          {contract.totalCost.toLocaleString(undefined, {
-            minimumFractionDigits: 2
-          })}
-        </Text>
+      </Box>
+
+      {/* Overall */}
+      <Box>
+        <Heading size='md' mb={2}>Overall Totals</Heading>
+        <Text>Gross: ${formatCurrency(contract.overall?.gross)}</Text>
+        <Text>FOC Value: $({formatCurrency(contract.overall?.foc)})</Text>
+        <Text>Commission: $({formatCurrency(contract.overall?.commission)})</Text>
+        <Text fontWeight="bold">Net: ${formatCurrency(contract.overall?.net)}</Text>
       </Box>
 
       {/* Rooms */}
@@ -110,9 +113,13 @@ export default function ViewContractPage () {
           {contract.roomCosts.map((rc, idx) => (
             <Text key={idx}>
               {rc.description}: $
-              {rc.cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {formatCurrency(rc.cost)}
             </Text>
           ))}
+          <Text>Gross: ${formatCurrency(contract.roomTotals?.gross)}</Text>
+          <Text>FOC Value: $({formatCurrency(contract.roomTotals?.foc)})</Text>
+          <Text>Commission: $({formatCurrency(contract.roomTotals?.commission)})</Text>
+          <Text fontWeight="bold">Net: ${formatCurrency(contract.roomTotals?.net)}</Text>
         </Box>
       )}
 
@@ -125,12 +132,11 @@ export default function ViewContractPage () {
           <Text>
             {contract.numDivers} Divers with {contract.divePackageName}
           </Text>
-          <Text>
-            Cost: $
-            {contract.divePackageCost?.toLocaleString(undefined, {
-              minimumFractionDigits: 2
-            })}
-          </Text>
+          <Text>Gross: ${formatCurrency(contract.diveTotals?.gross)}</Text>
+          <Text>FOC Value: $({formatCurrency(contract.diveTotals?.foc)})</Text>
+          <Text>Commission: $({formatCurrency(contract.diveTotals?.commission)})</Text>
+          <Text fontWeight="bold">Net: ${formatCurrency(contract.diveTotals?.net)}</Text>
+
         </Box>
       )}
 
@@ -143,16 +149,14 @@ export default function ViewContractPage () {
           <Text>
             {contract.totalGuests} Guests with {contract.mealPackageName}
           </Text>
-          <Text>
-            Cost: $
-            {contract.mealPackageCost?.toLocaleString(undefined, {
-              minimumFractionDigits: 2
-            })}
-          </Text>
+          <Text>Gross: ${formatCurrency(contract.mealTotals?.gross)}</Text>
+          <Text>Commission: $({formatCurrency(contract.mealTotals?.commission)})</Text>
+          <Text fontWeight="bold">Net: ${formatCurrency(contract.mealTotals?.net)}</Text>
+
         </Box>
       )}
 
-      <Divider />
+      <Divider/>
 
       {/* Hotel Details */}
       <Box>
@@ -176,7 +180,7 @@ export default function ViewContractPage () {
         </Text>
       </Box>
 
-      <Divider />
+      <Divider/>
 
       {/* Signature */}
       <Box mt={6}>
