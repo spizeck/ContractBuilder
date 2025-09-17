@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -7,110 +7,128 @@ import {
   Input,
   VStack,
   HStack,
-  Select,
-} from "@chakra-ui/react";
-import {
-  addRate,
-  updateRate,
+  Select
+} from '@chakra-ui/react'
+import { addRate, updateRate } from '@/services/rates'
+import { Rate, RoomCategory, Season } from '@/types'
 
-} from "@/services/rates";
-import {Rate, RoomCategory, Season} from "@/types";
-
-export default function AddEditRateForm({
-                                          hotelId,
-                                          categories,
-                                          seasons,
-                                          rate,
-                                          onCancel,
-                                          onSubmit,
-                                        }: {
-  hotelId: string;
-  categories: RoomCategory[];
-  seasons: Season[];
-  rate?: Rate;
-  onCancel: () => void;
-  onSubmit: () => void;
+export default function AddEditRateForm ({
+  hotelId,
+  categories,
+  seasons,
+  rate,
+  onCancel,
+  onSubmit
+}: {
+  hotelId: string
+  categories: RoomCategory[]
+  seasons: Season[]
+  rate?: Rate
+  onCancel: () => void
+  onSubmit: () => void
 }) {
-  const [rateData, setRateData] = useState<Omit<Rate, "id" | "hotelId">>({
-    categoryId: "",
-    seasonId: "",
-    occupancyType: "",
-    price: 0,
-  });
+  const [rateData, setRateData] = useState<Omit<Rate, 'id' | 'hotelId'>>({
+    categoryId: '',
+    seasonId: '',
+    occupancyType: '',
+    price: 0
+  })
 
-  const [occupancyOptions, setOccupancyOptions] = useState<string[]>([]);
+  const [occupancyOptions, setOccupancyOptions] = useState<string[]>([])
 
   useEffect(() => {
     if (rate) {
       setRateData({
-        categoryId: rate.categoryId || "",
-        seasonId: rate.seasonId || "",
-        occupancyType: rate.occupancyType || "",
-        price: rate.price || 0,
-      });
+        categoryId: rate.categoryId || '',
+        seasonId: rate.seasonId || '',
+        occupancyType: rate.occupancyType || '',
+        price: rate.price || 0
+      })
     }
-  }, [rate]);
+  }, [rate])
 
   // Update occupancy options when category changes
   useEffect(() => {
-    const selectedCategory = categories.find((cat) => cat.id === rateData.categoryId);
+    const selectedCategory = categories.find(
+      cat => cat.id === rateData.categoryId
+    )
     if (selectedCategory) {
-      setOccupancyOptions(selectedCategory.occupancyTypes);
+      setOccupancyOptions(selectedCategory.occupancyTypes)
     } else {
-      setOccupancyOptions([]);
+      setOccupancyOptions([])
     }
-    // Reset occupancyType when category changes
-    setRateData((prevData) => ({
-      ...prevData,
-      occupancyType: "",
-    }));
-  }, [rateData.categoryId, categories]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const {name, value} = e.target;
+    // Only reset occupancyType if we're adding a new rate (not editing)
+    if (!rate) {
+      setRateData(prevData => ({
+        ...prevData,
+        occupancyType: ''
+      }))
+    }
+  }, [rateData.categoryId, categories, rate])
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target
     setRateData({
       ...rateData,
-      [name]: name === "price" ? parseFloat(value) : value,
-    });
-  };
+      [name]: name === 'price' ? parseFloat(value) : value
+    })
+  }
+
+  // Removed adding new rates; now only updating existing ones
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   // Validate required fields
+  //   if (!rateData.categoryId || !rateData.seasonId || !rateData.occupancyType) {
+  //     alert("Please fill in all required fields.");
+  //     return;
+  //   }
+  //   try {
+  //     if (rate) {
+  //       await updateRate(rate.id, {...rateData, hotelId});
+  //       alert("Rate updated successfully!");
+  //     } else {
+  //       await addRate({...rateData, hotelId});
+  //       alert("Rate added successfully!");
+  //     }
+  //     onSubmit();
+  //   } catch (error) {
+  //     console.error("Error saving rate:", error);
+  //     alert("Failed to save rate. Please try again.");
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Validate required fields
-    if (!rateData.categoryId || !rateData.seasonId || !rateData.occupancyType) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+    e.preventDefault()
+
     try {
       if (rate) {
-        await updateRate(rate.id, {...rateData, hotelId});
-        alert("Rate updated successfully!");
-      } else {
-        await addRate({...rateData, hotelId});
-        alert("Rate added successfully!");
+        await updateRate(rate.id, { price: rateData.price })
+        alert('Rate updated successfully!')
       }
-      onSubmit();
+      onSubmit()
     } catch (error) {
-      console.error("Error saving rate:", error);
-      alert("Failed to save rate. Please try again.");
+      console.error('Error updating rate:', error)
+      alert('Failed to update rate. Please try again.')
     }
-  };
-
-  // TODO: Change form to add all of the occupancy rates at the same time
+  }
 
   return (
-    <Box p={4} maxW="500px" mx="auto">
+    <Box p={4} maxW='500px' mx='auto'>
       <form onSubmit={handleSubmit}>
-        <VStack spacing={2} p={5} align="stretch">
+        <VStack spacing={2} p={5} align='stretch'>
           <FormControl isRequired>
             <FormLabel>Category</FormLabel>
             <Select
-              name="categoryId"
+              name='categoryId'
               value={rateData.categoryId}
               onChange={handleInputChange}
+              isDisabled={!!rate} // Disable if editing
             >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
+              <option value=''>Select a category</option>
+              {categories.map(category => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
@@ -121,12 +139,13 @@ export default function AddEditRateForm({
           <FormControl isRequired>
             <FormLabel>Season</FormLabel>
             <Select
-              name="seasonId"
+              name='seasonId'
               value={rateData.seasonId}
               onChange={handleInputChange}
+              isDisabled={!!rate} // Disable if editing
             >
-              <option value="">Select a season</option>
-              {seasons.map((season) => (
+              <option value=''>Select a season</option>
+              {seasons.map(season => (
                 <option key={season.id} value={season.id}>
                   {season.name}
                 </option>
@@ -137,12 +156,13 @@ export default function AddEditRateForm({
           <FormControl isRequired>
             <FormLabel>Occupancy Type</FormLabel>
             <Select
-              name="occupancyType"
+              name='occupancyType'
               value={rateData.occupancyType}
               onChange={handleInputChange}
+              isDisabled={!!rate} // Disable if editing
             >
-              <option value="">Select occupancy type</option>
-              {occupancyOptions.map((occupancy) => (
+              <option value=''>Select occupancy type</option>
+              {occupancyOptions.map(occupancy => (
                 <option key={occupancy} value={occupancy}>
                   {occupancy}
                 </option>
@@ -153,24 +173,24 @@ export default function AddEditRateForm({
           <FormControl isRequired>
             <FormLabel>Price</FormLabel>
             <Input
-              name="price"
-              type="number"
-              step="0.01"
+              name='price'
+              type='number'
+              step='0.01'
               value={rateData.price}
               onChange={handleInputChange}
             />
           </FormControl>
 
-          <HStack spacing={4} mt={2} width={"100%"}>
-            <Button type="submit" colorScheme="teal" flex={"1"}>
-              {rate ? "Update Rate" : "Add Rate"}
+          <HStack spacing={4} mt={2} width={'100%'}>
+            <Button type='submit' colorScheme='teal' flex={'1'}>
+              {rate ? 'Update Rate' : 'Add Rate'}
             </Button>
-            <Button onClick={onCancel} colorScheme="gray" flex={"1"}>
+            <Button onClick={onCancel} colorScheme='gray' flex={'1'}>
               Cancel
             </Button>
           </HStack>
         </VStack>
       </form>
     </Box>
-  );
+  )
 }
