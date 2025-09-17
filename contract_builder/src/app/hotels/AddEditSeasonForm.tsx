@@ -30,6 +30,7 @@ export default function AddEditSeasonForm({
     name: "",
     startDate: "",
     endDate: "",
+    archived: false,
   });
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function AddEditSeasonForm({
         name: season.name || "",
         startDate: season.startDate || "",
         endDate: season.endDate || "",
+        archived: season.archived || false,
       });
     }
   }, [season]);

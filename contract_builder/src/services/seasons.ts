@@ -1,5 +1,5 @@
 import {db} from "../../firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where,} from "firebase/firestore";
+import {addDoc, collection, doc, getDocs, orderBy, query, updateDoc, where} from "firebase/firestore";
 import {Season} from "@/types";
 
 // Add a season to the root-level 'seasons' collection
@@ -23,6 +23,7 @@ export async function getSeasons(hotelId: string): Promise<Season[]> {
     const q = query(
       seasonsRef,
       where("hotelId", "==", hotelId),
+      where("archived", "==", false), // only include active seasons
       orderBy("startDate") // ascending by default
     );
     const seasonsSnapshot = await getDocs(q);
@@ -56,10 +57,10 @@ export async function updateSeason(
 export async function deleteSeason(seasonId: string): Promise<void> {
   try {
     const seasonRef = doc(db, "seasons", seasonId);
-    await deleteDoc(seasonRef);
-    console.log("Season deleted: ", seasonId);
+    await updateDoc(seasonRef, { archived: true });
+    console.log("Season archived: ", seasonId);
   } catch (e) {
-    console.error("Error deleting season: ", e);
+    console.error("Error archiving season: ", e);
     throw e;
   }
 }

@@ -23,6 +23,7 @@ export interface DivePackage {
   name: string;
   description: string;
   price: number;
+  archived?: boolean;
 }
 
 export interface MealPackage {
@@ -32,6 +33,7 @@ export interface MealPackage {
   description: string;
   price: number; // Price per person total
   commissionRate: number; // Commission rate as a decimal (e.g., 0.1 for 10%)
+  archived?: boolean;
 }
 
 export interface Hotel {
@@ -46,6 +48,7 @@ export interface Hotel {
   focRule?: string; // Free of Charge rule, e.g. "7+1"
   focBaseRate?: string; // Base room type for FOC rule
   mealCommissionRate?: number; // Commission rate for meal packages
+  archived?: boolean;
 }
 
 export interface RoomCategory {
@@ -53,6 +56,7 @@ export interface RoomCategory {
   hotelId: string;
   name: string;
   occupancyTypes: string[]; // e.g., ["Single", "Double", "Triple", "Quad"]
+  archived?: boolean;
 }
 
 export interface GroupContract {
@@ -79,7 +83,7 @@ export interface GroupContract {
   mealPackageCost?: number | null;
   totalCost: number;
   createdAt: Date;
-  archived: boolean;
+  archived?: boolean;
   // Add other fields as needed
 }
 
@@ -90,6 +94,7 @@ export interface Rate {
   seasonId: string;
   occupancyType: string;
   price: number;
+  archived?: boolean;
 }
 
 export interface Season {
@@ -98,6 +103,7 @@ export interface Season {
   name: string;
   startDate: string;
   endDate: string;
+  archived?: boolean;
 }
 
 export interface RoomType {
@@ -108,4 +114,5 @@ export interface RoomType {
   description: string;
   quantity: number;
   isFocBase: boolean;
+  archived?: boolean;
 }

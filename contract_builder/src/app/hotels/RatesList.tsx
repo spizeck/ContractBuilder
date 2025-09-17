@@ -69,6 +69,7 @@ export default function RatesList ({
     if (seasonId) {
       filtered = ratesData.filter(rate => rate.seasonId === seasonId)
     }
+
     // Group rates by season
     const groupedRates = seasons
       .map(season => ({
@@ -77,12 +78,23 @@ export default function RatesList ({
       }))
       .filter(group => group.rates.length > 0)
 
-    // Sort rates within each season by category name
+    // Define occupancy type order
+    const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad']
+
+    // Sort rates within each season
     groupedRates.forEach(group => {
       group.rates.sort((a, b) => {
         const categoryA = getCategoryName(a.categoryId)
         const categoryB = getCategoryName(b.categoryId)
-        return categoryA.localeCompare(categoryB)
+        
+        if (categoryA !== categoryB) {
+          return categoryA.localeCompare(categoryB)
+        }
+
+        const occA = occupancyOrder.indexOf(a.occupancyType)
+        const occB = occupancyOrder.indexOf(b.occupancyType)
+
+        return occA - occB
       })
     })
     setFilteredRates(groupedRates)
@@ -103,12 +115,12 @@ export default function RatesList ({
     setEditingRate(rate)
   }
 
-  const handleDeleteRate = async (rateId: string) => {
-    if (confirm('Are you sure you want to delete this rate?')) {
-      await deleteRate(rateId)
-      await fetchRates()
-    }
-  }
+  // const handleDeleteRate = async (rateId: string) => {
+  //   if (confirm('Are you sure you want to delete this rate?')) {
+  //     await deleteRate(rateId)
+  //     await fetchRates()
+  //   }
+  // }
 
   const handleFormSubmit = () => {
     // setIsAdding(false)
@@ -121,7 +133,8 @@ export default function RatesList ({
     setEditingRate(null)
   }
 
-  if ( editingRate) { // Removed isAdding or from here
+  if (editingRate) {
+    // Removed isAdding or from here
     return (
       <AddEditRateForm
         hotelId={hotelId}
@@ -191,17 +204,17 @@ export default function RatesList ({
                   <Td>{rate.occupancyType}</Td>
                   <Td>{rate.price.toFixed(2)}</Td>
                   <Td>
-                    <HStack spacing={2} align='stretch'>
+                    <HStack spacing={1} align='stretch'>
                       <Button size='sm' onClick={() => handleEditRate(rate)}>
                         Edit
                       </Button>
-                      <Button
+                      {/* <Button
                         size='sm'
                         colorScheme='red'
                         onClick={() => handleDeleteRate(rate.id)}
                       >
                         Delete
-                      </Button>
+                      </Button> */}
                     </HStack>
                   </Td>
                 </Tr>
