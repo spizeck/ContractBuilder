@@ -39,12 +39,12 @@ export default function SeasonsList({
   }
 
   const handleDeleteSeason = async (seasonId: string) => {
-    if (confirm("Are you sure you want to delete this season?")) {
+    if (confirm("Are you sure you want to archive this season?")) {
       try {
         await deleteSeason(seasonId);
         setSeasons(seasons.filter((season) => season.id !== seasonId));
       } catch (error) {
-        console.error("Failed to delete season:", error);
+        console.error("Failed to archive season:", error);
       }
     }
   }
@@ -107,7 +107,7 @@ export default function SeasonsList({
                     colorScheme="red"
                     onClick={() => handleDeleteSeason(season.id)}
                   >
-                    Delete
+                    Archive
                   </Button>
                 </HStack>
               </Td>
