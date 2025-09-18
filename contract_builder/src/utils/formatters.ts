@@ -16,7 +16,15 @@ function parseDateOnly(dateStr: string): Date {
 }
 
 export function formatDate(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date
+  let d: Date
+
+  if (typeof date === "string") {
+    const [year, month, day] = date.split("-").map(Number)
+    d = new Date(year, month - 1, day) // 👈 month is 0-based
+  } else {
+    d = date
+  }
+
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "long",
@@ -24,6 +32,7 @@ export function formatDate(date: string | Date): string {
   }
   return d.toLocaleDateString(undefined, options)
 }
+
 
 
 export function formatDateRange(start: string, end: string): string {

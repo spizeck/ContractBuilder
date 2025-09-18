@@ -1,15 +1,36 @@
-import {parseDateStringAsUTC} from '@/utils/dateUtils'
-import {ContractData, DivePackage, Hotel, MealPackage, Rate, RoomCategory, Season} from '@/types'
-import {parseFocRule} from "@/utils/formatters"
+import { parseDateStringAsUTC } from '@/utils/dateUtils'
+import {
+  ContractData,
+  DivePackage,
+  Hotel,
+  MealPackage,
+  Rate,
+  RoomCategory,
+  Season,
+  RoomType,
+  Totals
+} from '@/types'
+import { parseFocRule } from '@/utils/formatters'
 
-export function calculateNumberOfNights(startDate: string, endDate: string): number {
+export function calculateNumberOfNights (
+  startDate: string,
+  endDate: string
+): number {
   const start = parseDateStringAsUTC(startDate)
   const end = parseDateStringAsUTC(endDate)
   const diffInMilliseconds = end.getTime() - start.getTime()
-  return diffInMilliseconds / (1000 * 3600 * 24) // converting ms to days
+  const nights = diffInMilliseconds / (1000 * 3600 * 24) // converting ms to days
+  if (nights <= 0) {
+    throw new Error('End date must be after start date.')
+  }
+  return nights
 }
 
-export function determineSeason(startDate: string, endDate: string, seasons: Season[]): Season {
+export function determineSeason (
+  startDate: string,
+  endDate: string,
+  seasons: Season[]
+): Season {
   const start = parseDateStringAsUTC(startDate)
   const end = parseDateStringAsUTC(endDate)
 
@@ -36,51 +57,64 @@ export function determineSeason(startDate: string, endDate: string, seasons: Sea
   return maxOverlapSeason
 }
 
-export function getOccupancyNumber(occupancyType: string): number {
+export function getOccupancyNumber (occupancyType: string): number {
   const occupancyMap: { [key: string]: number } = {
     single: 1,
     double: 2,
     triple: 3,
-    quad: 4,
+    quad: 4
   }
   const occupancy = occupancyMap[occupancyType.toLowerCase()]
   if (occupancy !== undefined) return occupancy
   throw new Error(`Unknown occupancy type: ${occupancyType}`)
 }
 
-export function getCommissionRate(bookingType: string): number {
+export function getCommissionRate (bookingType: string): number {
   const match = bookingType.match(/\d+/)
   return match ? parseInt(match[0], 10) / 100 : 0
 }
 
-export function calculateTotalCost(
+export function calculateTotalCost (
   contractData: ContractData,
   season: Season,
   rates: Rate[],
   divePackage: DivePackage | null,
   mealPackage: MealPackage | null,
   roomCategories: RoomCategory[],
+  roomTypes: RoomType[],
   hotel: Hotel
 ): {
   totalGuests: number
-  roomCosts: { description: string; gross: number; foc: number; commission: number; net: number }[]
-  roomTotals: { gross: number; foc: number; commission: number; net: number }
-  diveTotals: { gross: number; foc: number; commission: number; net: number }
-  mealTotals: { gross: number; commission: number; net: number }
-  overall: { gross: number; foc: number; commission: number; net: number }
+  roomCosts: {
+    description: string
+    gross: number
+    foc: number
+    commission: number
+    net: number
+  }[]
+  roomTotals: Totals
+  diveTotals: Totals
+  mealTotals: Omit<Totals, 'foc'>
+  overall: Totals
 } {
-  const {startDate, endDate, rooms, numDivers, bookingType} = contractData
-  if (!startDate || !endDate || !rooms) throw new Error('Missing required contract data.')
+  const { startDate, endDate, rooms, numDivers, bookingType } = contractData
+  if (!startDate || !endDate || !rooms)
+    throw new Error('Missing required contract data.')
 
   const nights = calculateNumberOfNights(startDate, endDate)
-  const commissionRate = getCommissionRate(bookingType || "")
-  const focRule = parseFocRule(hotel.focRule || "0+0")
+  const commissionRate = getCommissionRate(bookingType || '')
+  const focRule = parseFocRule(hotel.focRule || '0+0')
 
-  // ---- Rooms ----
   let totalGuests = 0
   let grossRoomCost = 0
   let focDeduction = 0
-  const roomCosts: { description: string; gross: number; foc: number; commission: number; net: number }[] = []
+  const roomCosts: {
+    description: string
+    gross: number
+    foc: number
+    commission: number
+    net: number
+  }[] = []
 
   for (const room of rooms) {
     if (room.numRooms > 0 && room.categoryId && room.occupancyType) {
@@ -93,67 +127,84 @@ export function calculateTotalCost(
           r.occupancyType.toLowerCase() === room.occupancyType.toLowerCase() &&
           r.seasonId === season.id
       )
-      if (!rate) throw new Error(`No rate found for category ${room.categoryId}, occupancy ${room.occupancyType}, season ${season.name}`)
+      if (!rate)
+        throw new Error(
+          `No rate found for ${room.categoryId}, ${room.occupancyType}, season ${season.name}`
+        )
 
       const gross = room.numRooms * nights * rate.price
       grossRoomCost += gross
 
-      let foc = 0
-      if (hotel.focBaseRate && room.categoryId === hotel.focBaseRate) {
-        const focGuests = Math.floor(totalGuests / (focRule.paid + focRule.free))
-        foc = focGuests * rate.price * nights
-      }
-
-      const commission = (gross - foc) * commissionRate
-      const net = gross - foc - commission
+      const commission = gross * commissionRate
+      const net = gross - commission
 
       const category = roomCategories.find(c => c.id === room.categoryId)
       const categoryName = category ? category.name : room.categoryId
 
       roomCosts.push({
-        description: `${room.numRooms} x ${room.occupancyType} rooms in category ${categoryName} for ${nights} nights @ $${rate.price.toFixed(2)}/night`,
+        description: `${room.numRooms} x ${
+          room.occupancyType
+        } rooms in category ${categoryName} for ${nights} nights @ $${rate.price.toFixed(
+          2
+        )}/night`,
         gross,
-        foc,
+        foc: 0, // temp, FOC applied later
         commission,
-        net,
+        net
       })
-
-      focDeduction += foc
     }
   }
 
-  const roomTotals = {
+  // ---- FOC calculation (after totalGuests known) ----
+  const focRoomType = roomTypes.find(
+    rt => rt.hotelId === hotel.id && rt.isFocBase
+  )
+  if (focRoomType) {
+    const baseRate = rates.find(
+      r => r.categoryId === focRoomType.categoryId && r.seasonId === season.id
+    )
+    if (baseRate) {
+      const perGuestPerNight = baseRate.price / 2 // assume double occupancy
+      const freeGuests =
+        Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free
+      focDeduction = freeGuests * perGuestPerNight * nights
+    }
+  }
+
+  const adjustedGross = grossRoomCost - focDeduction
+  const roomTotals: Totals = {
     gross: grossRoomCost,
     foc: focDeduction,
-    commission: (grossRoomCost - focDeduction) * commissionRate,
-    net: (grossRoomCost - focDeduction) * (1 - commissionRate),
+    commission: adjustedGross * commissionRate,
+    net: adjustedGross * (1 - commissionRate)
   }
 
   // ---- Dives ----
-  let diveTotals = {gross: 0, foc: 0, commission: 0, net: 0}
+  let diveTotals: Totals = { gross: 0, foc: 0, commission: 0, net: 0 }
   if (divePackage && numDivers) {
     const gross = divePackage.price * numDivers
     const foc = Math.floor(numDivers / 8) * divePackage.price
-    const commission = (gross - foc) * commissionRate
-    diveTotals = {gross, foc, commission, net: gross - foc - commission}
+    const adjustedGross = gross - foc
+    const commission = adjustedGross * commissionRate
+    diveTotals = { gross, foc, commission, net: adjustedGross - commission }
   }
 
   // ---- Meals ----
-  let mealTotals = {gross: 0, commission: 0, net: 0}
+  let mealTotals: Omit<Totals, 'foc'> = { gross: 0, commission: 0, net: 0 }
   if (mealPackage && totalGuests) {
     const gross = mealPackage.price * totalGuests
-    const mealRate = hotel.mealCommissionRate ?? 0
-    const commission = gross * mealRate
-    mealTotals = {gross, commission, net: gross - commission}
+    const commission = gross * (mealPackage.commissionRate ?? 0)
+    mealTotals = { gross, commission, net: gross - commission }
   }
 
   // ---- Overall ----
-  const overall = {
+  const overall: Totals = {
     gross: roomTotals.gross + diveTotals.gross + mealTotals.gross,
-    foc: roomTotals.foc + diveTotals.foc,
-    commission: roomTotals.commission + diveTotals.commission + mealTotals.commission,
-    net: roomTotals.net + diveTotals.net + mealTotals.net,
+    foc: (roomTotals.foc ?? 0) + (diveTotals.foc ?? 0),
+    commission:
+      roomTotals.commission + diveTotals.commission + mealTotals.commission,
+    net: roomTotals.net + diveTotals.net + mealTotals.net
   }
 
-  return {totalGuests, roomCosts, roomTotals, diveTotals, mealTotals, overall}
+  return { totalGuests, roomCosts, roomTotals, diveTotals, mealTotals, overall }
 }

@@ -85,6 +85,10 @@ export default function ViewContractPage() {
           {getCommissionRate(contract.bookingType) * 100}%
         </Text>
         <Text>
+          <b>Meal Commission Rate:</b>{' '}
+          {(contract.mealCommissionRate ?? 0) * 100}%
+        </Text>
+        <Text>
           <b>FOC Rules:</b> {formatFocRule(hotel.focRule)}
         </Text>
         <Text>

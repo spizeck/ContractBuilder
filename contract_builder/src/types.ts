@@ -88,6 +88,7 @@ export interface GroupContract {
   mealPackageId?: string;
   mealPackageName?: string | null;
   mealPackageCost?: number | null;
+  mealCommissionRate?: number; // Commission rate for meal packages
   totalCost: number;
   createdAt: Date;
   archived?: boolean;

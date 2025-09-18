@@ -34,3 +34,4 @@ export async function getMealPackageById(mealPackageId: string): Promise<MealPac
   const docSnap = await getDoc(docRef);
   return docSnap.exists()? docSnap.data() as MealPackage : null;
 }
+

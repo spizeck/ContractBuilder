@@ -1,21 +1,37 @@
-import {useEffect, useState} from 'react'
-import {Button, HStack, Text, VStack} from '@chakra-ui/react'
-import {ContractData, DivePackage, GroupContract, Hotel, MealPackage, Season} from '@/types'
-import {getSeasons} from '@/services/seasons'
-import {getRates} from '@/services/rates'
-import {getDivePackageById} from '@/services/divePackages'
-import {getMealPackageById} from '@/services/mealPackages'
-import {getHotelById} from '@/services/hotels'
-import {getRoomCategories} from '@/services/roomCategories'
-import {addGroupContract, archiveGroupContract} from '@/services/groupContracts'
-import {calculateNumberOfNights, calculateTotalCost, determineSeason} from '@/utils/contractCalculations'
-import {formatCurrency, formatDate} from '@/utils/formatters'
+import { useEffect, useState } from 'react'
+import { Button, HStack, Text, VStack } from '@chakra-ui/react'
+import {
+  ContractData,
+  DivePackage,
+  GroupContract,
+  Hotel,
+  MealPackage,
+  Season,
+} from '@/types'
+import { getSeasons } from '@/services/seasons'
+import { getRates } from '@/services/rates'
+import { getDivePackageById } from '@/services/divePackages'
+import { getMealPackageById } from '@/services/mealPackages'
+import { getHotelById } from '@/services/hotels'
+import { getRoomCategories } from '@/services/roomCategories'
+import {
+  addGroupContract,
+  archiveGroupContract,
+  formatBookingType
+} from '@/services/groupContracts'
+import {
+  calculateNumberOfNights,
+  calculateTotalCost,
+  determineSeason,
+} from '@/utils/contractCalculations'
+import { formatCurrency, formatDate } from '@/utils/formatters'
+import { getRoomTypes } from '@/services/roomTypes'
 
-export default function TotalCostCalculation({
-                                               contractData,
-                                               onConfirm,
-                                               onBack
-                                             }: {
+export default function TotalCostCalculation ({
+  contractData,
+  onConfirm,
+  onBack
+}: {
   contractData: ContractData
   onConfirm: () => void
   onBack: () => void
@@ -24,7 +40,9 @@ export default function TotalCostCalculation({
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [divePackage, setDivePackage] = useState<DivePackage | null>(null)
   const [mealPackage, setMealPackage] = useState<MealPackage | null>(null)
-  const [results, setResults] = useState<ReturnType<typeof calculateTotalCost> | null>(null)
+  const [results, setResults] = useState<ReturnType<
+    typeof calculateTotalCost
+  > | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleConfirm = async () => {
@@ -48,14 +66,16 @@ export default function TotalCostCalculation({
         mealTotals: results?.mealTotals,
         overall: results?.overall,
         rooms: contractData.rooms!,
-        roomCosts: results?.roomCosts.map(rc => ({
-          description: rc.description,
-          cost: rc.net // save net cost
-        })) || [],
+        roomCosts:
+          results?.roomCosts.map(rc => ({
+            description: rc.description,
+            cost: rc.net
+          })) || [],
         totalRoomCost: results?.roomTotals.net || 0,
         totalGuests: results?.totalGuests || 0,
         numDivers: contractData.numDivers!,
-        totalNonDivers: (results?.totalGuests || 0) - (contractData.numDivers || 0),
+        totalNonDivers:
+          (results?.totalGuests || 0) - (contractData.numDivers || 0),
         ...(contractData.divePackageId && {
           divePackageId: contractData.divePackageId,
           divePackageName: divePackage?.name ?? null,
@@ -64,7 +84,8 @@ export default function TotalCostCalculation({
         ...(contractData.mealPackageId && {
           mealPackageId: contractData.mealPackageId,
           mealPackageName: mealPackage?.name ?? null,
-          mealPackageCost: results?.mealTotals.net ?? null
+          mealPackageCost: results?.mealTotals.net ?? null,
+          mealCommissionRate: mealPackage?.commissionRate ?? 0 
         }),
         totalCost: results?.overall.net || 0,
         createdAt: new Date()
@@ -80,9 +101,13 @@ export default function TotalCostCalculation({
   }
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData () {
       try {
-        if (!contractData.hotelId || !contractData.startDate || !contractData.endDate) {
+        if (
+          !contractData.hotelId ||
+          !contractData.startDate ||
+          !contractData.endDate
+        ) {
           setError('Missing required contract data.')
           return
         }
@@ -91,9 +116,14 @@ export default function TotalCostCalculation({
         setHotel(hotelData)
 
         const categories = await getRoomCategories(contractData.hotelId)
+        const roomTypes = await getRoomTypes(contractData.hotelId)
 
         const seasons = await getSeasons(contractData.hotelId!)
-        const seasonResult = determineSeason(contractData.startDate!, contractData.endDate!, seasons)
+        const seasonResult = determineSeason(
+          contractData.startDate!,
+          contractData.endDate!,
+          seasons
+        )
         setSeason(seasonResult)
 
         const ratesData = await getRates(contractData.hotelId!)
@@ -111,7 +141,7 @@ export default function TotalCostCalculation({
         }
 
         if (!hotelData) {
-          setError("Hotel data missing")
+          setError('Hotel data missing')
           return
         }
 
@@ -122,7 +152,8 @@ export default function TotalCostCalculation({
           divePkg,
           mealPkg,
           categories,
-          hotelData
+          roomTypes,
+          hotelData,
         )
         setResults(calc)
       } catch (error) {
@@ -136,8 +167,8 @@ export default function TotalCostCalculation({
 
   if (error) {
     return (
-      <VStack spacing={4} align="stretch">
-        <Text color="red.500">{error}</Text>
+      <VStack spacing={4} align='stretch'>
+        <Text color='red.500'>{error}</Text>
         <Button onClick={onBack}>Back</Button>
       </VStack>
     )
@@ -147,11 +178,18 @@ export default function TotalCostCalculation({
     return <Text>Loading data...</Text>
   }
 
-  const {roomCosts, roomTotals, diveTotals, mealTotals, overall, totalGuests} = results
+  const {
+    roomCosts,
+    roomTotals,
+    diveTotals,
+    mealTotals,
+    overall,
+    totalGuests
+  } = results
 
   return (
-    <VStack spacing={4} align="stretch">
-      <Text fontSize="xl" fontWeight="bold">
+    <VStack spacing={2} align='stretch'>
+      <Text fontSize='xl' fontWeight='bold'>
         Review and Confirm details for: {contractData.groupName}
       </Text>
 
@@ -167,30 +205,46 @@ export default function TotalCostCalculation({
 
       <HStack spacing={2}>
         <Text flex={1}>
-          Nights: {calculateNumberOfNights(contractData.startDate!, contractData.endDate!)}
+          Nights:{' '}
+          {calculateNumberOfNights(
+            contractData.startDate!,
+            contractData.endDate!
+          )}
         </Text>
         <Text flex={1}>Total Guests: {totalGuests}</Text>
       </HStack>
 
+      <HStack spacing={2}>
+        <Text flex={1}>
+          Booking Type: {formatBookingType(contractData.bookingType!)}
+        </Text>
+        <Text flex={1}>
+          Meal Commission Rate: {(mealPackage?.commissionRate ?? 0) * 100}%
+        </Text>
+      </HStack>
+
       {/* Rooms */}
-      <Text fontWeight="bold">Room Breakdown:</Text>
+      <Text fontWeight='bold'>Room Breakdown for {totalGuests} guests:</Text>
       {roomCosts.map((rc, idx) => (
-        <VStack key={idx} align="start" spacing={1}>
+        <VStack key={idx} align='start' spacing={1}>
           <Text>{rc.description}</Text>
-          <Text>Gross: ${formatCurrency(rc.gross)}</Text>
-          <Text>FOC Value: $({formatCurrency(rc.foc)})</Text>
-          <Text>Commission: $({formatCurrency(rc.commission)})</Text>
-          <Text>Net: ${formatCurrency(rc.net)}</Text>
         </VStack>
       ))}
-      <Text fontWeight="bold">
-        Rooms Total Net: ${formatCurrency(roomTotals.net)}
-      </Text>
+      <VStack align='start' spacing={1}>
+        <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
+        <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
+        <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
+        <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
+      </VStack>
 
       {/* Dives */}
       {divePackage && (
-        <VStack align="start" spacing={1}>
-          <Text fontWeight="bold">Dive Package: {divePackage.name}</Text>
+        <VStack align='start' spacing={1}>
+          <Text fontWeight='bold'>
+            Dive Package for{' '}
+            {diveTotals.gross > 0 ? diveTotals.gross / divePackage.price : 0}{' '}
+            divers: {divePackage.name}
+          </Text>
           <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
           <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
@@ -200,8 +254,8 @@ export default function TotalCostCalculation({
 
       {/* Meals */}
       {mealPackage && (
-        <VStack align="start" spacing={1}>
-          <Text fontWeight="bold">Meal Package: {mealPackage.name}</Text>
+        <VStack align='start' spacing={1}>
+          <Text fontWeight='bold'>Meal Package: {mealPackage.name}</Text>
           <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
           <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
           <Text>Net: ${formatCurrency(mealTotals.net)}</Text>
@@ -209,17 +263,17 @@ export default function TotalCostCalculation({
       )}
 
       {/* Overall */}
-      <Text fontWeight="bold">Overall Totals:</Text>
+      <Text fontWeight='bold'>Overall Totals:</Text>
       <Text>Gross: ${formatCurrency(overall.gross)}</Text>
       <Text>FOC: $({formatCurrency(overall.foc)})</Text>
       <Text>Commission: $({formatCurrency(overall.commission)})</Text>
-      <Text fontWeight="bold">Net: ${formatCurrency(overall.net)}</Text>
+      <Text fontWeight='bold'>Net: ${formatCurrency(overall.net)}</Text>
 
       <HStack spacing={2}>
         <Button onClick={onBack} flex={1}>
           Back
         </Button>
-        <Button colorScheme="teal" onClick={handleConfirm} flex={1}>
+        <Button colorScheme='teal' onClick={handleConfirm} flex={1}>
           Save
         </Button>
       </HStack>
