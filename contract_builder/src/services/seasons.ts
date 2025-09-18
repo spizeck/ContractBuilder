@@ -1,4 +1,4 @@
-import {db} from "../../firebase";
+import {db} from "../lib/firebase";
 import {addDoc, collection, doc, getDocs, orderBy, query, updateDoc, where} from "firebase/firestore";
 import {Season} from "@/types";
 

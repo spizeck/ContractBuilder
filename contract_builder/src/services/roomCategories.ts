@@ -1,4 +1,4 @@
-import {db} from "../../firebase";
+import {db} from "../lib/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where,} from "firebase/firestore";
 import {RoomCategory} from "@/types";
 

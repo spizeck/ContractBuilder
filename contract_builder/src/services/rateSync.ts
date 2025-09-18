@@ -1,5 +1,5 @@
 // services/rateSync.ts
-import {db} from "../../firebase";
+import {db} from "../lib/firebase";
 import {addDoc, collection, getDocs, query, where,} from "firebase/firestore";
 import type {Rate, RoomCategory, Season} from "@/types";
 
