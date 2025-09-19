@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ChakraProvider, Box, Flex, Heading, Link } from '@chakra-ui/react'
+import { ChakraProvider, Box, Flex, Heading } from '@chakra-ui/react'
 import './globals.css'
 import React from 'react'
-import NextLink from 'next/link'
 import { AuthProvider } from '@/context/AuthContext'
+import NavLinks from '@/components/NavLinks' // 👈 import here
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -35,36 +35,7 @@ export default function RootLayout ({
               <Heading as='h1' size='lg'>
                 Sea Saba
               </Heading>
-              <Flex as='nav' gap={6}>
-                <Link
-                  as={NextLink}
-                  href='/'
-                  _hover={{ textDecoration: 'underline' }}
-                >
-                  Home
-                </Link>
-                <Link
-                  as={NextLink}
-                  href='/contracts'
-                  _hover={{ textDecoration: 'underline' }}
-                >
-                  Contracts
-                </Link>
-                <Link
-                  as={NextLink}
-                  href='/hotels'
-                  _hover={{ textDecoration: 'underline' }}
-                >
-                  Hotels
-                </Link>
-                <Link
-                  as={NextLink}
-                  href='/dive-packages'
-                  _hover={{ textDecoration: 'underline' }}
-                >
-                  Dive Packages
-                </Link>
-              </Flex>
+              <NavLinks /> {/* 👈 clean drop-in */}
             </Flex>
 
             <Box as='main' p={8}>

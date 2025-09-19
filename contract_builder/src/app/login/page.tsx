@@ -1,52 +1,106 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from '@/lib/firebase';
-import { useAuth } from "@/context/AuthContext";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import {
+  Box,
+  VStack,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Text,
+  Link,
+} from "@chakra-ui/react";
 
 export default function LoginPage() {
-  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      router.push("/contracts");
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setError("Please enter your email first.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage("Password reset email sent. Please check your inbox.");
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      setMessage(null);
+    }
   };
 
-  if (user) {
-    return (
-      <div>
-        <p>Welcome, {user.email}</p>
-        <button onClick={handleLogout}>Logout</button>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Login</button>
-    </form>
+    <Box
+      p={6}
+      maxW="500px"
+      mx="auto"
+      mt={10}
+      borderWidth="1px"
+      borderRadius="lg"
+      boxShadow="lg"
+    >
+      <form onSubmit={handleLogin}>
+        <Text fontSize="2xl" fontWeight="bold" mb={4}>
+          Login
+        </Text>
+        <VStack spacing={4} align="stretch">
+          <FormControl isRequired>
+            <FormLabel>Email</FormLabel>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+            />
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel>Password</FormLabel>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+            />
+          </FormControl>
+
+          {error && <Text color="red.500">{error}</Text>}
+          {message && <Text color="green.500">{message}</Text>}
+
+          <Button type="submit" colorScheme="teal" width="100%">
+            Login
+          </Button>
+
+          {/* Forgot Password Link */}
+          <Link
+            color="teal.500"
+            fontSize="sm"
+            textAlign="center"
+            onClick={handlePasswordReset}
+            cursor="pointer"
+          >
+            Forgot your password?
+          </Link>
+        </VStack>
+      </form>
+    </Box>
   );
 }

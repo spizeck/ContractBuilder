@@ -1,38 +1,55 @@
 // src/context/AuthContext.tsx
-"use client";
+'use client'
 
-import { createContext, useContext, useState, useEffect } from "react";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth } from "@/lib/firebase"; 
+import { createContext, useContext, useState, useEffect } from 'react'
+import { onAuthStateChanged, type User } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
+
+type Role = 'admin' | 'manager' | 'staff' | 'viewer'
 
 interface AuthContextType {
-    user: User | null;
-    loading: boolean;
+  user: User | null
+  role: Role
+  loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
-    user: null,
-    loading: true,
-});
+  user: null,
+  role: 'viewer', // Default role
+  loading: true
+})
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider ({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [role, setRole] = useState<Role>('viewer') // Default role
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-    });
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser)  => {
+      setUser(firebaseUser)
+      if (firebaseUser) {
+        const userRef = doc(db, 'users', firebaseUser.uid)
+        const userSnap = await getDoc(userRef)
+        if (userSnap.exists()) {
+          setRole(userSnap.data().role as Role)
+        } else {
+          setRole('viewer') // Default role if no user document
+        }
+      } else {
+        setRole('viewer') // Default role if not logged in
+      }
+      setLoading(false)
+    })
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, role, loading }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext)
