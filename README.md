@@ -96,7 +96,8 @@ The app will be available at `http://localhost:3000`.
 - ✅ Contract wizard with auto-calculation
 - ✅ Hotel/room/dive/meal package database
 - ✅ PDF export with acceptance signature
-- 🔄 Firebase Auth login & role permissions
+- ✅ Firebase Auth login & role permissions
+- 🔄 Migrate Divelog
 - 🔄 Multi-language support (English/Dutch)
 - 🔄 Export to Excel
 
