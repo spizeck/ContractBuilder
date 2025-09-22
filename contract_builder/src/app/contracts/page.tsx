@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button, Heading, Text, VStack } from '@chakra-ui/react'
 import GroupContractWizard from './GroupContractWizard'
 import GroupContractsList from './GroupContractsList'
-
+import ProtectedPage from "@/components/ProtectedPage";
 
 export default function ContractPage () {
   const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('home')
@@ -30,6 +30,7 @@ export default function ContractPage () {
   }
 
   return (
+     <ProtectedPage allowedRoles={["admin", "manager"]}>
     <VStack spacing={4} p={5}>
       <Heading as='h1' size='xl' textAlign='center'>
         Group Contracts
@@ -69,5 +70,6 @@ export default function ContractPage () {
         />
       )}
     </VStack>
+    </ProtectedPage>
   )
 }
