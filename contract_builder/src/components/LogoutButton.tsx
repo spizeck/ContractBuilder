@@ -12,10 +12,10 @@ export default function LogoutButton() {
 
   return (
     <Button
-      size="sm"
-      colorScheme="red"
-      variant="outline"
+    variant="link"
+      colorScheme="white"
       onClick={() => signOut(auth)}
+      _hover={{ textDecoration: "underline" }}
     >
       Logout
     </Button>

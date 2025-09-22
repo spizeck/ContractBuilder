@@ -30,7 +30,9 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser)
       if (firebaseUser) {
         const userRef = doc(db, 'users', firebaseUser.uid)
+        // console.log('Fetching role for user:', firebaseUser.uid)
         const userSnap = await getDoc(userRef)
+        // console.log('User role:', userSnap.data()?.role)
         if (userSnap.exists()) {
           setRole(userSnap.data().role as Role)
         } else {
