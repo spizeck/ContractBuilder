@@ -9,8 +9,8 @@ import NavLinks from '@/components/NavLinks' // 👈 import here
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sea Saba Contract Builder',
-  description: 'App to assemble dive group contracts'
+  title: 'Sea Saba Business App',
+  description: 'App to assemble dive group contracts and manage Dive Logs'
 }
 
 export default function RootLayout ({

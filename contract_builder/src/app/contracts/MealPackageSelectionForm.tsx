@@ -9,7 +9,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { getMealPackages } from "@/services/mealPackages";
-import { MealPackage } from "@/types";
+import { MealPackage } from "@/types/contractTypes";
 
 export default function MealPackageSelectionForm({
   hotelId,

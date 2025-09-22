@@ -1,6 +1,6 @@
 import {db} from "../lib/firebase";
 import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc} from "firebase/firestore";
-import {DivePackage} from "@/types";
+import {DivePackage} from "@/types/contractTypes";
 
 const divePackagesCollection = collection(db, "divePackages");
 

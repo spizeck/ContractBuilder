@@ -1,6 +1,6 @@
 import {db} from "../lib/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where,} from "firebase/firestore";
-import {RoomCategory} from "@/types";
+import {RoomCategory} from "@/types/contractTypes";
 
 export async function getRoomCategories(hotelId: string): Promise<RoomCategory[]> {
   const q = query(collection(db, "roomCategories"), where("hotelId", "==", hotelId));

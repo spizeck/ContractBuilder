@@ -7,7 +7,7 @@ import {
   Hotel,
   MealPackage,
   Season,
-} from '@/types'
+} from '@/types/contractTypes'
 import { getSeasons } from '@/services/seasons'
 import { getRates } from '@/services/rates'
 import { getDivePackageById } from '@/services/divePackages'

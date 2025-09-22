@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { addRoomCategory, updateRoomCategory } from '@/services/roomCategories'
 import { ensureRatesForCategory } from '@/services/rateSync'
-import { RoomCategory } from '@/types'
+import { RoomCategory } from '@/types/contractTypes'
 
 export default function AddEditRoomCategoryForm ({
   hotelId,

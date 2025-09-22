@@ -20,7 +20,7 @@ import RoomCategoriesList from './RoomCategoriesList'
 import RoomTypesList from './RoomTypesList'
 import RatesList from './RatesList'
 import MealPackagesList from './MealPackagesList'
-import { Hotel, RoomType } from '@/types'
+import { Hotel, RoomType } from '@/types/contractTypes'
 import { getRoomTypes } from '@/services/roomTypes'
 import { formatFocRule } from '@/utils/formatters'
 

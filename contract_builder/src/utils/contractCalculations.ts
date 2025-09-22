@@ -9,7 +9,7 @@ import {
   Season,
   RoomType,
   Totals
-} from '@/types'
+} from '@/types/contractTypes'
 import { parseFocRule } from '@/utils/formatters'
 
 export function calculateNumberOfNights (

@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {Button, HStack, Table, Tbody, Td, Text, Th, Thead, Tr, VStack,} from "@chakra-ui/react";
 import {deleteDivePackage, getDivePackages,} from "@/services/divePackages";
 import AddEditDivePackageForm from "./AddEditDivePackageForm";
-import {DivePackage} from "@/types";
+import {DivePackage} from "@/types/contractTypes";
 
 export default function DivePackagesList() {
   const [divePackages, setDivePackages] = useState<DivePackage[]>([]);

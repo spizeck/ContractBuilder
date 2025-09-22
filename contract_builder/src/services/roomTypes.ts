@@ -9,7 +9,7 @@ import {
   updateDoc,
   where
 } from 'firebase/firestore'
-import { RoomType } from '@/types'
+import { RoomType } from '@/types/contractTypes'
 
 const roomTypesRef = collection(db, 'roomTypes')
 

@@ -1,6 +1,6 @@
 import {db} from "../lib/firebase";
 import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where,} from "firebase/firestore";
-import {Rate, RoomCategory} from "@/types";
+import {Rate, RoomCategory} from "@/types/contractTypes";
 
 export async function getRates(hotelId: string): Promise<Rate[]> {
   const ratesRef = collection(db, "rates");

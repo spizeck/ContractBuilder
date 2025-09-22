@@ -11,7 +11,7 @@ import {
   Select
 } from '@chakra-ui/react'
 import { addMealPackage, updateMealPackage } from '@/services/mealPackages'
-import { MealPackage } from '@/types'
+import { MealPackage } from '@/types/contractTypes'
 
 export default function AddEditMealPackageForm ({
   hotelId,

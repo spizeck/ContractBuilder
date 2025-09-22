@@ -16,7 +16,7 @@ import { getRates, deleteRate } from '@/services/rates'
 import { getRoomCategories } from '@/services/roomCategories'
 import { getSeasons } from '@/services/seasons'
 import AddEditRateForm from './AddEditRateForm'
-import { Rate, RoomCategory, Season } from '@/types'
+import { Rate, RoomCategory, Season } from '@/types/contractTypes'
 
 export default function RatesList ({
   hotelId,

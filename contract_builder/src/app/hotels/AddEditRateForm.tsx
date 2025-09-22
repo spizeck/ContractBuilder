@@ -10,7 +10,7 @@ import {
   Select
 } from '@chakra-ui/react'
 import { addRate, updateRate } from '@/services/rates'
-import { Rate, RoomCategory, Season } from '@/types'
+import { Rate, RoomCategory, Season } from '@/types/contractTypes'
 
 export default function AddEditRateForm ({
   hotelId,
