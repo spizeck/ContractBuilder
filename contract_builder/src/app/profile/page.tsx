@@ -24,10 +24,11 @@ import { useAuth } from '@/context/AuthContext'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
+import { UserProfile, UserPreferences } from '@/types/userTypes'
 
 export default function ProfilePage () {
   const { user, role, loading } = useAuth()
-  const [name, setName] = useState('')
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +37,14 @@ export default function ProfilePage () {
   const [users, setUsers] = useState<any[]>([])
   const [savingUser, setSavingUser] = useState<string | null>(null)
 
+  const defaultPrefs: UserPreferences = {
+    units: {
+      depth: 'meters',
+      temp: 'celsius',
+      pressure: 'bar'
+    }
+  }
+
   // Load own profile
   useEffect(() => {
     const loadProfile = async () => {
@@ -43,7 +52,18 @@ export default function ProfilePage () {
       const userRef = doc(db, 'users', user.uid)
       const snap = await getDoc(userRef)
       if (snap.exists()) {
-        setName(snap.data().name || '')
+        const data = snap.data() as Partial<UserProfile>
+        setUserProfile({
+          ...(data as UserProfile),
+          preferences: {
+            ...defaultPrefs,
+            ...data.preferences,
+            units: {
+              ...defaultPrefs.units,
+              ...data.preferences?.units
+            }
+          }
+        })
       }
     }
     loadProfile()
@@ -61,10 +81,16 @@ export default function ProfilePage () {
   }, [role])
 
   const handleProfileSave = async () => {
-    if (!user) return
+    if (!user || !userProfile) return
     setSaving(true)
     try {
-      await updateDoc(doc(db, 'users', user.uid), { name })
+      await updateDoc(doc(db, 'users', user.uid), {
+        name: userProfile.name,
+        preferences: {
+          ...defaultPrefs,
+          ...userProfile.preferences
+        }
+      })
       setMessage('Profile updated successfully.')
       setError(null)
     } catch (err: any) {
@@ -105,16 +131,97 @@ export default function ProfilePage () {
       <VStack spacing={4} align='stretch' mb={6}>
         <FormControl>
           <FormLabel>Email</FormLabel>
-          <Input value={user.email || ''} isReadOnly />
+          <Input value={userProfile?.email || ''} isReadOnly />
         </FormControl>
 
         <FormControl>
           <FormLabel>Name</FormLabel>
           <Input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder='Enter your name'
+            value={userProfile?.name || ''}
+            onChange={e =>
+              setUserProfile(prev =>
+                prev ? { ...prev, name: e.target.value } : null
+              )
+            }
           />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Depth Units</FormLabel>
+          <Select
+            value={userProfile?.preferences.units.depth}
+            onChange={e =>
+              setUserProfile(prev =>
+                prev
+                  ? {
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        units: {
+                          ...prev.preferences.units,
+                          depth: e.target.value as 'meters' | 'feet'
+                        }
+                      }
+                    }
+                  : prev
+              )
+            }
+          >
+            <option value='meters'>Meters</option>
+            <option value='feet'>Feet</option>
+          </Select>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Temperature Units</FormLabel>
+          <Select
+            value={userProfile?.preferences.units.temp}
+            onChange={e =>
+              setUserProfile(prev =>
+                prev
+                  ? {
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        units: {
+                          ...prev.preferences.units,
+                          temp: e.target.value as 'celsius' | 'fahrenheit'
+                        }
+                      }
+                    }
+                  : prev
+              )
+            }
+          >
+            <option value='celsius'>Celsius</option>
+            <option value='fahrenheit'>Fahrenheit</option>
+          </Select>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Pressure Units</FormLabel>
+          <Select
+            value={userProfile?.preferences.units.pressure}
+            onChange={e =>
+              setUserProfile(prev =>
+                prev
+                  ? {
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        units: {
+                          ...prev.preferences.units,
+                          pressure: e.target.value as 'bar' | 'psi'
+                        }
+                      }
+                    }
+                  : prev
+              )
+            }
+          >
+            <option value='bar'>Bar</option>
+            <option value='psi'>PSI</option>
+          </Select>
         </FormControl>
 
         <FormControl>
