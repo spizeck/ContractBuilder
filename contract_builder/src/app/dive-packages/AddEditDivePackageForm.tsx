@@ -121,5 +121,5 @@ export default function AddEditDivePackageForm({
         </VStack>
       </form>
     </Box>
-  );
+  )
 }

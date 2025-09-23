@@ -27,12 +27,9 @@ export default function NavLinks() {
             >
               Contracts
             </MenuButton>
-            <MenuList>
+            <MenuList color={"teal"}>
               <MenuItem as={NextLink} href="/contracts">
-                View Contracts
-              </MenuItem>
-              <MenuItem as={NextLink} href="/contracts/new">
-                New Contract
+                Contracts
               </MenuItem>
               <MenuItem as={NextLink} href="/hotels">
                 Hotels
@@ -53,7 +50,7 @@ export default function NavLinks() {
             >
               Dive Log
             </MenuButton>
-            <MenuList>
+            <MenuList color={"teal"}>
               <MenuItem as={NextLink} href="/dives">
                 View Dives
               </MenuItem>

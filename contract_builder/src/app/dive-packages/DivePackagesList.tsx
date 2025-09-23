@@ -108,5 +108,5 @@ export default function DivePackagesList() {
         </Tbody>
       </Table>
     </VStack>
-  );
+  )
 }

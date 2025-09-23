@@ -1,17 +1,17 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { Spinner, Center } from "@chakra-ui/react";
+import {ReactNode, useEffect} from "react";
+import {useRouter} from "next/navigation";
+import {useAuth} from "@/context/AuthContext";
+import {Center, Spinner} from "@chakra-ui/react";
 
 interface Props {
   children: ReactNode;
   allowedRoles?: string[]; // e.g. ["admin", "manager"]
 }
 
-export default function ProtectedPage({ children, allowedRoles }: Props) {
-  const { user, role, loading } = useAuth();
+export default function ProtectedPage({children, allowedRoles}: Props) {
+  const {user, role, loading} = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function ProtectedPage({ children, allowedRoles }: Props) {
   if (loading) {
     return (
       <Center minH="50vh">
-        <Spinner />
+        <Spinner/>
       </Center>
     );
   }
@@ -34,5 +34,5 @@ export default function ProtectedPage({ children, allowedRoles }: Props) {
     return <Center minH="50vh">Access denied.</Center>;
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
