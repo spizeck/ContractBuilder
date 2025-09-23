@@ -1,101 +1,98 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  VStack,
-  HStack,
-  Text,
-} from '@chakra-ui/react'
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  updateDoc,
-  doc,
-} from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-import { Site } from '@/types/diveLogTypes'
+import {useEffect, useState} from "react";
+import {Box, Button, Heading, HStack, Spinner, Table, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
+import {Site} from "@/types/diveLogTypes";
+import {addSite, deleteSite, getSites, updateSite} from "@/services/sites";
+import AddEditSiteForm from "./AddEditSiteForm";
 
-export default function ManageSitesPage() {
-  const [sites, setSites] = useState<Site[]>([])
-  const [newSite, setNewSite] = useState({ name: '', region: '' })
-
-  const fetchSites = async () => {
-    const snapshot = await getDocs(collection(db, 'sites'))
-    setSites(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Site[])
-  }
+export default function SitesPage() {
+  const [sites, setSites] = useState<Site[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingSite, setEditingSite] = useState<Site | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    fetchSites()
-  }, [])
+    fetchSites();
+  }, []);
 
-  const handleAdd = async () => {
-    if (!newSite.name) return
-    await addDoc(collection(db, 'sites'), newSite)
-    setNewSite({ name: '', region: '' })
-    fetchSites()
+  async function fetchSites() {
+    setLoading(true);
+    const data = await getSites();
+    setSites(data.sort((a, b) => a.name.localeCompare(b.name)));
+    setLoading(false);
   }
 
-  const handleUpdate = async (id: string, name: string, region: string) => {
-    await updateDoc(doc(db, 'sites', id), { name, region })
-    fetchSites()
+  async function handleSave(data: Omit<Site, "id">) {
+    if (editingSite) {
+      await updateSite(editingSite.id, data);
+    } else {
+      await addSite(data);
+    }
+    setShowForm(false);
+    setEditingSite(null);
+    fetchSites();
   }
 
-  const handleDelete = async (id: string) => {
-    await deleteDoc(doc(db, 'sites', id))
-    fetchSites()
+  async function handleDelete(id: string) {
+    if (confirm("Are you sure you want to delete this?")) {
+      await deleteSite(id);
+      fetchSites();
+    }
   }
 
   return (
-    <Box maxW="600px" mx="auto" mt={8}>
-      <Text fontSize="2xl" mb={4}>Manage Dive Sites</Text>
+    <Box p={6}>
+      <Heading size="lg" mb={4}>Manage Sites</Heading>
 
-      <VStack spacing={4} align="stretch">
-        <FormControl>
-          <FormLabel>Site Name</FormLabel>
-          <Input
-            value={newSite.name}
-            onChange={e => setNewSite({ ...newSite, name: e.target.value })}
-          />
-        </FormControl>
-        <FormControl>
-          <FormLabel>Region (optional)</FormLabel>
-          <Input
-            value={newSite.region}
-            onChange={e => setNewSite({ ...newSite, region: e.target.value })}
-          />
-        </FormControl>
-        <Button colorScheme="teal" onClick={handleAdd}>Add Site</Button>
-      </VStack>
-
-      <Box mt={8}>
-        {sites.map(site => (
-          <HStack key={site.id} justify="space-between" mb={2}>
-            <Text>{site.name} {site.region && `(${site.region})`}</Text>
-            <HStack>
-              <Button
-                size="sm"
-                onClick={() => handleUpdate(site.id, site.name + ' Updated', site.region || '')}
-              >
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                colorScheme="red"
-                onClick={() => handleDelete(site.id)}
-              >
-                Delete
-              </Button>
-            </HStack>
-          </HStack>
-        ))}
-      </Box>
+      {loading ? (
+        <Spinner/>
+      ) : showForm ? (
+        <AddEditSiteForm
+          site={editingSite || undefined}
+          onSave={handleSave}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingSite(null);
+          }}
+        />
+      ) : (
+        <>
+          <Button colorScheme="teal" mb={4} onClick={() => setShowForm(true)}>Add Site</Button>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Region</Th>
+                <Th>Habitat</Th>
+                <Th>Protected</Th>
+                <Th>Active</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {sites.map(site => (
+                <Tr key={site.id}>
+                  <Td>{site.name}</Td>
+                  <Td>{site.region}</Td>
+                  <Td>{site.habitatType}</Td>
+                  <Td>{site.protectedArea ? "Yes" : "No"}</Td>
+                  <Td>{site.active ? "Yes" : "No"}</Td>
+                  <Td>
+                    <HStack>
+                      <Button size="sm" onClick={() => {
+                        setEditingSite(site);
+                        setShowForm(true);
+                      }}>Edit</Button>
+                      <Button size="sm" colorScheme="red" onClick={() => handleDelete(site.id)}>Delete</Button>
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </>
+      )}
     </Box>
-  )
+  );
 }

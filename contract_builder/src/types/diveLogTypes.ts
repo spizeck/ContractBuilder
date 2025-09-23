@@ -5,7 +5,7 @@ export interface Sighting {
 
 export interface Dive {
   id: string;
-  date: Date;
+  date: any;
   diveNumber: number;
   boatId: string;
   diveGuide: string; // or uid
@@ -19,6 +19,7 @@ export interface Dive {
 export interface Species {
   id: string;
   name: string;
+  active: boolean;
   scientificName?: string;
   category?: string;
   step?: number; // form grouping
@@ -29,6 +30,7 @@ export interface Species {
 export interface Site {
   id: string;
   name: string;
+  active: boolean;
   region?: string;
   habitatType?: string;
   protectedArea?: boolean;
@@ -38,6 +40,6 @@ export interface Site {
 export interface Boat {
   id: string;
   name: string;
-  capacity?: number;
-  notes?: string;
+  active: boolean;
+  createdAt?: any
 }
