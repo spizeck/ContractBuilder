@@ -18,6 +18,7 @@ import {
   VStack
 } from "@chakra-ui/react";
 import {Guide} from "@/types/diveLogTypes";
+import ProtectedPage from "@/components/ProtectedPage";
 import {addGuide, deleteGuide, getGuides, updateGuide} from "@/services/guides";
 
 export default function GuidesPage() {
@@ -58,6 +59,7 @@ export default function GuidesPage() {
   if (loading) return <Spinner/>;
 
   return (
+    <ProtectedPage allowedRoles={["admin", "manager"]}>
     <Box p={6}>
       <Heading size="lg" mb={4}>Manage Guides</Heading>
       <VStack spacing={4} align="stretch" mb={6}>
@@ -96,5 +98,6 @@ export default function GuidesPage() {
         </Tbody>
       </Table>
     </Box>
+    </ProtectedPage>
   );
 }
