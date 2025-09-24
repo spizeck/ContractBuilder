@@ -13,7 +13,7 @@ export function validateDive(
     const display = prefs?.units.depth === "feet"
       ? `${Math.round(metersToFeet(maxDepth))} ft`
       : `${maxDepth} m`;
-    warnings.push(`Depth exceeds safe limit: ${display}`);
+    warnings.push(`Depth is unusually deep: ${display}`);
   }
 
   if (maxDepth < 6) {
@@ -24,7 +24,7 @@ export function validateDive(
   }
 
   // Temperature
-  if (waterTemp < 10 || waterTemp > 35) {
+  if (waterTemp < 22 || waterTemp > 32) {
     const display = prefs?.units.temp === "fahrenheit"
       ? `${Math.round(celsiusToFahrenheit(waterTemp))} °F`
       : `${waterTemp} °C`;
