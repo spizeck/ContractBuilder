@@ -1,6 +1,7 @@
 'use client'
 
-import {Button, Flex, Link, Menu, MenuButton, MenuItem, MenuList,} from '@chakra-ui/react'
+import {Button, Flex, Link, Menu, MenuButton, MenuItem, MenuList, } from '@chakra-ui/react'
+// import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import NextLink from 'next/link'
 import {useAuth} from '@/context/AuthContext'
 import LogoutButton from '@/components/LogoutButton'

@@ -4,7 +4,7 @@ import { ChakraProvider, Box, Flex, Heading } from '@chakra-ui/react'
 import './globals.css'
 import React from 'react'
 import { AuthProvider } from '@/context/AuthContext'
-import NavLinks from '@/components/NavLinks' // 👈 import here
+import NavLinks from '@/components/NavLinks'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -35,7 +35,7 @@ export default function RootLayout ({
               <Heading as='h1' size='lg'>
                 Sea Saba
               </Heading>
-              <NavLinks /> {/* 👈 clean drop-in */}
+              <NavLinks /> 
             </Flex>
 
             <Box as='main' p={8}>
