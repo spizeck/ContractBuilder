@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Button, HStack, Text, VStack } from '@chakra-ui/react'
+import {
+  Button,
+  HStack,
+  Text,
+  VStack,
+  Card,
+  CardHeader,
+  CardBody,
+  Flex
+} from '@chakra-ui/react'
 import {
   ContractData,
   DivePackage,
   GroupContract,
   Hotel,
   MealPackage,
-  Season,
+  Season
 } from '@/types/contractTypes'
 import { getSeasons } from '@/services/seasons'
 import { getRates } from '@/services/rates'
@@ -22,7 +31,7 @@ import {
 import {
   calculateNumberOfNights,
   calculateTotalCost,
-  determineSeason,
+  determineSeason
 } from '@/utils/contractCalculations'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { getRoomTypes } from '@/services/roomTypes'
@@ -30,11 +39,15 @@ import { getRoomTypes } from '@/services/roomTypes'
 export default function TotalCostCalculation ({
   contractData,
   onConfirm,
-  onBack
+  onBack,
+  onEditStep,
+  onCancel
 }: {
   contractData: ContractData
   onConfirm: () => void
   onBack: () => void
+  onCancel: () => void
+  onEditStep?: (step: number) => void // 👈 allow jumping back into a specific step
 }) {
   const [season, setSeason] = useState<Season | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
@@ -85,7 +98,7 @@ export default function TotalCostCalculation ({
           mealPackageId: contractData.mealPackageId,
           mealPackageName: mealPackage?.name ?? null,
           mealPackageCost: results?.mealTotals.net ?? null,
-          mealCommissionRate: mealPackage?.commissionRate ?? 0 
+          mealCommissionRate: mealPackage?.commissionRate ?? 0
         }),
         totalCost: results?.overall.net || 0,
         createdAt: new Date()
@@ -153,7 +166,7 @@ export default function TotalCostCalculation ({
           mealPkg,
           categories,
           roomTypes,
-          hotelData,
+          hotelData
         )
         setResults(calc)
       } catch (error) {
@@ -188,90 +201,144 @@ export default function TotalCostCalculation ({
   } = results
 
   return (
-    <VStack spacing={2} align='stretch'>
+    <VStack spacing={4} align='stretch'>
       <Text fontSize='xl' fontWeight='bold'>
         Review and Confirm details for: {contractData.groupName}
       </Text>
 
-      <HStack spacing={2}>
-        <Text flex={1}>Hotel: {hotel.name}</Text>
-        <Text flex={1}>Season: {season.name}</Text>
-      </HStack>
-
-      <HStack spacing={2}>
-        <Text flex={1}>Check-in: {formatDate(contractData.startDate!)}</Text>
-        <Text flex={1}>Check-out: {formatDate(contractData.endDate!)}</Text>
-      </HStack>
-
-      <HStack spacing={2}>
-        <Text flex={1}>
-          Nights:{' '}
-          {calculateNumberOfNights(
-            contractData.startDate!,
-            contractData.endDate!
-          )}
-        </Text>
-        <Text flex={1}>Total Guests: {totalGuests}</Text>
-      </HStack>
-
-      <HStack spacing={2}>
-        <Text flex={1}>
-          Booking Type: {formatBookingType(contractData.bookingType!)}
-        </Text>
-        <Text flex={1}>
-          Meal Commission Rate: {(mealPackage?.commissionRate ?? 0) * 100}%
-        </Text>
-      </HStack>
+      {/* Hotel Info */}
+      <Card>
+        <CardHeader py={2} px={3}>
+          <Flex justify='space-between'>
+            <Text fontWeight='bold'>Hotel & Dates</Text>
+            {onEditStep && (
+              <Button size='sm' onClick={() => onEditStep(1)}>
+                Edit
+              </Button>
+            )}
+          </Flex>
+        </CardHeader>
+        <CardBody>
+          <Text>Hotel: {hotel.name}</Text>
+          <Text>Season: {season.name}</Text>
+          <Text>Check-in: {formatDate(contractData.startDate!)}</Text>
+          <Text>Check-out: {formatDate(contractData.endDate!)}</Text>
+          <Text>
+            Nights:{' '}
+            {calculateNumberOfNights(
+              contractData.startDate!,
+              contractData.endDate!
+            )}
+          </Text>
+          <Text>Total Guests: {totalGuests}</Text>
+          <Text>
+            Booking Type: {formatBookingType(contractData.bookingType!)}
+          </Text>
+          <Text>
+            Meal Commission Rate: {(mealPackage?.commissionRate ?? 0) * 100}%
+          </Text>
+        </CardBody>
+      </Card>
 
       {/* Rooms */}
-      <Text fontWeight='bold'>Room Breakdown for {totalGuests} guests:</Text>
-      {roomCosts.map((rc, idx) => (
-        <VStack key={idx} align='start' spacing={1}>
-          <Text>{rc.description}</Text>
-        </VStack>
-      ))}
-      <VStack align='start' spacing={1}>
-        <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
-        <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
-        <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
-        <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
-      </VStack>
+      <Card>
+        <CardHeader py={2} px={3}>
+          <Flex justify='space-between'>
+            <Text fontWeight='bold'>Rooms</Text>
+            {onEditStep && (
+              <Button size='sm' onClick={() => onEditStep(2)}>
+                Edit
+              </Button>
+            )}
+          </Flex>
+        </CardHeader>
+        <CardBody>
+          {roomCosts.map((rc, idx) => (
+            <Text key={idx}>{rc.description}</Text>
+          ))}
+          <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
+          <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
+          <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
+          <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
+        </CardBody>
+      </Card>
 
       {/* Dives */}
       {divePackage && (
-        <VStack align='start' spacing={1}>
-          <Text fontWeight='bold'>
-            Dive Package for{' '}
-            {diveTotals.gross > 0 ? diveTotals.gross / divePackage.price : 0}{' '}
-            divers: {divePackage.name}
-          </Text>
-          <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
-          <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
-          <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
-          <Text>Net: ${formatCurrency(diveTotals.net)}</Text>
-        </VStack>
+        <Card>
+          <CardHeader py={2} px={3}>
+            <Flex justify='space-between'>
+              <Text fontWeight='bold'>Dives</Text>
+              {onEditStep && (
+                <Button size='sm' onClick={() => onEditStep(3)}>
+                  Edit
+                </Button>
+              )}
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            <Text>
+              Dive Package: {divePackage.name} for{' '}
+              {diveTotals.gross > 0 ? diveTotals.gross / divePackage.price : 0}{' '}
+              divers
+            </Text>
+            <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
+            <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
+            <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
+            <Text>Net: ${formatCurrency(diveTotals.net)}</Text>
+          </CardBody>
+        </Card>
       )}
 
       {/* Meals */}
       {mealPackage && (
-        <VStack align='start' spacing={1}>
-          <Text fontWeight='bold'>Meal Package: {mealPackage.name}</Text>
-          <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
-          <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
-          <Text>Net: ${formatCurrency(mealTotals.net)}</Text>
-        </VStack>
+        <Card>
+          <CardHeader py={2} px={3}>
+            <Flex justify='space-between'>
+              <Text fontWeight='bold'>Meals</Text>
+              {onEditStep && (
+                <Button size='sm' onClick={() => onEditStep(4)}>
+                  Edit
+                </Button>
+              )}
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            <Text>Meal Package: {mealPackage.name}</Text>
+            <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
+            <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
+            <Text>Net: ${formatCurrency(mealTotals.net)}</Text>
+          </CardBody>
+        </Card>
       )}
 
       {/* Overall */}
-      <Text fontWeight='bold'>Overall Totals:</Text>
-      <Text>Gross: ${formatCurrency(overall.gross)}</Text>
-      <Text>FOC: $({formatCurrency(overall.foc)})</Text>
-      <Text>Commission: $({formatCurrency(overall.commission)})</Text>
-      <Text fontWeight='bold'>Net: ${formatCurrency(overall.net)}</Text>
+      <Card>
+        <CardHeader py={2} px={3}>
+          <Text fontWeight='bold'>Overall Totals</Text>
+        </CardHeader>
+        <CardBody>
+          <Text>Gross: ${formatCurrency(overall.gross)}</Text>
+          <Text>FOC: $({formatCurrency(overall.foc)})</Text>
+          <Text>Commission: $({formatCurrency(overall.commission)})</Text>
+          <Text fontWeight='bold'>Net: ${formatCurrency(overall.net)}</Text>
+        </CardBody>
+      </Card>
 
+      {/* Actions */}
       <HStack spacing={2}>
-        <Button onClick={onBack} flex={1}>
-          Back
+        <Button
+          colorScheme='red'
+          flex={1}
+          onClick={() => {
+            if (
+              window.confirm('All progress will be discarded. Are you sure?')
+            ) {
+              onCancel()
+            }
+          }}
+        >
+          Cancel
         </Button>
         <Button colorScheme='teal' onClick={handleConfirm} flex={1}>
           Save

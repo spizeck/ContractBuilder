@@ -72,9 +72,11 @@ export default function GroupContractWizard ({
           contractData={contractData}
           onConfirm={() => {
             // Save contract and generate PDF
-            onCancel() // or navigate away
+            onCancel()
           }}
           onBack={prevStep}
+        onCancel={onCancel}
+        onEditStep={setStep}
         />
       )
     default:
