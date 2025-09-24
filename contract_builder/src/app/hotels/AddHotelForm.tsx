@@ -12,7 +12,7 @@ import {
   Select
 } from '@chakra-ui/react'
 import { addHotel, updateHotel } from '@/services/hotels'
-import { Hotel } from '@/types'
+import { Hotel } from '@/types/contractTypes'
 
 export default function AddHotelForm ({
   editingHotel,

@@ -7,7 +7,7 @@ import {
   getDocs,
   updateDoc
 } from 'firebase/firestore'
-import { GroupContract } from '@/types'
+import { GroupContract } from '@/types/contractTypes'
 
 export async function getGroupContracts (): Promise<GroupContract[]> {
   const querySnapshot = await getDocs(collection(db, 'groupContracts'))

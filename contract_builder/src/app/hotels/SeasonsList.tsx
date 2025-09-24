@@ -4,7 +4,7 @@ import {Button, HStack, Table, Tbody, Td, Th, Thead, Tr, VStack, Text} from "@ch
 import {deleteSeason, getSeasons} from "@/services/seasons";
 import AddEditSeasonForm from "./AddEditSeasonForm";
 import { parseDateStringAsUTC } from "@/utils/dateUtils";
-import {Season} from "@/types";
+import {Season} from "@/types/contractTypes";
 
 export default function SeasonsList({
                                       hotelId,

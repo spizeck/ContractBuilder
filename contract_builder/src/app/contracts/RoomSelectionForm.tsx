@@ -5,7 +5,7 @@ import {getRates} from '@/services/rates'
 import {getSeasons} from '@/services/seasons'
 import {parseDateStringAsUTC} from '@/utils/dateUtils'
 import {getRoomTypes} from '@/services/roomTypes'
-import {Rate, RoomCategory, RoomType, Season} from '@/types'
+import {Rate, RoomCategory, RoomType, Season} from '@/types/contractTypes'
 
 interface RoomSelection {
   categoryId: string

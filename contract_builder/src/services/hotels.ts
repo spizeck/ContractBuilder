@@ -8,7 +8,7 @@ import {
   getDocs,
   updateDoc
 } from 'firebase/firestore'
-import { Hotel } from '@/types'
+import { Hotel } from '@/types/contractTypes'
 
 // Add a new hotel
 export async function addHotel (hotelData: any) {

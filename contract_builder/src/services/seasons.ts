@@ -1,6 +1,6 @@
 import {db} from "../lib/firebase";
 import {addDoc, collection, doc, getDocs, orderBy, query, updateDoc, where} from "firebase/firestore";
-import {Season} from "@/types";
+import {Season} from "@/types/contractTypes";
 
 // Add a season to the root-level 'seasons' collection
 export async function addSeason(

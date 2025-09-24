@@ -14,7 +14,7 @@ import {
 import { getRoomTypes, deleteRoomType } from '@/services/roomTypes'
 import { getRoomCategories } from '@/services/roomCategories'
 import AddEditRoomTypeForm from './AddEditRoomTypeForm'
-import { RoomCategory, RoomType } from '@/types'
+import { RoomCategory, RoomType } from '@/types/contractTypes'
 
 export default function RoomTypesList ({
   hotelId,

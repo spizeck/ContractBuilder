@@ -16,7 +16,7 @@ import {
 
 } from "@/services/roomCategories";
 import AddEditRoomCategoryForm from "./AddEditRoomCategoryForm";
-import {RoomCategory} from "@/types";
+import {RoomCategory} from "@/types/contractTypes";
 
 export default function RoomCategoriesList({
   hotelId,

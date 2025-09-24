@@ -6,7 +6,7 @@ import AddHotelForm from "@/app/hotels/AddHotelForm";
 import ViewHotels from "@/app/hotels/ViewHotels";
 import HotelDetails from "@/app/hotels/HotelDetails";
 
-import {Hotel} from "@/types";
+import {Hotel} from "@/types/contractTypes";
 
 type ActionState = null | "createHotel" | "viewHotels" | "viewHotelDetails";
 

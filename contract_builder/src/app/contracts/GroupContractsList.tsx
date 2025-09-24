@@ -4,7 +4,7 @@ import {Timestamp} from 'firebase/firestore'
 import {Button, HStack, Input, Select, Table, Tbody, Td, Th, Thead, Tr, VStack} from '@chakra-ui/react'
 import {archiveGroupContract, formatBookingType, getGroupContracts} from '@/services/groupContracts'
 import {getHotels} from '@/services/hotels'
-import {GroupContract, Hotel} from '@/types'
+import {GroupContract, Hotel} from '@/types/contractTypes'
 
 export default function GroupContractsList({
                                              onBack,

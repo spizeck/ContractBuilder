@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { addSeason, updateSeason } from "@/services/seasons";
 import { parseDateStringAsUTC } from "@/utils/dateUtils";
-import { Season } from "@/types";
+import { Season } from "@/types/contractTypes";
 import { ensureRatesForSeason } from "@/services/rateSync";
 
 export default function AddEditSeasonForm({

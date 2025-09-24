@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { addRoomType, updateRoomType } from '@/services/roomTypes'
 
-import { RoomCategory, RoomType } from '@/types'
+import { RoomCategory, RoomType } from '@/types/contractTypes'
 
 export default function AddEditRoomTypeForm ({
   hotelId,

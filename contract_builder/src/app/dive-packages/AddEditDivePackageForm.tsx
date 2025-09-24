@@ -14,7 +14,7 @@ import {
   updateDivePackage,
 
 } from "@/services/divePackages";
-import {DivePackage} from "@/types";
+import {DivePackage} from "@/types/contractTypes";
 
 export default function AddEditDivePackageForm({
   divePackage,
@@ -121,5 +121,5 @@ export default function AddEditDivePackageForm({
         </VStack>
       </form>
     </Box>
-  );
+  )
 }

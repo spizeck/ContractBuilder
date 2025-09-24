@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { getMealPackages, deleteMealPackage } from '@/services/mealPackages'
 import AddEditMealPackageForm from './AddEditMealPackageForm'
-import { MealPackage } from '@/types'
+import { MealPackage } from '@/types/contractTypes'
 
 export default function MealPackagesList ({
   hotelId,

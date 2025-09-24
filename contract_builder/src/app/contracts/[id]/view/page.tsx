@@ -5,7 +5,7 @@ import {useParams} from 'next/navigation'
 import {Box, Divider, Heading, Spinner, Text, VStack} from '@chakra-ui/react'
 import {getGroupContractById} from '@/services/groupContracts'
 import {getHotelById} from '@/services/hotels'
-import {GroupContract, Hotel} from '@/types'
+import {GroupContract, Hotel} from '@/types/contractTypes'
 import {formatCurrency, formatDateRange, formatFocRule} from '@/utils/formatters'
 import {getCommissionRate} from '@/utils/contractCalculations'
 

@@ -9,7 +9,7 @@ import {
   VStack
 } from '@chakra-ui/react'
 import { getHotels } from '@/services/hotels'
-import { Hotel } from '@/types'
+import { Hotel } from '@/types/contractTypes'
 
 interface GroupContractData {
   groupName: string

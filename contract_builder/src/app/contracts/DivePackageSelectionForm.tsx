@@ -10,7 +10,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { getDivePackages } from "@/services/divePackages";
-import { DivePackage } from "@/types";
+import { DivePackage } from "@/types/contractTypes";
 
 export default function DivePackageSelectionForm({
   hotelId,
