@@ -6,6 +6,7 @@ import {Spinner} from "@chakra-ui/react";
 import DiveForm from "@/components/DiveForm";
 import {deleteDive, getDive, updateDive} from "@/services/dives";
 import {Dive} from "@/types/diveLogTypes";
+import ProtectedPage from "@/components/ProtectedPage";
 
 export default function EditDivePage() {
   const {id} = useParams<{ id: string }>();
@@ -35,11 +36,13 @@ export default function EditDivePage() {
   };
 
   return (
+    <ProtectedPage allowedRoles={["admin", "manager", "staff"]}>
     <DiveForm
       initialDive={dive}
       onSave={handleSave}
       onCancel={() => router.push("/dives/view")}
       onDelete={handleDelete}
     />
+    </ProtectedPage>
   );
 }

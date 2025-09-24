@@ -26,6 +26,7 @@ import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
+import ProtectedPage from '@/components/ProtectedPage'
 
 const defaultPrefs: UserPreferences = {
   units: {
@@ -124,196 +125,200 @@ export default function ProfilePage () {
     return <Text color='red.500'>You must be logged in to view this page.</Text>
 
   return (
-    <Box p={6} maxW='800px' mx='auto'>
-      <Text fontSize='2xl' fontWeight='bold' mb={4}>
-        My Profile
-      </Text>
-      <VStack spacing={4} align='stretch' mb={6}>
-        <FormControl>
-          <FormLabel>Email</FormLabel>
-          <Input value={userProfile?.email || ''} isReadOnly />
-        </FormControl>
+    <ProtectedPage allowedRoles={['admin', 'manager', 'staff', 'viewer']}>
+      <Box p={6} maxW='800px' mx='auto'>
+        <Text fontSize='2xl' fontWeight='bold' mb={4}>
+          My Profile
+        </Text>
+        <VStack spacing={4} align='stretch' mb={6}>
+          <FormControl>
+            <FormLabel>Email</FormLabel>
+            <Input value={userProfile?.email || ''} isReadOnly />
+          </FormControl>
 
-        <FormControl>
-          <FormLabel>Name</FormLabel>
-          <Input
-            value={userProfile?.name || ''}
-            onChange={e =>
-              setUserProfile(prev =>
-                prev ? { ...prev, name: e.target.value } : null
-              )
-            }
-          />
-        </FormControl>
+          <FormControl>
+            <FormLabel>Name</FormLabel>
+            <Input
+              value={userProfile?.name || ''}
+              onChange={e =>
+                setUserProfile(prev =>
+                  prev ? { ...prev, name: e.target.value } : null
+                )
+              }
+            />
+          </FormControl>
 
-        <FormControl>
-          <FormLabel>Depth Units</FormLabel>
-          <Select
-            value={userProfile?.preferences.units.depth}
-            onChange={e =>
-              setUserProfile(prev =>
-                prev
-                  ? {
-                      ...prev,
-                      preferences: {
-                        ...prev.preferences,
-                        units: {
-                          ...prev.preferences.units,
-                          depth: e.target.value as 'meters' | 'feet'
-                        }
-                      }
-                    }
-                  : prev
-              )
-            }
-          >
-            <option value='meters'>Meters</option>
-            <option value='feet'>Feet</option>
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Temperature Units</FormLabel>
-          <Select
-            value={userProfile?.preferences.units.temp}
-            onChange={e =>
-              setUserProfile(prev =>
-                prev
-                  ? {
-                      ...prev,
-                      preferences: {
-                        ...prev.preferences,
-                        units: {
-                          ...prev.preferences.units,
-                          temp: e.target.value as 'celsius' | 'fahrenheit'
-                        }
-                      }
-                    }
-                  : prev
-              )
-            }
-          >
-            <option value='celsius'>Celsius</option>
-            <option value='fahrenheit'>Fahrenheit</option>
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Pressure Units</FormLabel>
-          <Select
-            value={userProfile?.preferences.units.pressure}
-            onChange={e =>
-              setUserProfile(prev =>
-                prev
-                  ? {
-                      ...prev,
-                      preferences: {
-                        ...prev.preferences,
-                        units: {
-                          ...prev.preferences.units,
-                          pressure: e.target.value as 'bar' | 'psi'
-                        }
-                      }
-                    }
-                  : prev
-              )
-            }
-          >
-            <option value='bar'>Bar</option>
-            <option value='psi'>PSI</option>
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Role</FormLabel>
-          <Input value={role} isReadOnly />
-        </FormControl>
-
-        {error && <Text color='red.500'>{error}</Text>}
-        {message && <Text color='green.500'>{message}</Text>}
-
-        <Button
-          colorScheme='teal'
-          onClick={handleProfileSave}
-          isLoading={saving}
-        >
-          Save Profile
-        </Button>
-        <Button colorScheme='orange' onClick={handlePasswordReset}>
-          Reset Password
-        </Button>
-      </VStack>
-
-      {(role === 'admin' || role === 'manager') && (
-        <>
-          <Divider my={6} />
-          <Text fontSize='2xl' fontWeight='bold' mb={4}>
-            User List {role === 'admin' ? '(Manage Roles)' : '(View Only)'}
-          </Text>
-
-          <TableContainer overflowX='auto'>
-            <Table variant='simple' size='sm'>
-              {' '}
-              {/* optional size="sm" for mobile */}
-              <Thead>
-                <Tr>
-                  <Th>Email</Th>
-                  <Th>Name</Th>
-                  <Th>Role</Th>
-                  {role === 'admin' && <Th>Action</Th>}
-                </Tr>
-              </Thead>
-              <Tbody>
-                {users.map(u => (
-                  <Tr key={u.id}>
-                    <Td whiteSpace='nowrap'>{u.email}</Td>
-                    <Td>{u.name || '-'}</Td>
-                    <Td>
-                      {role === 'admin' ? (
-                        <Tooltip
-                          label='You cannot change your own role'
-                          isDisabled={u.id !== user.uid}
-                        >
-                          <Select
-                            value={u.role || 'viewer'}
-                            onChange={e =>
-                              handleRoleChange(u.id, e.target.value)
-                            }
-                            disabled={savingUser === u.id || u.id === user.uid}
-                            size='sm' // smaller select for mobile
-                          >
-                            <option value='viewer'>Viewer</option>
-                            <option value='staff'>Staff</option>
-                            <option value='manager'>Manager</option>
-                            <option value='admin'>Admin</option>
-                          </Select>
-                        </Tooltip>
-                      ) : (
-                        u.role || 'viewer'
-                      )}
-                    </Td>
-                    {role === 'admin' && (
-                      <Td>
-                        <Button
-                          size='sm'
-                          colorScheme='teal'
-                          onClick={() =>
-                            handleRoleChange(u.id, u.role || 'viewer')
+          <FormControl>
+            <FormLabel>Depth Units</FormLabel>
+            <Select
+              value={userProfile?.preferences.units.depth}
+              onChange={e =>
+                setUserProfile(prev =>
+                  prev
+                    ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          units: {
+                            ...prev.preferences.units,
+                            depth: e.target.value as 'meters' | 'feet'
                           }
-                          isLoading={savingUser === u.id}
-                          disabled={u.id === user.uid}
-                        >
-                          Save
-                        </Button>
-                      </Td>
-                    )}
+                        }
+                      }
+                    : prev
+                )
+              }
+            >
+              <option value='meters'>Meters</option>
+              <option value='feet'>Feet</option>
+            </Select>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Temperature Units</FormLabel>
+            <Select
+              value={userProfile?.preferences.units.temp}
+              onChange={e =>
+                setUserProfile(prev =>
+                  prev
+                    ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          units: {
+                            ...prev.preferences.units,
+                            temp: e.target.value as 'celsius' | 'fahrenheit'
+                          }
+                        }
+                      }
+                    : prev
+                )
+              }
+            >
+              <option value='celsius'>Celsius</option>
+              <option value='fahrenheit'>Fahrenheit</option>
+            </Select>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Pressure Units</FormLabel>
+            <Select
+              value={userProfile?.preferences.units.pressure}
+              onChange={e =>
+                setUserProfile(prev =>
+                  prev
+                    ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          units: {
+                            ...prev.preferences.units,
+                            pressure: e.target.value as 'bar' | 'psi'
+                          }
+                        }
+                      }
+                    : prev
+                )
+              }
+            >
+              <option value='bar'>Bar</option>
+              <option value='psi'>PSI</option>
+            </Select>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Role</FormLabel>
+            <Input value={role} isReadOnly />
+          </FormControl>
+
+          {error && <Text color='red.500'>{error}</Text>}
+          {message && <Text color='green.500'>{message}</Text>}
+
+          <Button
+            colorScheme='teal'
+            onClick={handleProfileSave}
+            isLoading={saving}
+          >
+            Save Profile
+          </Button>
+          <Button colorScheme='orange' onClick={handlePasswordReset}>
+            Reset Password
+          </Button>
+        </VStack>
+
+        {(role === 'admin' || role === 'manager') && (
+          <>
+            <Divider my={6} />
+            <Text fontSize='2xl' fontWeight='bold' mb={4}>
+              User List {role === 'admin' ? '(Manage Roles)' : '(View Only)'}
+            </Text>
+
+            <TableContainer overflowX='auto'>
+              <Table variant='simple' size='sm'>
+                {' '}
+                {/* optional size="sm" for mobile */}
+                <Thead>
+                  <Tr>
+                    <Th>Email</Th>
+                    <Th>Name</Th>
+                    <Th>Role</Th>
+                    {role === 'admin' && <Th>Action</Th>}
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
-    </Box>
+                </Thead>
+                <Tbody>
+                  {users.map(u => (
+                    <Tr key={u.id}>
+                      <Td whiteSpace='nowrap'>{u.email}</Td>
+                      <Td>{u.name || '-'}</Td>
+                      <Td>
+                        {role === 'admin' ? (
+                          <Tooltip
+                            label='You cannot change your own role'
+                            isDisabled={u.id !== user.uid}
+                          >
+                            <Select
+                              value={u.role || 'viewer'}
+                              onChange={e =>
+                                handleRoleChange(u.id, e.target.value)
+                              }
+                              disabled={
+                                savingUser === u.id || u.id === user.uid
+                              }
+                              size='sm' // smaller select for mobile
+                            >
+                              <option value='viewer'>Viewer</option>
+                              <option value='staff'>Staff</option>
+                              <option value='manager'>Manager</option>
+                              <option value='admin'>Admin</option>
+                            </Select>
+                          </Tooltip>
+                        ) : (
+                          u.role || 'viewer'
+                        )}
+                      </Td>
+                      {role === 'admin' && (
+                        <Td>
+                          <Button
+                            size='sm'
+                            colorScheme='teal'
+                            onClick={() =>
+                              handleRoleChange(u.id, u.role || 'viewer')
+                            }
+                            isLoading={savingUser === u.id}
+                            disabled={u.id === user.uid}
+                          >
+                            Save
+                          </Button>
+                        </Td>
+                      )}
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
+      </Box>
+    </ProtectedPage>
   )
 }

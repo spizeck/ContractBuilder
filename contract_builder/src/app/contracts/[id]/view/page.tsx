@@ -1,24 +1,36 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useParams} from 'next/navigation'
-import {Box, Divider, Heading, Spinner, Text, VStack} from '@chakra-ui/react'
-import {getGroupContractById} from '@/services/groupContracts'
-import {getHotelById} from '@/services/hotels'
-import {GroupContract, Hotel} from '@/types/contractTypes'
-import {formatCurrency, formatDateRange, formatFocRule} from '@/utils/formatters'
-import {getCommissionRate} from '@/utils/contractCalculations'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import {
+  Box,
+  Divider,
+  Heading,
+  Spinner,
+  Text,
+  VStack,
+  HStack
+} from '@chakra-ui/react'
+import { getGroupContractById } from '@/services/groupContracts'
+import { getHotelById } from '@/services/hotels'
+import { GroupContract, Hotel } from '@/types/contractTypes'
+import {
+  formatCurrency,
+  formatDateRange,
+  formatFocRule
+} from '@/utils/formatters'
+import { getCommissionRate } from '@/utils/contractCalculations'
 
-export default function ViewContractPage() {
+export default function ViewContractPage () {
   const params = useParams()
-  const {id} = params // Firestore contract id
+  const { id } = params // Firestore contract id
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData () {
       try {
         const contractData = await getGroupContractById(id as string)
         if (contractData) {
@@ -44,7 +56,7 @@ export default function ViewContractPage() {
   if (loading) {
     return (
       <VStack p={10}>
-        <Spinner size='lg'/>
+        <Spinner size='lg' />
         <Text>Loading contract...</Text>
       </VStack>
     )
@@ -61,7 +73,7 @@ export default function ViewContractPage() {
   return (
     <VStack p={10} spacing={6} align='stretch'>
       <Heading size='lg'>Group Contract</Heading>
-      <Divider/>
+      <Divider />
 
       {/* Contract Details */}
       <Box>
@@ -101,11 +113,17 @@ export default function ViewContractPage() {
 
       {/* Overall */}
       <Box>
-        <Heading size='md' mb={2}>Overall Totals</Heading>
+        <Heading size='md' mb={2}>
+          Overall Totals
+        </Heading>
         <Text>Gross: ${formatCurrency(contract.overall?.gross)}</Text>
         <Text>FOC Value: $({formatCurrency(contract.overall?.foc)})</Text>
-        <Text>Commission: $({formatCurrency(contract.overall?.commission)})</Text>
-        <Text fontWeight="bold">Net: ${formatCurrency(contract.overall?.net)}</Text>
+        <Text>
+          Commission: $({formatCurrency(contract.overall?.commission)})
+        </Text>
+        <Text fontWeight='bold'>
+          Net: ${formatCurrency(contract.overall?.net)}
+        </Text>
       </Box>
 
       {/* Rooms */}
@@ -116,14 +134,17 @@ export default function ViewContractPage() {
           </Heading>
           {contract.roomCosts.map((rc, idx) => (
             <Text key={idx}>
-              {rc.description}: $
-              {formatCurrency(rc.cost)}
+              {rc.description}: ${formatCurrency(rc.cost)}
             </Text>
           ))}
           <Text>Gross: ${formatCurrency(contract.roomTotals?.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(contract.roomTotals?.foc)})</Text>
-          <Text>Commission: $({formatCurrency(contract.roomTotals?.commission)})</Text>
-          <Text fontWeight="bold">Net: ${formatCurrency(contract.roomTotals?.net)}</Text>
+          <Text>
+            Commission: $({formatCurrency(contract.roomTotals?.commission)})
+          </Text>
+          <Text fontWeight='bold'>
+            Net: ${formatCurrency(contract.roomTotals?.net)}
+          </Text>
         </Box>
       )}
 
@@ -138,9 +159,12 @@ export default function ViewContractPage() {
           </Text>
           <Text>Gross: ${formatCurrency(contract.diveTotals?.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(contract.diveTotals?.foc)})</Text>
-          <Text>Commission: $({formatCurrency(contract.diveTotals?.commission)})</Text>
-          <Text fontWeight="bold">Net: ${formatCurrency(contract.diveTotals?.net)}</Text>
-
+          <Text>
+            Commission: $({formatCurrency(contract.diveTotals?.commission)})
+          </Text>
+          <Text fontWeight='bold'>
+            Net: ${formatCurrency(contract.diveTotals?.net)}
+          </Text>
         </Box>
       )}
 
@@ -154,19 +178,21 @@ export default function ViewContractPage() {
             {contract.totalGuests} Guests with {contract.mealPackageName}
           </Text>
           <Text>Gross: ${formatCurrency(contract.mealTotals?.gross)}</Text>
-          <Text>Commission: $({formatCurrency(contract.mealTotals?.commission)})</Text>
-          <Text fontWeight="bold">Net: ${formatCurrency(contract.mealTotals?.net)}</Text>
-
+          <Text>
+            Commission: $({formatCurrency(contract.mealTotals?.commission)})
+          </Text>
+          <Text fontWeight='bold'>
+            Net: ${formatCurrency(contract.mealTotals?.net)}
+          </Text>
         </Box>
       )}
-
-      <Divider/>
 
       {/* Hotel Details */}
       <Box>
         <Heading size='md' mb={2}>
           Hotel Information
         </Heading>
+        <VStack mb={4} align='start'>
         <Text>
           <b>Location:</b> {hotel.location}
         </Text>
@@ -182,20 +208,31 @@ export default function ViewContractPage() {
         <Text>
           <b>Restrictions:</b> {hotel.restrictions}
         </Text>
+        </VStack>
       </Box>
-
-      <Divider/>
 
       {/* Signature */}
       <Box mt={6}>
-        <Heading size='md' mb={2}>
+        <Heading size='md' mb={2} py={4}>
           Customer Acceptance
         </Heading>
-        <Box border='1px solid #ccc' p={4} h='100px'>
-          <Text>Signature: _________________________________</Text>
-          <Text>Printed Name: ____________________________</Text>
-          <Text>Date: ______________________________________</Text>
-        </Box>
+
+        <VStack spacing={6} align='stretch'>
+          <HStack>
+            <Text w='120px'>Signature:</Text>
+            <Box flex='1' borderBottom='1px solid #000' />
+          </HStack>
+
+          <HStack>
+            <Text w='120px'>Printed Name:</Text>
+            <Box flex='1' borderBottom='1px solid #000' />
+          </HStack>
+
+          <HStack>
+            <Text w='120px'>Date:</Text>
+            <Box flex='1' borderBottom='1px solid #000' />
+          </HStack>
+        </VStack>
       </Box>
     </VStack>
   )
