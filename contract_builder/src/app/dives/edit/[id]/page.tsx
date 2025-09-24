@@ -41,7 +41,6 @@ export default function EditDivePage() {
       initialDive={dive}
       onSave={handleSave}
       onCancel={() => router.push("/dives/view")}
-      onDelete={handleDelete}
     />
     </ProtectedPage>
   );
