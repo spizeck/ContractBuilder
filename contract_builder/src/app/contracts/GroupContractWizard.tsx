@@ -12,7 +12,7 @@ export default function GroupContractWizard ({
   onCancel: () => void
   initialData?: any
 }) {
-  const [step, setStep] = useState(initialData ? 5 : 1)
+  const [step, setStep] = useState(1)
   const [contractData, setContractData] = useState<any>(initialData || {})
 
   const nextStep = (data: any) => {
@@ -42,6 +42,7 @@ export default function GroupContractWizard ({
           initialRooms={contractData.rooms}
           onNext={nextStep}
           onBack={prevStep}
+          onCancel={onCancel}
         />
       )
     case 3:
@@ -52,6 +53,7 @@ export default function GroupContractWizard ({
           initialNumDivers={contractData.numDivers}
           onNext={nextStep}
           onBack={prevStep}
+          onCancel={onCancel}
         />
       )
     case 4:
@@ -61,6 +63,7 @@ export default function GroupContractWizard ({
           initialMealPackageId={contractData.mealPackageId}
           onNext={nextStep}
           onBack={prevStep}
+          onCancel={onCancel}
         />
       )
     case 5:

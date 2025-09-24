@@ -1,16 +1,33 @@
-import {useEffect, useState} from 'react'
-import NextLink from 'next/link'
-import {Timestamp} from 'firebase/firestore'
-import {Button, HStack, Input, Select, Table, Tbody, Td, Th, Thead, Tr, VStack} from '@chakra-ui/react'
-import {archiveGroupContract, formatBookingType, getGroupContracts} from '@/services/groupContracts'
-import {getHotels} from '@/services/hotels'
-import {GroupContract, Hotel} from '@/types/contractTypes'
+'use client'
 
-export default function GroupContractsList({
-                                             onBack,
-                                             onCreateNew,
-                                             onEditContract
-                                           }: {
+import { useEffect, useState } from 'react'
+import NextLink from 'next/link'
+import { Timestamp } from 'firebase/firestore'
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Input,
+  Select,
+  Stack,
+  Text,
+  VStack,
+  useBreakpointValue
+} from '@chakra-ui/react'
+import {
+  archiveGroupContract,
+  formatBookingType,
+  getGroupContracts
+} from '@/services/groupContracts'
+import { getHotels } from '@/services/hotels'
+import { GroupContract, Hotel } from '@/types/contractTypes'
+
+export default function GroupContractsList ({
+  onBack,
+  onCreateNew,
+  onEditContract
+}: {
   onBack: () => void
   onCreateNew: () => void
   onEditContract: (contract: any) => void
@@ -29,6 +46,8 @@ export default function GroupContractsList({
     hotelId: '',
     startDate: ''
   })
+
+  const isMobile = useBreakpointValue({ base: true, md: false })
 
   useEffect(() => {
     fetchContracts()
@@ -50,8 +69,8 @@ export default function GroupContractsList({
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const {name, value} = e.target
-    const updatedFilters = {...filters, [name]: value}
+    const { name, value } = e.target
+    const updatedFilters = { ...filters, [name]: value }
     setFilters(updatedFilters)
     applyFilters(updatedFilters)
   }
@@ -72,15 +91,18 @@ export default function GroupContractsList({
       )
     }
     if (updatedFilters.startDate) {
+      const selectedDate = new Date(updatedFilters.startDate)
       filtered = filtered.filter(
-        contract => contract.startDate === updatedFilters.startDate
+        contract =>
+          new Date(contract.startDate) <= selectedDate &&
+          new Date(contract.endDate) >= selectedDate
       )
     }
 
     setFilteredContracts(filtered)
   }
 
-  function parseCreatedAt(dateVal: any): Date {
+  function parseCreatedAt (dateVal: any): Date {
     if (!dateVal) return new Date(NaN)
 
     if (dateVal instanceof Timestamp) {
@@ -117,13 +139,18 @@ export default function GroupContractsList({
 
   return (
     <VStack spacing={4} align='stretch'>
-      <HStack justifyContent='space-between'>
-        <Button onClick={onBack}>Back</Button>
-        <Button colorScheme='teal' onClick={onCreateNew}>
-          Create New Contract
+      {/* Action buttons */}
+      <Flex gap={3} justify='flex-start'>
+        <Button onClick={onBack} colorScheme='gray' flex={1}>
+          Back
         </Button>
-      </HStack>
-      <HStack spacing={2}>
+        <Button onClick={onCreateNew} colorScheme='teal' flex={1}>
+          New Contract
+        </Button>
+      </Flex>
+
+      {/* Filters */}
+      <Flex gap={2} direction={{ base: 'column', md: 'row' }} align='stretch'>
         <Input
           placeholder='Filter by Group Name'
           name='groupName'
@@ -149,60 +176,67 @@ export default function GroupContractsList({
           value={filters.startDate}
           onChange={handleFilterChange}
         />
-      </HStack>
-      <Table variant='simple'>
-        <Thead>
-          <Tr>
-            <Th>Group Name</Th>
-            <Th>Hotel</Th>
-            <Th>Start Date</Th>
-            <Th>End Date</Th>
-            <Th>Booking Type</Th>
-            <Th>Created At</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {filteredContracts.map(contract => (
-            <Tr key={contract.id}>
-              <Td>{contract.groupName}</Td>
-              <Td>{getHotelName(contract.hotelId)}</Td>
-              <Td>{contract.startDate}</Td>
-              <Td>{contract.endDate}</Td>
-              <Td>{formatBookingType(contract.bookingType)}</Td>
-              <Td>{parseCreatedAt(contract.createdAt).toLocaleString()}</Td>
-              <Td>
-                <HStack spacing={3}>
-                  <Button
-                    as={NextLink}
-                    href={`/contracts/${contract.id}/view`}
-                    size={'sm'}
-                    flex='1'
-                    variant={'outline'}
-                  >
-                    View
-                  </Button>
-                  <Button
-                    size='sm'
-                    flex='1'
-                    onClick={() => onEditContract(contract)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size='sm'
-                    flex='1'
-                    colorScheme='red'
-                    onClick={() => handleArchiveContract(contract.id)}
-                  >
-                    Archive
-                  </Button>
-                </HStack>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+      </Flex>
+
+      {/* Contracts List */}
+      <Stack spacing={4}>
+        {filteredContracts.map(contract => (
+          <Box
+            key={contract.id}
+            borderWidth='1px'
+            borderRadius='lg'
+            p={4}
+            shadow='sm'
+          >
+            <Text fontWeight='bold' isTruncated>
+              {contract.groupName}
+            </Text>
+            <Text color='gray.600' isTruncated>
+              {getHotelName(contract.hotelId)}
+            </Text>
+            <Text fontSize='sm' color='gray.500'>
+              {contract.startDate} → {contract.endDate}
+            </Text>
+            <Text fontSize='xs' color='gray.400'>
+              {formatBookingType(contract.bookingType)} ·{' '}
+              {parseCreatedAt(contract.createdAt).toLocaleString()}
+            </Text>
+
+            <HStack mt={2} spacing={2}>
+              <Button
+                as={NextLink}
+                href={`/contracts/${contract.id}/view`}
+                size='sm'
+                flex='1'
+                variant='outline'
+              >
+                View
+              </Button>
+              <Button
+                size='sm'
+                flex='1'
+                onClick={() => onEditContract(contract)}
+              >
+                Edit
+              </Button>
+              <Button
+                size='sm'
+                flex='1'
+                colorScheme='red'
+                onClick={() => handleArchiveContract(contract.id)}
+              >
+                Archive
+              </Button>
+            </HStack>
+          </Box>
+        ))}
+
+        {filteredContracts.length === 0 && (
+          <Text color='gray.500' fontStyle='italic'>
+            No contracts found.
+          </Text>
+        )}
+      </Stack>
     </VStack>
   )
 }

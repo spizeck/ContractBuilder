@@ -1,11 +1,25 @@
-import {useEffect, useState} from 'react'
-import {Button, FormControl, FormLabel, HStack, Input, Select, Text, VStack} from '@chakra-ui/react'
-import {getRoomCategories} from '@/services/roomCategories'
-import {getRates} from '@/services/rates'
-import {getSeasons} from '@/services/seasons'
-import {parseDateStringAsUTC} from '@/utils/dateUtils'
-import {getRoomTypes} from '@/services/roomTypes'
-import {Rate, RoomCategory, RoomType, Season} from '@/types/contractTypes'
+import { useEffect, useState } from 'react'
+import {
+  Button,
+  FormControl,
+  FormLabel,
+  HStack,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Stack,
+  Text,
+  VStack
+} from '@chakra-ui/react'
+import { ChevronDownIcon } from '@chakra-ui/icons'
+import { getRoomCategories } from '@/services/roomCategories'
+import { getRates } from '@/services/rates'
+import { getSeasons } from '@/services/seasons'
+import { parseDateStringAsUTC } from '@/utils/dateUtils'
+import { getRoomTypes } from '@/services/roomTypes'
+import { Rate, RoomCategory, RoomType, Season } from '@/types/contractTypes'
 
 interface RoomSelection {
   categoryId: string
@@ -13,19 +27,21 @@ interface RoomSelection {
   numRooms: number
 }
 
-export default function RoomSelectionForm({
-                                            hotelId,
-                                            startDate,
-                                            endDate,
-                                            onNext,
-                                            onBack,
-                                            initialRooms = []
-                                          }: {
+export default function RoomSelectionForm ({
+  hotelId,
+  startDate,
+  endDate,
+  onNext,
+  onBack,
+  onCancel,
+  initialRooms = []
+}: {
   hotelId: string
   startDate: string
   endDate: string
   onNext: (data: { rooms: RoomSelection[] }) => void
   onBack: () => void
+  onCancel: () => void
   initialRooms?: RoomSelection[]
 }) {
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
@@ -109,7 +125,7 @@ export default function RoomSelectionForm({
   const addRoomSelection = () => {
     setRoomSelections([
       ...roomSelections,
-      {categoryId: '', occupancyType: '', numRooms: 0}
+      { categoryId: '', occupancyType: '', numRooms: 0 }
     ])
   }
 
@@ -122,26 +138,9 @@ export default function RoomSelectionForm({
   const updateRoomSelection = (index: number, field: string, value: any) => {
     const updatedSelections = [...roomSelections]
 
-    if (field === 'categoryId') {
-      const matchingRates = rates.filter(
-        rate =>
-          rate.seasonId === selectedSeason?.id && rate.categoryId === value
-      )
-
-      const uniqueOccupancies = Array.from(
-        new Set(matchingRates.map(rate => rate.occupancyType))
-      )
-
-      updatedSelections[index] = {
-        ...updatedSelections[index],
-        categoryId: value,
-        occupancyType: ''
-      }
-    } else {
-      updatedSelections[index] = {
-        ...updatedSelections[index],
-        [field]: field === 'numRooms' ? parseInt(value) : value
-      }
+    updatedSelections[index] = {
+      ...updatedSelections[index],
+      [field]: field === 'numRooms' ? parseInt(value) : value
     }
 
     setRoomSelections(updatedSelections)
@@ -156,13 +155,12 @@ export default function RoomSelectionForm({
     })
 
     const hasInvalidSelection = roomSelections.some(
-      sel =>
-        !sel.categoryId || !sel.occupancyType || sel.numRooms <= 0
-    );
+      sel => !sel.categoryId || !sel.occupancyType || sel.numRooms <= 0
+    )
 
     if (hasInvalidSelection) {
-      alert("Please complete all room selections before proceeding.");
-      return;
+      alert('Please complete all room selections before proceeding.')
+      return
     }
 
     for (const key in roomTypeQuantities) {
@@ -178,8 +176,7 @@ export default function RoomSelectionForm({
         return
       }
     }
-    // console.log('Room selections are valid:', roomSelections)
-    onNext({rooms: roomSelections})
+    onNext({ rooms: roomSelections })
   }
 
   if (!seasonCheckDone) {
@@ -188,61 +185,105 @@ export default function RoomSelectionForm({
 
   return (
     <VStack spacing={4} align='stretch'>
-      <Text fontSize='xl' fontWeight='bold'>
-        Select Rooms
-      </Text>
+      <HStack justifyContent='space-between'>
+        <Text fontSize='xl' fontWeight='bold'>
+          Select Rooms
+        </Text>
+        <Button
+          colorScheme='red'
+          onClick={() => {
+            if (
+              window.confirm('All progress will be discarded. Are you sure?')
+            ) {
+              onCancel()
+            }
+          }}
+        >
+          Cancel
+        </Button>
+      </HStack>
       {roomSelections.map((selection, index) => (
-        <HStack key={index} spacing={2}>
+        <Stack
+          key={index}
+          spacing={3}
+          direction={{ base: 'column', md: 'row' }}
+          borderWidth='1px'
+          borderRadius='md'
+          p={3}
+        >
+          {/* Room Category */}
           <FormControl isRequired>
             <FormLabel>Room Category</FormLabel>
-            <Select
-              value={selection.categoryId}
-              onChange={e =>
-                updateRoomSelection(index, 'categoryId', e.target.value)
-              }
-            >
-              <option value=''>Select a category</option>
-              {filteredRoomCategories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </Select>
+            <Menu>
+              <MenuButton as={Button} rightIcon={<ChevronDownIcon />} w='100%'>
+                {selection.categoryId
+                  ? filteredRoomCategories.find(
+                      c => c.id === selection.categoryId
+                    )?.name
+                  : 'Select a category'}
+              </MenuButton>
+              <MenuList>
+                {filteredRoomCategories.map(category => (
+                  <MenuItem
+                    key={category.id}
+                    onClick={() =>
+                      updateRoomSelection(index, 'categoryId', category.id)
+                    }
+                  >
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
           </FormControl>
+
+          {/* Occupancy Type */}
           <FormControl isRequired>
             <FormLabel>Occupancy Type</FormLabel>
-            <Select
-              value={selection.occupancyType}
-              isDisabled={!selection.categoryId}
-              onChange={e =>
-                updateRoomSelection(index, 'occupancyType', e.target.value)
-              }
-            >
-              <option value=''></option>
-              {(() => {
-                const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad'];
-                return rates
-                  .filter(
-                    rate =>
-                      rate.seasonId === selectedSeason?.id &&
-                      rate.categoryId === selection.categoryId
-                  )
-                  .map(rate => rate.occupancyType)
-                  .filter((value, index, self) => self.indexOf(value) === index) // unique
-                  .sort((a, b) => {
-                    const indexA = occupancyOrder.indexOf(a);
-                    const indexB = occupancyOrder.indexOf(b);
-                    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-                  })
-                  .map(type => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ));
-              })()}
-
-            </Select>
+            <Menu>
+              <MenuButton
+                as={Button}
+                rightIcon={<ChevronDownIcon />}
+                w='100%'
+                isDisabled={!selection.categoryId}
+              >
+                {selection.occupancyType || 'Select occupancy'}
+              </MenuButton>
+              <MenuList>
+                {(() => {
+                  const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad']
+                  return rates
+                    .filter(
+                      rate =>
+                        rate.seasonId === selectedSeason?.id &&
+                        rate.categoryId === selection.categoryId
+                    )
+                    .map(rate => rate.occupancyType)
+                    .filter((value, idx, self) => self.indexOf(value) === idx)
+                    .sort((a, b) => {
+                      const indexA = occupancyOrder.indexOf(a)
+                      const indexB = occupancyOrder.indexOf(b)
+                      return (
+                        (indexA === -1 ? 99 : indexA) -
+                        (indexB === -1 ? 99 : indexB)
+                      )
+                    })
+                    .map(type => (
+                      <MenuItem
+                        key={type}
+                        onClick={() =>
+                          updateRoomSelection(index, 'occupancyType', type)
+                        }
+                      >
+                        {type}
+                      </MenuItem>
+                    ))
+                })()}
+              </MenuList>
+            </Menu>
           </FormControl>
+
+          {/* Number of Rooms */}
           <FormControl isRequired>
             <FormLabel>Number of Rooms</FormLabel>
             <Input
@@ -253,17 +294,29 @@ export default function RoomSelectionForm({
               }
             />
           </FormControl>
+
+          {/* Remove Button */}
           <Button
             onClick={() => removeRoomSelection(index)}
             colorScheme='red'
-            alignSelf='flex-end'
+            alignSelf={{ base: 'center', md: 'flex-end' }}
+            size={{ base: 'sm', md: 'md' }}
+            w={{ base: '100%', md: 'auto' }}
           >
             X
           </Button>
-        </HStack>
+        </Stack>
       ))}
-      <Button onClick={addRoomSelection}>Add Another Room</Button>
-      <HStack spacing={2} align='stretch'>
+
+      <Button
+        onClick={addRoomSelection}
+        colorScheme='blue'
+        w={{ base: '100%', md: 'auto' }}
+      >
+        Add Another Room
+      </Button>
+
+      <HStack spacing={2} w='100%'>
         <Button onClick={onBack} flex={1}>
           Back
         </Button>

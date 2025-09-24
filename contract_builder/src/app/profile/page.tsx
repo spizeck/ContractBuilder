@@ -18,7 +18,8 @@ import {
   Td,
   Tooltip,
   Select,
-  Spinner
+  Spinner,
+  TableContainer
 } from '@chakra-ui/react'
 import { useAuth } from '@/context/AuthContext'
 import { auth, db } from '@/lib/firebase'
@@ -26,6 +27,13 @@ import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
 
+const defaultPrefs: UserPreferences = {
+  units: {
+    depth: 'meters',
+    temp: 'celsius',
+    pressure: 'bar'
+  }
+}
 export default function ProfilePage () {
   const { user, role, loading } = useAuth()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
@@ -36,14 +44,6 @@ export default function ProfilePage () {
   // For admin/manager user list
   const [users, setUsers] = useState<any[]>([])
   const [savingUser, setSavingUser] = useState<string | null>(null)
-
-  const defaultPrefs: UserPreferences = {
-    units: {
-      depth: 'meters',
-      temp: 'celsius',
-      pressure: 'bar'
-    }
-  }
 
   // Load own profile
   useEffect(() => {
@@ -250,60 +250,68 @@ export default function ProfilePage () {
           <Text fontSize='2xl' fontWeight='bold' mb={4}>
             User List {role === 'admin' ? '(Manage Roles)' : '(View Only)'}
           </Text>
-          <Table variant='simple'>
-            <Thead>
-              <Tr>
-                <Th>Email</Th>
-                <Th>Name</Th>
-                <Th>Role</Th>
-                {role === 'admin' && <Th>Action</Th>}
-              </Tr>
-            </Thead>
-            <Tbody>
-              {users.map(u => (
-                <Tr key={u.id}>
-                  <Td>{u.email}</Td>
-                  <Td>{u.name || '-'}</Td>
-                  <Td>
-                    {role === 'admin' ? (
-                      <Tooltip
-                        label='You cannot change your own role'
-                        isDisabled={u.id !== user.uid} // only show tooltip if it's the current user
-                      >
-                        <Select
-                          value={u.role || 'viewer'}
-                          onChange={e => handleRoleChange(u.id, e.target.value)}
-                          disabled={savingUser === u.id || u.id === user.uid}
-                        >
-                          <option value='viewer'>Viewer</option>
-                          <option value='staff'>Staff</option>
-                          <option value='manager'>Manager</option>
-                          <option value='admin'>Admin</option>
-                        </Select>
-                      </Tooltip>
-                    ) : (
-                      u.role || 'viewer'
-                    )}
-                  </Td>
-                  {role === 'admin' && (
-                    <Td>
-                      <Button
-                        size='sm'
-                        colorScheme='teal'
-                        onClick={() =>
-                          handleRoleChange(u.id, u.role || 'viewer')
-                        }
-                        isLoading={savingUser === u.id}
-                        disabled={u.id === user.uid} // 🚫 disable save for self
-                      >
-                        Save
-                      </Button>
-                    </Td>
-                  )}
+
+          <TableContainer overflowX='auto'>
+            <Table variant='simple' size='sm'>
+              {' '}
+              {/* optional size="sm" for mobile */}
+              <Thead>
+                <Tr>
+                  <Th>Email</Th>
+                  <Th>Name</Th>
+                  <Th>Role</Th>
+                  {role === 'admin' && <Th>Action</Th>}
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
+              </Thead>
+              <Tbody>
+                {users.map(u => (
+                  <Tr key={u.id}>
+                    <Td whiteSpace='nowrap'>{u.email}</Td>
+                    <Td>{u.name || '-'}</Td>
+                    <Td>
+                      {role === 'admin' ? (
+                        <Tooltip
+                          label='You cannot change your own role'
+                          isDisabled={u.id !== user.uid}
+                        >
+                          <Select
+                            value={u.role || 'viewer'}
+                            onChange={e =>
+                              handleRoleChange(u.id, e.target.value)
+                            }
+                            disabled={savingUser === u.id || u.id === user.uid}
+                            size='sm' // smaller select for mobile
+                          >
+                            <option value='viewer'>Viewer</option>
+                            <option value='staff'>Staff</option>
+                            <option value='manager'>Manager</option>
+                            <option value='admin'>Admin</option>
+                          </Select>
+                        </Tooltip>
+                      ) : (
+                        u.role || 'viewer'
+                      )}
+                    </Td>
+                    {role === 'admin' && (
+                      <Td>
+                        <Button
+                          size='sm'
+                          colorScheme='teal'
+                          onClick={() =>
+                            handleRoleChange(u.id, u.role || 'viewer')
+                          }
+                          isLoading={savingUser === u.id}
+                          disabled={u.id === user.uid}
+                        >
+                          Save
+                        </Button>
+                      </Td>
+                    )}
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
         </>
       )}
     </Box>
