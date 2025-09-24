@@ -26,7 +26,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/contracts");
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     }
