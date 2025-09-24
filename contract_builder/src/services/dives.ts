@@ -1,30 +1,41 @@
 // src/services/dives.ts
-import { db } from "@/lib/firebase";
+import {db} from "@/lib/firebase";
 import {
-  collection,
   addDoc,
-  getDocs,
+  collection,
+  deleteDoc,
   doc,
   getDoc,
-  updateDoc,
-  deleteDoc,
+  getDocs,
+  orderBy,
+  query,
   serverTimestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
-import { Dive } from "@/types/diveLogTypes";
+import {Dive} from "@/types/diveLogTypes";
 
 const divesCollection = collection(db, "dives");
 
 export async function getDives(): Promise<Dive[]> {
-  const snapshot = await getDocs(divesCollection);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Dive[];
+  const q = query(divesCollection, orderBy("date", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      date: data.date?.toDate ? data.date.toDate() : data.date, // ensure JS Date
+    } as Dive;
+  });
 }
 
 export async function addDive(data: Omit<Dive, "id">) {
   return await addDoc(divesCollection, {
     ...data,
+    date: data.date instanceof Date? data.date : new Date(data.date),
+    maxDepth: data.maxDepth, // Meters
+    waterTemperature: data.waterTemperature, // Celcius
     createdAt: serverTimestamp(),
   });
 }
@@ -32,7 +43,14 @@ export async function addDive(data: Omit<Dive, "id">) {
 export async function getDive(id: string): Promise<Dive | null> {
   const ref = doc(db, "dives", id);
   const snap = await getDoc(ref);
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Dive) : null;
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+  return {
+    id: snap.id,
+    ...data,
+    date: data.date?.toDate ? data.date.toDate() : data.date,
+  } as Dive;
 }
 
 export async function updateDive(id: string, data: Partial<Dive>) {
@@ -45,3 +63,44 @@ export async function deleteDive(id: string) {
   return await deleteDoc(ref);
 }
 
+
+export async function getUserDives(uid: string): Promise<Dive[]> {
+  const q = query(
+    divesCollection,
+    where("createdBy", "==", uid),
+    orderBy("date", "desc")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      date: data.date?.toDate ? data.date.toDate() : data.date,
+    } as Dive;
+  });
+}
+
+export async function checkDuplicateDive(
+  date: string,
+  diveSlot: string,
+  boatId: string,
+  currentId?: string
+): Promise<boolean> {
+  const q = query(
+    divesCollection,
+    where("date", "==", date),
+    where("diveSlot", "==", diveSlot),
+    where("boatId", "==", boatId)
+  );
+
+  const snap = await getDocs(q);
+  if (snap.empty) return false;
+
+  // if editing, ignore current dive
+  if (currentId) {
+    return snap.docs.some((doc) => doc.id !== currentId);
+  }
+
+  return true;
+}

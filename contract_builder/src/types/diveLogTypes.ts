@@ -5,15 +5,16 @@ export interface Sighting {
 
 export interface Dive {
   id: string;
-  date: any;
-  diveNumber: number;
+  date: any; // YYYY-MM-DD (string to avoid UTC shift issues)
+  diveSlot: DiveSlot; // replaces diveNumber
   boatId: string;
-  diveGuide: string; // or uid
+  diveGuide: string;
   diveSiteId: string;
   maxDepth: number; // meters
-  waterTemperature: number; // °C
-  createdBy: string; // uid
+  waterTemperature: number; // celsius
   sightings: Sighting[];
+  createdBy: string;
+  createdAt?: Date;
 }
 
 export interface Species {
@@ -43,3 +44,23 @@ export interface Boat {
   active: boolean;
   createdAt?: any
 }
+
+export interface FormattedDive extends Dive {
+  boatName: string;
+  siteName: string;
+  depthDisplay: string;
+  tempDisplay: string;
+}
+
+export interface Guide {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+export type DiveSlot =
+  | "9am"
+  | "11am"
+  | "1pm"
+  | "4pm"
+  | "night";

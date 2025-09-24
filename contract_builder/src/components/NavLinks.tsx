@@ -51,7 +51,7 @@ export default function NavLinks() {
               Dive Log
             </MenuButton>
             <MenuList color={"teal"}>
-              <MenuItem as={NextLink} href="/dives">
+              <MenuItem as={NextLink} href="/dives/view">
                 View Dives
               </MenuItem>
               <MenuItem as={NextLink} href="/dives/log">
@@ -59,6 +59,9 @@ export default function NavLinks() {
               </MenuItem>
               {(role === 'admin' || role === 'manager') && (
                 <>
+                  <MenuItem as={NextLink} href="/admin/guides">
+                    Manage Guides
+                  </MenuItem>
                   <MenuItem as={NextLink} href="/admin/sites">
                     Manage Sites
                   </MenuItem>

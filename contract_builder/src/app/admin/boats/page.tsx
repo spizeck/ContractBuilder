@@ -31,14 +31,19 @@ export default function BoatsPage() {
     }
     setShowForm(false);
     setEditingBoat(null);
-    fetchBoats();
+    await fetchBoats();
   }
 
   async function handleDelete(id: string) {
     if (confirm("Are you sure you want to delete this?")) {
       await deleteBoat(id);
-      fetchBoats();
+      await fetchBoats();
     }
+  }
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingBoat(null);
   }
 
   return (
@@ -51,10 +56,7 @@ export default function BoatsPage() {
         <AddEditBoatForm
           boat={editingBoat || undefined}
           onSave={handleSave}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingBoat(null);
-          }}
+          onCancel={handleCancel}
         />
       ) : (
         <>
