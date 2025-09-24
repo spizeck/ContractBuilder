@@ -1,105 +1,149 @@
 'use client'
 
-import {Button, Flex, Link, Menu, MenuButton, MenuItem, MenuList,} from '@chakra-ui/react'
+import {
+  Button,
+  Flex,
+  Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  IconButton,
+  Accordion,
+  Box,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+} from '@chakra-ui/react'
+import { HamburgerIcon } from '@chakra-ui/icons'
 import NextLink from 'next/link'
-import {useAuth} from '@/context/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import LogoutButton from '@/components/LogoutButton'
 
 export default function NavLinks() {
-  const {user, role} = useAuth()
+  const { user, role } = useAuth()
+
+  // All the links (to reuse for desktop + mobile)
+  const contractLinks = (
+    <>
+      <MenuItem as={NextLink} href="/contracts">Contracts</MenuItem>
+      <MenuItem as={NextLink} href="/hotels">Hotels</MenuItem>
+      <MenuItem as={NextLink} href="/dive-packages">Dive Packages</MenuItem>
+    </>
+  )
+
+  const diveLogLinks = (
+    <>
+      <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
+      <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
+      {(role === 'admin' || role === 'manager') && (
+        <>
+          <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
+          <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
+          <MenuItem as={NextLink} href="/admin/boats">Manage Boats</MenuItem>
+          <MenuItem as={NextLink} href="/admin/species">Manage Species</MenuItem>
+        </>
+      )}
+    </>
+  )
 
   return (
-    <Flex as="nav" gap={6} align="center">
-      {/* Home always visible */}
-      <Link as={NextLink} href="/" _hover={{textDecoration: 'underline'}}>
-        Home
-      </Link>
+    <>
+      {/* Desktop Nav */}
+      <Flex
+        as="nav"
+        gap={6}
+        align="center"
+        display={{ base: 'none', md: 'flex' }}
+      >
+        <Link as={NextLink} href="/" _hover={{ textDecoration: 'underline' }}>
+          Home
+        </Link>
+
+        {user && (
+          <>
+            <Menu>
+              <MenuButton as={Button} variant="link" color="white">
+                Contracts
+              </MenuButton>
+              <MenuList color="teal">{contractLinks}</MenuList>
+            </Menu>
+
+            <Menu>
+              <MenuButton as={Button} variant="link" color="white">
+                Dive Log
+              </MenuButton>
+              <MenuList color="teal">{diveLogLinks}</MenuList>
+            </Menu>
+
+            <Link as={NextLink} href="/profile" _hover={{ textDecoration: 'underline' }}>
+              Profile
+            </Link>
+            <LogoutButton />
+          </>
+        )}
+
+        {!user && (
+          <>
+            <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
+              Login
+            </Link>
+            <Link as={NextLink} href="/register" _hover={{ textDecoration: 'underline' }}>
+              Register
+            </Link>
+          </>
+        )}
+      </Flex>
+
+      {/* Mobile Nav */}
+<Flex display={{ base: 'flex', md: 'none' }}>
+  <Menu>
+    <MenuButton
+      as={IconButton}
+      aria-label="Open Menu"
+      icon={<HamburgerIcon />}
+      variant="outline"
+      color="white"
+      border="none"
+    />
+    <MenuList color="teal" p={0}>
+      <MenuItem as={NextLink} href="/">Home</MenuItem>
 
       {user && (
-        <>
-          {/* Contracts Dropdown */}
-          <Menu>
-            <MenuButton
-              as={Button}
-              variant="link"
-              color="white"
-              _hover={{textDecoration: 'underline'}}
-            >
-              Contracts
-            </MenuButton>
-            <MenuList color={"teal"}>
-              <MenuItem as={NextLink} href="/contracts">
-                Contracts
-              </MenuItem>
-              <MenuItem as={NextLink} href="/hotels">
-                Hotels
-              </MenuItem>
-              <MenuItem as={NextLink} href="/dive-packages">
-                Dive Packages
-              </MenuItem>
-            </MenuList>
-          </Menu>
+        <Box>
+          <Accordion allowToggle>
+            {/* Contracts Section */}
+            <AccordionItem>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">Contracts</Box>
+              </AccordionButton>
+              <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
+            </AccordionItem>
 
-          {/* Dive Log Dropdown */}
-          <Menu>
-            <MenuButton
-              as={Button}
-              variant="link"
-              color="white"
-              _hover={{textDecoration: 'underline'}}
-            >
-              Dive Log
-            </MenuButton>
-            <MenuList color={"teal"}>
-              <MenuItem as={NextLink} href="/dives/view">
-                View Dives
-              </MenuItem>
-              <MenuItem as={NextLink} href="/dives/log">
-                Log a Dive
-              </MenuItem>
-              {(role === 'admin' || role === 'manager') && (
-                <>
-                  <MenuItem as={NextLink} href="/admin/guides">
-                    Manage Guides
-                  </MenuItem>
-                  <MenuItem as={NextLink} href="/admin/sites">
-                    Manage Sites
-                  </MenuItem>
-                  <MenuItem as={NextLink} href="/admin/boats">
-                    Manage Boats
-                  </MenuItem>
-                  <MenuItem as={NextLink} href="/admin/species">
-                    Manage Species
-                  </MenuItem>
-                </>
-              )}
-            </MenuList>
-          </Menu>
+            {/* Dive Log Section */}
+            <AccordionItem>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">Dive Log</Box>
+              </AccordionButton>
+              <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
+            </AccordionItem>
+          </Accordion>
 
-          {/* Profile + Logout */}
-          <Link
-            as={NextLink}
-            href="/profile"
-            _hover={{textDecoration: 'underline'}}
-          >
-            Profile
-          </Link>
-          <LogoutButton/>
-        </>
+          <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
+          <MenuItem><LogoutButton /></MenuItem>
+        </Box>
       )}
 
       {!user && (
         <>
-          <Link as={NextLink} href="/login" _hover={{textDecoration: 'underline'}}>
-            Login
-          </Link>
-          <Link as={NextLink} href="/register" _hover={{textDecoration: 'underline'}}>
-            Register
-          </Link>
+          <MenuItem as={NextLink} href="/login">Login</MenuItem>
+          <MenuItem as={NextLink} href="/register">Register</MenuItem>
         </>
       )}
-    </Flex>
+    </MenuList>
+  </Menu>
+</Flex>
+
+    </>
   )
 }
-
-//todo: Make pretty

@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ChakraProvider, Box, Flex, Heading } from '@chakra-ui/react'
+import NextLink from 'next/link'
+import {
+  ChakraProvider,
+  Box,
+  Flex,
+  Heading,
+  Link,
+} from '@chakra-ui/react'
 import './globals.css'
 import React from 'react'
 import { AuthProvider } from '@/context/AuthContext'
-import NavLinks from '@/components/NavLinks' // 👈 import here
+import NavLinks from '@/components/NavLinks'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,6 +25,7 @@ export default function RootLayout ({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+
   return (
     <html lang='en'>
       <body className={inter.className}>
@@ -32,10 +40,12 @@ export default function RootLayout ({
               align='center'
               justify='space-between'
             >
-              <Heading as='h1' size='lg'>
-                Sea Saba
-              </Heading>
-              <NavLinks /> {/* 👈 clean drop-in */}
+              <Link as ={NextLink} href='/' _hover={{ textDecoration: 'none' }}>
+                <Heading as='h1' size='lg'>
+                  Sea Saba
+                </Heading>
+                </Link>
+              <NavLinks />
             </Flex>
 
             <Box as='main' p={8}>

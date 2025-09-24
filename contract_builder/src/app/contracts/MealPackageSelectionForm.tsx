@@ -1,88 +1,114 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 import {
   VStack,
   FormControl,
   FormLabel,
-  Select,
   Button,
   Text,
   HStack,
-} from "@chakra-ui/react";
-import { getMealPackages } from "@/services/mealPackages";
-import { MealPackage } from "@/types/contractTypes";
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList
+} from '@chakra-ui/react'
+import { ChevronDownIcon } from '@chakra-ui/icons'
+import { getMealPackages } from '@/services/mealPackages'
+import { MealPackage } from '@/types/contractTypes'
 
-export default function MealPackageSelectionForm({
+export default function MealPackageSelectionForm ({
   hotelId,
   onNext,
   onBack,
-  initialMealPackageId = "",
+  onCancel,
+  initialMealPackageId = ''
 }: {
-  hotelId: string;
-  onNext: (data: { mealPackageId: string }) => void;
-  onBack: () => void;
-  initialMealPackageId?: string;
+  hotelId: string
+  onNext: (data: { mealPackageId: string }) => void
+  onBack: () => void
+  onCancel: () => void
+  initialMealPackageId?: string
 }) {
-  const [mealPackages, setMealPackages] = useState<MealPackage[]>([]);
-  const [mealPackageId, setMealPackageId] = useState(initialMealPackageId);
+  const [mealPackages, setMealPackages] = useState<MealPackage[]>([])
+  const [mealPackageId, setMealPackageId] = useState(initialMealPackageId)
 
   useEffect(() => {
     const fetchMealPackages = async () => {
-      const packages = await getMealPackages(hotelId);
-      setMealPackages(packages);
-    };
-
-    fetchMealPackages();
-  }, [hotelId]);
+      const packages = await getMealPackages(hotelId)
+      setMealPackages(packages)
+    }
+    fetchMealPackages()
+  }, [hotelId])
 
   useEffect(() => {
-    setMealPackageId(initialMealPackageId || "");
-  }, [initialMealPackageId]);
+    setMealPackageId(initialMealPackageId || '')
+  }, [initialMealPackageId])
 
   const handleSubmit = () => {
     if (!mealPackageId) {
-      alert("Please select a meal package.");
-      return;
+      alert('Please select a meal package.')
+      return
     }
-    // console.log("Selected meal package:", mealPackageId);
-    onNext({ mealPackageId });
-  };
+    onNext({ mealPackageId })
+  }
+
+  const selectedPkg = mealPackages.find(pkg => pkg.id === mealPackageId)
 
   return (
-    <VStack spacing={4} align="stretch">
-      <Text fontSize="xl" fontWeight="bold">
-        Select Meal Package
-      </Text>
+    <VStack spacing={4} align='stretch'>
+      <HStack justifyContent='space-between'>
+        <Text fontSize='xl' fontWeight='bold'>
+          Select Meal Package
+        </Text>
+        <Button
+          colorScheme='red'
+          onClick={() => {
+            if (
+              window.confirm('All progress will be discarded. Are you sure?')
+            ) {
+              onCancel()
+            }
+          }}
+        >
+          Cancel
+        </Button>
+      </HStack>
 
       <FormControl isRequired>
         <FormLabel>Meal Package</FormLabel>
-        <Select
-          value={mealPackageId}
-          onChange={(e) => setMealPackageId(e.target.value)}
-        >
-          <option value="">Select a meal package</option>
-          {mealPackages.map((pkg) => (
-            <option key={pkg.id} value={pkg.id}>
-              {pkg.name}
-            </option>
-          ))}
-        </Select>
+        <Menu>
+          <MenuButton
+            as={Button}
+            rightIcon={<ChevronDownIcon />}
+            w='100%'
+            textAlign='left'
+            variant='outline'
+          >
+            {selectedPkg ? selectedPkg.name : 'Select a meal package'}
+          </MenuButton>
+          <MenuList w='100%'>
+            {mealPackages.map(pkg => (
+              <MenuItem key={pkg.id} onClick={() => setMealPackageId(pkg.id)}>
+                {pkg.name}
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
 
-        {/* Optional description */}
-        {mealPackageId && (
-          <Text fontSize="sm" color="gray.600">
-            {mealPackages.find((pkg) => pkg.id === mealPackageId)?.description}
+        {selectedPkg?.description && (
+          <Text fontSize='sm' color='gray.600' mt={2}>
+            {selectedPkg.description}
           </Text>
         )}
       </FormControl>
 
-      <HStack spacing={2}>
+      <HStack spacing={2} w='100%'>
         <Button onClick={onBack} flex={1}>
           Back
         </Button>
-        <Button colorScheme="teal" onClick={handleSubmit} flex={1}>
+        <Button colorScheme='teal' onClick={handleSubmit} flex={1}>
           Next
         </Button>
       </HStack>
     </VStack>
-  );
+  )
 }

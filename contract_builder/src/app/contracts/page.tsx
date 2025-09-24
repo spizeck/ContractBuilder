@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Heading, Text, VStack } from '@chakra-ui/react'
+import { Button, Heading, Text, VStack, TableContainer } from '@chakra-ui/react'
 import GroupContractWizard from './GroupContractWizard'
 import GroupContractsList from './GroupContractsList'
 import ProtectedPage from "@/components/ProtectedPage";
@@ -63,11 +63,13 @@ export default function ContractPage () {
       )}
 
       {view === 'list' && (
+        
         <GroupContractsList
           onBack={handleBackToHome}
           onCreateNew={handleAddContract}
           onEditContract={handleEditContract}
         />
+        
       )}
     </VStack>
     </ProtectedPage>
