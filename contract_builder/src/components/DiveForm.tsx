@@ -51,8 +51,7 @@ interface DiveFormProps {
 export default function DiveForm ({
   initialDive,
   onSave,
-  onCancel,
-  
+  onCancel
 }: DiveFormProps) {
   const { user } = useAuth()
 
@@ -78,7 +77,7 @@ export default function DiveForm ({
   const [maxStep, setMaxStep] = useState(0)
 
   useEffect(() => {
-    async function load () {
+    const load = async () => {
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(
@@ -93,12 +92,23 @@ export default function DiveForm ({
         getSpecies()
       ])
       setBoats(boatsData.filter(b => b.active))
-      setSites(sitesData.filter(s => s.active))
+      const sortedSites = sitesData.sort((a, b) => a.name.localeCompare(b.name))
+      setSites(sortedSites)
       const activeSpecies = speciesData.filter(sp => sp.active)
-      setSpeciesList(activeSpecies)
+
+      setSpeciesList(
+        activeSpecies.sort((a, b) => {
+          const catA = (a.category || 'Uncategorized').toLowerCase()
+          const catB = (b.category || 'Uncategorized').toLowerCase()
+          if (catA !== catB) {
+            return catA.localeCompare(catB)
+          }
+          return a.name.localeCompare(b.name)
+        })
+      )
       const uniqueSteps = Array.from(
-        new Set(activeSpecies.map(s => s.step || 1))
-      ).sort()
+        new Set(activeSpecies.map(s => Number(s.step) || 1))
+      ).sort((a, b) => a - b)
       setMaxStep(uniqueSteps.length)
       setLoading(false)
     }
@@ -436,9 +446,7 @@ export default function DiveForm ({
           >
             Cancel
           </Button>
-          <Button onClick={() => setStep(step - 1)}>
-            Back
-          </Button>
+          <Button onClick={() => setStep(step - 1)}>Back</Button>
           <Button colorScheme='teal' onClick={handleSubmit}>
             {initialDive ? 'Update Dive' : 'Save Dive'}
           </Button>

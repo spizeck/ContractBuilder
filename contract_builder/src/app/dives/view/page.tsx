@@ -212,7 +212,6 @@ export default function ViewDivesPage () {
                         ['manager', 'admin'].includes(role)) && (
                         <Button
                           size='sm'
-                          flex='1'
                           colorScheme='red'
                           onClick={async () => {
                             if (

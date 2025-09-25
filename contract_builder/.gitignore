@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Ignore PyCharm project files
 .idea/
+
+/scripts
+tsconfig.scripts.json

@@ -33,7 +33,8 @@ export default function SitesPage () {
   async function fetchSites () {
     setLoading(true)
     const data = await getSites()
-    setSites(data.sort((a, b) => a.name.localeCompare(b.name)))
+    const sortedSites = data.sort((a, b) => a.name.localeCompare(b.name))
+    setSites(sortedSites)
     setLoading(false)
   }
 
