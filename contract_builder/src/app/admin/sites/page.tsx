@@ -12,7 +12,8 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
+  TableContainer
 } from '@chakra-ui/react'
 import { Site } from '@/types/diveLogTypes'
 import { addSite, deleteSite, getSites, updateSite } from '@/services/sites'
@@ -77,49 +78,51 @@ export default function SitesPage () {
             <Button colorScheme='teal' mb={4} onClick={() => setShowForm(true)}>
               Add Site
             </Button>
-            <Table variant='simple'>
-              <Thead>
-                <Tr>
-                  <Th>Name</Th>
-                  <Th>Region</Th>
-                  <Th>Habitat</Th>
-                  <Th>Protected</Th>
-                  <Th>Active</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {sites.map(site => (
-                  <Tr key={site.id}>
-                    <Td>{site.name}</Td>
-                    <Td>{site.region}</Td>
-                    <Td>{site.habitatType}</Td>
-                    <Td>{site.protectedArea ? 'Yes' : 'No'}</Td>
-                    <Td>{site.active ? 'Yes' : 'No'}</Td>
-                    <Td>
-                      <HStack>
-                        <Button
-                          size='sm'
-                          onClick={() => {
-                            setEditingSite(site)
-                            setShowForm(true)
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size='sm'
-                          colorScheme='red'
-                          onClick={() => handleDelete(site.id)}
-                        >
-                          Delete
-                        </Button>
-                      </HStack>
-                    </Td>
+            <TableContainer>
+              <Table variant='simple'>
+                <Thead>
+                  <Tr>
+                    <Th>Name</Th>
+                    <Th>Region</Th>
+                    <Th>Habitat</Th>
+                    <Th>Protected</Th>
+                    <Th>Active</Th>
+                    <Th>Actions</Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
+                </Thead>
+                <Tbody>
+                  {sites.map(site => (
+                    <Tr key={site.id}>
+                      <Td>{site.name}</Td>
+                      <Td>{site.region}</Td>
+                      <Td>{site.habitatType}</Td>
+                      <Td>{site.protectedArea ? 'Yes' : 'No'}</Td>
+                      <Td>{site.active ? 'Yes' : 'No'}</Td>
+                      <Td>
+                        <HStack>
+                          <Button
+                            size='sm'
+                            onClick={() => {
+                              setEditingSite(site)
+                              setShowForm(true)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size='sm'
+                            colorScheme='red'
+                            onClick={() => handleDelete(site.id)}
+                          >
+                            Delete
+                          </Button>
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
           </>
         )}
       </Box>

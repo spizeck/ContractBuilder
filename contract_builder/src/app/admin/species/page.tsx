@@ -12,7 +12,8 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
+  TableContainer
 } from '@chakra-ui/react'
 import { Species } from '@/types/diveLogTypes'
 import {
@@ -82,53 +83,55 @@ export default function SpeciesPage () {
             <Button colorScheme='teal' mb={4} onClick={() => setShowForm(true)}>
               Add Species
             </Button>
-            <Table variant='simple'>
-              <Thead>
-                <Tr>
-                  <Th>Name</Th>
-                  <Th>Step</Th>
-                  <Th>Active</Th>
-                  <Th>Category</Th>
-                  <Th>Scientific Name</Th>
-                  <Th>Icon</Th>
-                  <Th>IUCN Status</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {speciesList.map(species => (
-                  <Tr key={species.id}>
-                    <Td>{species.name}</Td>
-                    <Td>{species.step}</Td>
-                    <Td>{species.active ? 'Yes' : 'No'}</Td>
-                    <Td>{species.category}</Td>
-                    <Td>{species.scientificName}</Td>
-                    <Td>{species.icon}</Td>
-                    <Td>{species.iucnStatus}</Td>
-                    <Td>
-                      <HStack spacing={2}>
-                        <Button
-                          size='sm'
-                          onClick={() => {
-                            setEditingSpecies(species)
-                            setShowForm(true)
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size='sm'
-                          colorScheme='red'
-                          onClick={() => handleDelete(species.id)}
-                        >
-                          Delete
-                        </Button>
-                      </HStack>
-                    </Td>
+            <TableContainer>
+              <Table variant='simple'>
+                <Thead>
+                  <Tr>
+                    <Th>Name</Th>
+                    <Th>Step</Th>
+                    <Th>Active</Th>
+                    <Th>Category</Th>
+                    <Th>Scientific Name</Th>
+                    <Th>Icon</Th>
+                    <Th>IUCN Status</Th>
+                    <Th>Actions</Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
+                </Thead>
+                <Tbody>
+                  {speciesList.map(species => (
+                    <Tr key={species.id}>
+                      <Td>{species.name}</Td>
+                      <Td>{species.step}</Td>
+                      <Td>{species.active ? 'Yes' : 'No'}</Td>
+                      <Td>{species.category}</Td>
+                      <Td>{species.scientificName}</Td>
+                      <Td>{species.icon}</Td>
+                      <Td>{species.iucnStatus}</Td>
+                      <Td>
+                        <HStack spacing={2}>
+                          <Button
+                            size='sm'
+                            onClick={() => {
+                              setEditingSpecies(species)
+                              setShowForm(true)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size='sm'
+                            colorScheme='red'
+                            onClick={() => handleDelete(species.id)}
+                          >
+                            Delete
+                          </Button>
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
           </>
         )}
       </Box>
