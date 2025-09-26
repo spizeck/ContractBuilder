@@ -39,4 +39,5 @@ next-env.d.ts
 .idea/
 
 /scripts
+/config
 tsconfig.scripts.json

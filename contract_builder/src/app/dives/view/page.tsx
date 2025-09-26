@@ -31,7 +31,7 @@ import {
   Stack,
   StackDivider
 } from '@chakra-ui/react'
-import { getDives, deleteDive } from '@/services/dives'
+import { getDivesPage, deleteDive } from '@/services/dives'
 import { getBoats } from '@/services/boats'
 import { getSites } from '@/services/sites'
 import { getUserProfile } from '@/services/users'
@@ -49,6 +49,8 @@ export default function ViewDivesPage () {
   const [speciesList, setSpeciesList] = useState<Species[]>([])
   const [prefs, setPrefs] = useState<UserProfile['preferences'] | null>(null)
   const [loading, setLoading] = useState(true)
+  const [lastDoc, setLastDoc] = useState<any>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const [selectedBoat, setSelectedBoat] = useState('')
   const [selectedSite, setSelectedSite] = useState('')
@@ -71,13 +73,19 @@ export default function ViewDivesPage () {
           }
         )
       }
-      const [divesData, boatsData, sitesData, speciesData] = await Promise.all([
-        getDives(),
+      const [
+        { dives: divesData, lastDoc: newLastDoc },
+        boatsData,
+        sitesData,
+        speciesData
+      ] = await Promise.all([
+        getDivesPage(25),
         getBoats(),
         getSites(),
         getSpecies()
       ])
       setDives(divesData)
+      setLastDoc(newLastDoc)
       setBoats(boatsData)
       setSites(sitesData)
       setSpeciesList(speciesData)
@@ -86,6 +94,18 @@ export default function ViewDivesPage () {
 
     load()
   }, [user])
+
+  async function loadMore () {
+    if (!lastDoc) return
+    setLoadingMore(true)
+    const { dives: newDives, lastDoc: newLastDoc } = await getDivesPage(
+      25,
+      lastDoc
+    )
+    setDives(prev => [...prev, ...newDives])
+    setLastDoc(newLastDoc)
+    setLoadingMore(false)
+  }
 
   if (loading) return <Spinner />
 
@@ -231,7 +251,6 @@ export default function ViewDivesPage () {
                       )}
                       <Button
                         size='sm'
-                        flex={1}
                         colorScheme='teal'
                         onClick={() => router.push(`/dives/edit/${dive.id}`)}
                       >
@@ -239,7 +258,6 @@ export default function ViewDivesPage () {
                       </Button>
                       <Button
                         size='sm'
-                        flex={1}
                         colorScheme='blue'
                         onClick={() => {
                           setSelectedDive(dive)
@@ -254,6 +272,13 @@ export default function ViewDivesPage () {
               )
             })}
           </Tbody>
+          {lastDoc && (
+            <Box textAlign='center' mt={4}>
+              <Button onClick={loadMore} isLoading={loadingMore}>
+                Load More
+              </Button>
+            </Box>
+          )}
         </Table>
       ) : (
         /* Mobile: Card view */
@@ -310,7 +335,6 @@ export default function ViewDivesPage () {
                         ['manager', 'admin'].includes(role)) && (
                         <Button
                           size='sm'
-                          flex='1'
                           colorScheme='red'
                           onClick={async () => {
                             if (
@@ -351,6 +375,13 @@ export default function ViewDivesPage () {
               </Card>
             )
           })}
+          {lastDoc && (
+            <Box textAlign='center' mt={4}>
+              <Button onClick={loadMore} isLoading={loadingMore}>
+                Load More
+              </Button>
+            </Box>
+          )}
         </VStack>
       )}
 
