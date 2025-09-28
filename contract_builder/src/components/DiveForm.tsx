@@ -232,13 +232,13 @@ export default function DiveForm ({
   // --- Step 0: Dive Info ---
   if (step === 0) {
     return (
-      <Box p={6}>
-        <Heading size='lg' mb={4}>
+      <Box p={{ base: 3, md: 6}}>
+          <Heading size="lg" mb={{ base: 2, md: 4 }}>
           {initialDive ? 'Edit Dive' : 'New Dive'}
         </Heading>
         <Progress value={progressValue} mb={4} colorScheme='teal' />
 
-        <VStack spacing={4} align='stretch'>
+        <VStack spacing={{ base: 2, md: 4 }} align="stretch">
           {/* Date, Number, Boat, Guide, Site */}
           <FormControl isRequired>
             <FormLabel>Date</FormLabel>
