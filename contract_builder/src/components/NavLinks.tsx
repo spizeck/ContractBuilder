@@ -130,7 +130,7 @@ export default function NavLinks() {
           </Accordion>
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
-          <MenuItem><LogoutButton /></MenuItem>
+          <LogoutButton asMenuItem/>
         </Box>
       )}
 
