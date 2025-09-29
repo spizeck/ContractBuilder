@@ -1,12 +1,12 @@
 # Ignore Firebase functions (deployed separately)
-functions/
+functions/**
 firebase.json
 .firebaserc
 firestore.rules
 firestore.indexes.json
 
 # Ignore service account credentials
-config/
+config/**
 *.json
 
 # Ignore local scripts & tooling
