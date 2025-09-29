@@ -1,27 +1,27 @@
 // src/services/dives.ts
-import { db } from '@/lib/firebase'
+import {db} from '@/lib/firebase'
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
+  DocumentData,
   getDoc,
   getDocs,
   limit,
   orderBy,
   query,
+  QueryDocumentSnapshot,
   serverTimestamp,
   startAfter,
   updateDoc,
-  where,
-  QueryDocumentSnapshot,
-  DocumentData
+  where
 } from 'firebase/firestore'
-import { Dive } from '@/types/diveLogTypes'
+import {Dive} from '@/types/diveLogTypes'
 
 const divesCollection = collection(db, 'dives')
 
-export async function getDives (): Promise<Dive[]> {
+export async function getDives(): Promise<Dive[]> {
   const q = query(divesCollection, orderBy('date', 'desc'))
   const snapshot = await getDocs(q)
   return snapshot.docs.map(doc => {
@@ -34,17 +34,21 @@ export async function getDives (): Promise<Dive[]> {
   })
 }
 
-export async function addDive (data: Omit<Dive, 'id'>) {
+export async function addDive(data: Omit<Dive, 'id'>) {
+  const cleanedSightings = (data.sightings || []).filter(s => s.count > 0)
+
   return await addDoc(divesCollection, {
     ...data,
+    sightings: cleanedSightings,
     date: data.date instanceof Date ? data.date : new Date(data.date),
     maxDepth: data.maxDepth, // Meters
-    waterTemperature: data.waterTemperature, // Celcius
+    waterTemperature: data.waterTemperature, // Celsius
     createdAt: serverTimestamp()
   })
 }
 
-export async function getDive (id: string): Promise<Dive | null> {
+
+export async function getDive(id: string): Promise<Dive | null> {
   const ref = doc(db, 'dives', id)
   const snap = await getDoc(ref)
   if (!snap.exists()) return null
@@ -57,17 +61,25 @@ export async function getDive (id: string): Promise<Dive | null> {
   } as Dive
 }
 
-export async function updateDive (id: string, data: Partial<Dive>) {
+export async function updateDive(id: string, data: Partial<Dive>) {
   const ref = doc(db, 'dives', id)
-  return await updateDoc(ref, data)
+
+  const cleanedSightings =
+    data.sightings?.filter(s => s.count > 0) ?? data.sightings
+
+  return await updateDoc(ref, {
+    ...data,
+    sightings: cleanedSightings
+  })
 }
 
-export async function deleteDive (id: string) {
+
+export async function deleteDive(id: string) {
   const ref = doc(db, 'dives', id)
   return await deleteDoc(ref)
 }
 
-export async function getUserDives (uid: string): Promise<Dive[]> {
+export async function getUserDives(uid: string): Promise<Dive[]> {
   const q = query(
     divesCollection,
     where('createdBy', '==', uid),
@@ -84,7 +96,7 @@ export async function getUserDives (uid: string): Promise<Dive[]> {
   })
 }
 
-export async function checkDuplicateDive (
+export async function checkDuplicateDive(
   date: string,
   diveSlot: string,
   boatId: string,
@@ -130,5 +142,5 @@ export async function getDivesPage(
 
   const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
-  return { dives, lastDoc: newLastDoc };
+  return {dives, lastDoc: newLastDoc};
 }

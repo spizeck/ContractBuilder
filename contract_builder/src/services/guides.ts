@@ -1,11 +1,17 @@
 import {db} from "@/lib/firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc,} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} from "firebase/firestore";
 import {Guide} from "@/types/diveLogTypes";
 
 const guidesCollection = collection(db, "guides");
 
-export async function getGuides(): Promise<Guide[]> {
-  const snap = await getDocs(guidesCollection);
+export async function getGuides(activeOnly = false): Promise<Guide[]> {
+  let snap;
+  if (activeOnly) {
+    const q = query(guidesCollection, where("active", "==", true));
+    snap = await getDocs(q);
+  } else {
+    snap = await getDocs(guidesCollection);
+  }
   return snap.docs.map((d) => ({id: d.id, ...d.data()} as Guide));
 }
 

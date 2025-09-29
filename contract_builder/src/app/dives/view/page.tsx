@@ -34,8 +34,9 @@ import {
 import { getDivesPage, deleteDive } from '@/services/dives'
 import { getBoats } from '@/services/boats'
 import { getSites } from '@/services/sites'
+import { getGuides } from '@/services/guides'
 import { getUserProfile } from '@/services/users'
-import { Boat, Dive, Site, Species } from '@/types/diveLogTypes'
+import { Boat, Dive, Site, Species, Guide } from '@/types/diveLogTypes'
 import { UserProfile } from '@/types/userTypes'
 import { formatDiveValue } from '@/utils/formatDiveValue'
 import { useAuth } from '@/context/AuthContext'
@@ -46,6 +47,7 @@ export default function ViewDivesPage () {
   const [dives, setDives] = useState<Dive[]>([])
   const [boats, setBoats] = useState<Boat[]>([])
   const [sites, setSites] = useState<Site[]>([])
+  const [guides, setGuides] = useState<Guide[]>([])
   const [speciesList, setSpeciesList] = useState<Species[]>([])
   const [prefs, setPrefs] = useState<UserProfile['preferences'] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -77,18 +79,21 @@ export default function ViewDivesPage () {
         { dives: divesData, lastDoc: newLastDoc },
         boatsData,
         sitesData,
-        speciesData
+        speciesData,
+        guidesData
       ] = await Promise.all([
         getDivesPage(25),
         getBoats(),
         getSites(),
-        getSpecies()
+        getSpecies(),
+        getGuides(true)
       ])
       setDives(divesData)
       setLastDoc(newLastDoc)
       setBoats(boatsData)
       setSites(sitesData)
       setSpeciesList(speciesData)
+      setGuides(guidesData)
       setLoading(false)
     }
 
@@ -117,8 +122,6 @@ export default function ViewDivesPage () {
       (!selectedSpecies ||
         d.sightings?.some(s => s.speciesId === selectedSpecies && s.count > 0))
   )
-
-  const allGuides = Array.from(new Set(dives.map(d => d.diveGuide))).sort()
 
   return (
     <Box p={6}>
@@ -162,9 +165,9 @@ export default function ViewDivesPage () {
           value={selectedGuide}
           onChange={e => setSelectedGuide(e.target.value)}
         >
-          {allGuides.map(g => (
-            <option key={g} value={g}>
-              {g}
+          {guides.map(g => (
+            <option key={g.id} value={g.name}>
+              {g.name}
             </option>
           ))}
         </Select>
