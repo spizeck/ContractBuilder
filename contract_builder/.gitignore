@@ -40,7 +40,6 @@ next-env.d.ts
 
 /scripts
 /config
-tsconfig.scripts.json
 
 # Ignore Visual Studio Code settings
 .vscode/
