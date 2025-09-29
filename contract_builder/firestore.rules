@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId
+        && (!("role" in request.resource.data) 
+            || request.resource.data.role == resource.data.role)
+        || isAdmin();
+    }
+
+    // Contracts collection
+    match /groupContracts/{contractId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /hotels/{hotelId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /divePackages/{packageId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /mealPackages/{packageId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /rates/{rateId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /roomCategories/{categoryId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /roomTypes/{roomTypeId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /seasons/{seasonId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    
+    match /dives/{diveId} {
+      allow read: if true;
+      allow create: if isStaffOrAbove();
+      allow update, delete: if request.auth.uid == resource.data.createdBy || isManagerOrAbove();
+    }
+
+    match /species/{speciesId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /sites/{siteId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /boats/{boatId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+    
+    match /guides/{guideId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+    match /diveNumber/{diveNumberId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
+    }
+
+
+    // Helpers
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isManagerOrAbove() {
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return role == "admin" || role == "manager";
+    }
+    
+    function isStaffOrAbove() {
+    	let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return role == "admin" || role == "manager" || role == "staff";
+    }
+  }
+}

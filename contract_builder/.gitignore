@@ -41,3 +41,10 @@ next-env.d.ts
 /scripts
 /config
 tsconfig.scripts.json
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore Visual Studio Code settings which include launch and tasks
+.vscode-test/
+firestore-debug.log
