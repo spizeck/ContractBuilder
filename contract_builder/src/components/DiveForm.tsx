@@ -78,6 +78,7 @@ export default function DiveForm ({
 
   useEffect(() => {
     const load = async () => {
+
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(
