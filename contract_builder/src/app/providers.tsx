@@ -1,0 +1,43 @@
+'use client'
+
+import {
+  ChakraProvider,
+  Flex,
+  Heading,
+  Link,
+  Box,
+} from '@chakra-ui/react'
+import NextLink from 'next/link'
+import React from 'react'
+import theme from '@/theme'
+import { AuthProvider } from '@/context/AuthContext'
+import NavLinks from '@/components/NavLinks'
+
+export default function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ChakraProvider theme={theme}>
+      <AuthProvider>
+        <Flex
+          as="header"
+          bg="teal.500"
+          color="white"
+          py={4}
+          px={8}
+          align="center"
+          justify="space-between"
+        >
+          <Link as={NextLink} href="/" _hover={{ textDecoration: 'none' }}>
+            <Heading as="h1" size="lg">
+              Sea Saba
+            </Heading>
+          </Link>
+          <NavLinks />
+        </Flex>
+
+        <Box as="main" p={8}>
+          {children}
+        </Box>
+      </AuthProvider>
+    </ChakraProvider>
+  )
+}
