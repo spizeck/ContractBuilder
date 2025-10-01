@@ -8,8 +8,8 @@ Designed for dive shops, tour operators, and travel partners to streamline the p
 ## Features
 
 - **User Authentication**  
-  - Secure login with Firebase (in progress).  
-  - Role-based access so users only see what they’re allowed to.
+  - Secure login with Firebase Auth (App Router).  
+  - Role-based access so users only see what they’re allowed to.  
 
 - **Contract Creation Wizard**  
   - Guided step-by-step process to build a contract:
@@ -36,18 +36,24 @@ Designed for dive shops, tour operators, and travel partners to streamline the p
   - Dive FOC always applies as 7 paid + 1 free.  
 
 - **PDF Generation**  
-  - Auto-generated PDFs with summary tables and customer confirmation section.
+  - Auto-generated PDFs with summary tables and customer confirmation section.  
+
+- **Dive Log (in progress)**  
+  - Firestore migration for dives.  
+  - Desktop and mobile views (table + cards).  
+  - Reusable `DiveActions` component for Delete, Edit, and Sightings buttons.  
+  - Infinite scroll / “Load More” support.  
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js + React + TypeScript  
+- **Frontend:** Next.js (App Router) + React + TypeScript  
 - **Styling:** Chakra UI + Tailwind (hybrid components)  
 - **Database:** Firebase Firestore  
-- **Authentication:** Firebase Auth (in progress)  
-- **PDFs:** jsPDF / react-pdf  
-- **State Management:** React Context + Local Storage (for form persistence)  
+- **Authentication:** Firebase Auth (App Router integration)  
+- **PDFs:** jsPDF / react-pdf (in process)
+- **State Management:** React Context + Local Storage (form persistence)  
 
 ---
 
@@ -89,15 +95,30 @@ The app will be available at `http://localhost:3000`.
 - **Viewing Contracts** – Navigate to Contracts > View Contracts. Search and filter by hotel, group, or date.  
 - **Editing Contracts** – Select a contract and click Edit. The previous version is archived automatically.  
 - **Managing Hotels** – Navigate to Hotels > View/Edit to manage hotel data, seasons, rates, and packages.  
+- **Dive Logs** (in progress) – Navigate to Dives > View. Filter by boat, site, guide, or species. 
 
+## Development Notes
+
+- This project uses Next.js App Router.
+Always import router hooks from next/navigation:
+
+```tsx
+import { useRouter } from 'next/navigation'
+```
+
+❌ Do not use next/router, as it will throw NextRouter was not mounted.
+
+- Reusable UI:
+
+  - `DiveActions` component (src/components/DiveActions.tsx) handles per-dive actions consistently across desktop and mobile layouts.
 
 ## Roadmap
 
 - ✅ Contract wizard with auto-calculation
 - ✅ Hotel/room/dive/meal package database
-- ✅ PDF export with acceptance signature
+- 🔄 PDF export with acceptance signature
 - ✅ Firebase Auth login & role permissions
-- 🔄 Migrate Divelog
+- ✅ Migrate Divelog
 - 🔄 Multi-language support (English/Dutch)
 - 🔄 Export to Excel
 
