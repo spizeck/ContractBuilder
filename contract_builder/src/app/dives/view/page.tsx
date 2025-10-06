@@ -40,6 +40,7 @@ import {formatDiveValue} from '@/utils/formatDiveValue'
 import {useAuth} from '@/context/AuthContext'
 import {getSpecies} from '@/services/species'
 import DiveActions from "@/components/DiveActions";
+import {formatDiveDate} from "@/utils/dateUtils";
 
 export default function ViewDivesPage() {
   const {user, role} = useAuth()
@@ -206,14 +207,8 @@ export default function ViewDivesPage() {
                   : (dive as any)
                 return (
                   <Tr key={dive.id}>
-                    <Td>
-                      {(dive.date as Date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        timeZone: 'UTC'
-                      })}
-                    </Td>
+<Td>{formatDiveDate(dive.date)}</Td>
+
                     <Td>{dive.diveSlot.toUpperCase()}</Td>
                     <Td>{dive.diveGuide}</Td>
                     <Td>{d.boatName}</Td>
