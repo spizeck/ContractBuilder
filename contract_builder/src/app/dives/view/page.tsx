@@ -255,14 +255,8 @@ export default function ViewDivesPage() {
               >
                 <CardHeader pb={2}>
                   <Heading size='sm'>
-                    {(dive.date as Date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      timeZone: 'UTC'
-                    })}{' '}
-                    - {dive.diveSlot.toUpperCase()}
-                  </Heading>
+  {formatDiveDate(dive.date)} - {dive.diveSlot.toUpperCase()}
+</Heading>
                 </CardHeader>
                 <CardBody pt={2}>
                   <Stack divider={<StackDivider/>} spacing={2}>
