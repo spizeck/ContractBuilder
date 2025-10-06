@@ -176,7 +176,7 @@ export default function DiveForm ({
     )
 
     if (duplicate) {
-      alert('This boat already has a dive scheduled at that time.')
+      alert('This dive has already been logged.')
       return
     }
     // 3. Save dive

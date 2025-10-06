@@ -118,24 +118,35 @@ export async function getUserDives (uid: string): Promise<Dive[]> {
 }
 
 export async function checkDuplicateDive (
-  date: string, // stored as string: 'YYYY-MM-DD'
+  date: string,
   diveSlot: string,
   boatId: string,
-  excludeId?: string // optional
+  excludeId?: string
 ): Promise<boolean> {
   if (!date || !diveSlot || !boatId) return false
 
   const q = query(
     divesCollection,
-    where('date', '==', date),
-    where('diveSlot', '==', diveSlot),
-    where('boatId', '==', boatId)
+    where('boatId', '==', boatId),
+    where('diveSlot', '==', diveSlot)
   )
 
   const snapshot = await getDocs(q)
 
-  // Exclude the current dive being edited
-  const duplicates = snapshot.docs.filter(doc => doc.id !== excludeId)
+  const duplicates = snapshot.docs.filter(doc => {
+    if (doc.id === excludeId) return false // ignore itself
+    const data = doc.data()
+
+    // normalize all possible date formats
+    const docDate =
+      typeof data.date === 'string'
+        ? data.date
+        : data.date?.toDate
+        ? data.date.toDate().toISOString().split('T')[0]
+        : null
+
+    return docDate === date
+  })
 
   return duplicates.length > 0
 }
