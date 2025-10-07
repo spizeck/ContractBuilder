@@ -240,7 +240,7 @@ export default function DiveForm ({
       <Flex
         direction='column'
         justify='space-between'
-        minH={{ base: '75vh', md: '38rem' }}
+        minH={{ base: '75vh', md: '80vh' }}
         maxH='85vh'
         p={{ base: 3, md: 6 }}
       >
@@ -366,7 +366,7 @@ export default function DiveForm ({
       <Flex
         direction='column'
         justify='space-between'
-        minH={{ base: '75vh', md: '38rem' }}
+        minH={{ base: '75vh', md: '80vh' }}
         maxH='85vh'
         p={{ base: 3, md: 6 }}
       >
