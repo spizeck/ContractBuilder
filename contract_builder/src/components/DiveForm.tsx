@@ -155,7 +155,9 @@ export default function DiveForm ({
   }
 
   const handleSubmit = async () => {
-    if (!user) return
+    if (!user) {
+      return
+    }
 
     // 1. Run validators (soft warnings)
     const warnings = validateDive(maxDepth, waterTemperature, prefs)
@@ -165,14 +167,16 @@ export default function DiveForm ({
           warnings.join('\n') +
           '\n\nDo you want to continue?'
       )
-      if (!proceed) return
+      if (!proceed) {
+        return
+      }
     }
     // 2. Hard stop for duplicate check
     const duplicate = await checkDuplicateDive(
       date, // YYYY-MM-DD string
       diveSlot, // "9am" | "11am" | ...
       boatId,
-      initialDive?.id // ignore self if editing
+      initialDive?.id || '' // ignore self if editing
     )
 
     if (duplicate) {
