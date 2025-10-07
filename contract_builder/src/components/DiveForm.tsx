@@ -235,6 +235,7 @@ export default function DiveForm ({
     return (
       <Flex
         direction='column'
+        justify='space-between'
         minH={{ base: '75vh', md: '38rem' }}
         maxH='85vh'
         p={{ base: 3, md: 6 }}
@@ -246,7 +247,7 @@ export default function DiveForm ({
           <Progress value={progressValue} mb={4} colorScheme='teal' />
         </Box>
         {/* Scrollable content area */}
-        <Box flex='1' overflowY='auto' pr={1}>
+        <Box flex='1' overflowY='auto' pr={1} pb={4}>
           <VStack spacing={{ base: 2, md: 4 }} align='stretch'>
             {/* Date, Number, Boat, Guide, Site */}
             <FormControl isRequired>
@@ -337,7 +338,7 @@ export default function DiveForm ({
             </FormControl>{' '}
           </VStack>
         </Box>
-        <HStack spacing={2} mt={6} flexShrink={0}>
+        <HStack spacing={2} pt={2} flexShrink={0}>
           <Button onClick={onCancel} flex='1'>
             Cancel
           </Button>
@@ -360,6 +361,7 @@ export default function DiveForm ({
     return (
       <Flex
         direction='column'
+        justify='space-between'
         minH={{ base: '75vh', md: '38rem' }}
         maxH='85vh'
         p={{ base: 3, md: 6 }}
@@ -370,7 +372,7 @@ export default function DiveForm ({
           </Heading>
           <Progress value={progressValue} mb={4} colorScheme='teal' />
         </Box>
-        <Box flex='1' overflowY='auto' pr={1}>
+        <Box flex='1' overflowY='auto' pr={1} pb={4}>
           <VStack spacing={{ base: 2, md: 4 }} align='stretch'>
             {stepSpecies.map(sp => (
               <FormControl key={sp.id}>
@@ -386,7 +388,7 @@ export default function DiveForm ({
             ))}
           </VStack>
         </Box>
-        <HStack spacing={2} mt={6} flexShrink={0}>
+        <HStack spacing={2} pt={2} flexShrink={0}>
           <Button flex={1} onClick={() => setStep(step - 1)}>
             Back
           </Button>
