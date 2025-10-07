@@ -69,7 +69,9 @@ export async function addDive (data: Omit<Dive, 'id'>) {
 export async function getDive (id: string): Promise<Dive | null> {
   const ref = doc(db, 'dives', id)
   const snap = await getDoc(ref)
-  if (!snap.exists()) return null
+  if (!snap.exists()) {
+    return null
+  }
 
   const data = snap.data()
   return {
@@ -121,20 +123,27 @@ export async function checkDuplicateDive (
   date: string,
   diveSlot: string,
   boatId: string,
+  diveGuide: string,
   excludeId?: string
 ): Promise<boolean> {
-  if (!date || !diveSlot || !boatId) return false
+  if (!date || !diveSlot || !boatId || !diveGuide) {
+    return false
+  }
 
   const q = query(
     divesCollection,
+    where('date', '==', date),
     where('boatId', '==', boatId),
-    where('diveSlot', '==', diveSlot)
+    where('diveSlot', '==', diveSlot),
+    where('diveGuide', '==', diveGuide)
   )
 
   const snapshot = await getDocs(q)
 
   const duplicates = snapshot.docs.filter(doc => {
-    if (doc.id === excludeId) return false // ignore itself
+    if (doc.id === excludeId) {
+      return false // ignore itself
+    }
     const data = doc.data()
 
     // normalize all possible date formats
