@@ -15,7 +15,8 @@ import {
   Select,
   Spinner,
   Text,
-  VStack
+  VStack,
+  Flex
 } from '@chakra-ui/react'
 import {
   Boat,
@@ -78,7 +79,6 @@ export default function DiveForm ({
 
   useEffect(() => {
     const load = async () => {
-
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(
@@ -233,113 +233,119 @@ export default function DiveForm ({
   // --- Step 0: Dive Info ---
   if (step === 0) {
     return (
-      <Box p={{ base: 3, md: 6}}>
-          <Heading size="lg" mb={{ base: 2, md: 4 }}>
-          {initialDive ? 'Edit Dive' : 'New Dive'}
-        </Heading>
-        <Progress value={progressValue} mb={4} colorScheme='teal' />
-
-        <VStack spacing={{ base: 2, md: 4 }} align="stretch">
-          {/* Date, Number, Boat, Guide, Site */}
-          <FormControl isRequired>
-            <FormLabel>Date</FormLabel>
-            <Input
-              type='date'
-              value={date}
-              onChange={e => setDate(e.target.value)}
-            />
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Dive Time</FormLabel>
-            <Select
-              value={diveSlot}
-              onChange={e => setDiveSlot(e.target.value as DiveSlot)}
-            >
-              <option value=''>Select time</option>
-              <option value='9am'>9am Dive</option>
-              <option value='11am'>11am Dive</option>
-              <option value='1pm'>1pm Dive</option>
-              <option value='4pm'>4pm Dive</option>
-              <option value='night'>Night Dive</option>
-            </Select>
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Boat</FormLabel>
-            <Select value={boatId} onChange={e => setBoatId(e.target.value)}>
-              <option value=''>Select boat</option>
-              {boats.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Dive Guide</FormLabel>
-            <Select
-              value={diveGuide}
-              onChange={e => setDiveGuide(e.target.value)}
-            >
-              <option value=''>Select guide</option>
-              {guides
-                .filter(g => g.active)
-                .map(g => (
-                  <option key={g.id} value={g.name}>
-                    {g.name}
+      <Flex
+        direction='column'
+        minH={{ base: '75vh', md: '38rem' }}
+        maxH='85vh'
+        p={{ base: 3, md: 6 }}
+      >
+        <Box flexShrink={0}>
+          <Heading size='lg' mb={{ base: 2, md: 4 }}>
+            {initialDive ? 'Edit Dive' : 'New Dive'}
+          </Heading>
+          <Progress value={progressValue} mb={4} colorScheme='teal' />
+        </Box>
+        {/* Scrollable content area */}
+        <Box flex='1' overflowY='auto' pr={1}>
+          <VStack spacing={{ base: 2, md: 4 }} align='stretch'>
+            {/* Date, Number, Boat, Guide, Site */}
+            <FormControl isRequired>
+              <FormLabel>Date</FormLabel>
+              <Input
+                type='date'
+                value={date}
+                onChange={e => setDate(e.target.value)}
+              />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Dive Time</FormLabel>
+              <Select
+                value={diveSlot}
+                onChange={e => setDiveSlot(e.target.value as DiveSlot)}
+              >
+                <option value=''>Select time</option>
+                <option value='9am'>9am Dive</option>
+                <option value='11am'>11am Dive</option>
+                <option value='1pm'>1pm Dive</option>
+                <option value='4pm'>4pm Dive</option>
+                <option value='night'>Night Dive</option>
+              </Select>
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Boat</FormLabel>
+              <Select value={boatId} onChange={e => setBoatId(e.target.value)}>
+                <option value=''>Select boat</option>
+                {boats.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
                   </option>
                 ))}
-            </Select>
-          </FormControl>
-
-          <FormControl isRequired>
-            <FormLabel>Dive Site</FormLabel>
-            <Select
-              value={diveSiteId}
-              onChange={e => setDiveSiteId(e.target.value)}
-            >
-              <option value=''>Select site</option>
-              {sites.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Depth + Temp */}
-          <FormControl isRequired>
-            <FormLabel>{depthLabel}</FormLabel>
-            <NumberInput
-              min={1}
-              max={prefs?.units.depth === 'feet' ? 330 : 100}
-              value={displayDepth}
-              onChange={handleDepthChange}
-            >
-              <NumberInputField />
-            </NumberInput>
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>{tempLabel}</FormLabel>
-            <NumberInput
-              min={prefs?.units.temp === 'fahrenheit' ? 40 : 5}
-              max={prefs?.units.temp === 'fahrenheit' ? 110 : 40}
-              value={displayTemp}
-              onChange={handleTempChange}
-            >
-              <NumberInputField />
-            </NumberInput>
-          </FormControl>
-
-          <HStack spacing={2}>
-            <Button onClick={onCancel} flex='1'>
-              Cancel
-            </Button>
-            <Button colorScheme='teal' flex='1' onClick={() => setStep(1)}>
-              Next
-            </Button>
-          </HStack>
-        </VStack>
-      </Box>
+              </Select>
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Dive Guide</FormLabel>
+              <Select
+                value={diveGuide}
+                onChange={e => setDiveGuide(e.target.value)}
+              >
+                <option value=''>Select guide</option>
+                {guides
+                  .filter(g => g.active)
+                  .map(g => (
+                    <option key={g.id} value={g.name}>
+                      {g.name}
+                    </option>
+                  ))}
+              </Select>
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Dive Site</FormLabel>
+              <Select
+                value={diveSiteId}
+                onChange={e => setDiveSiteId(e.target.value)}
+              >
+                <option value=''>Select site</option>
+                {sites.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+            {/* Depth + Temp */}
+            <FormControl isRequired>
+              <FormLabel>{depthLabel}</FormLabel>
+              <NumberInput
+                min={1}
+                max={prefs?.units.depth === 'feet' ? 330 : 100}
+                value={displayDepth}
+                onChange={handleDepthChange}
+              >
+                <NumberInputField />
+              </NumberInput>
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>{tempLabel}</FormLabel>
+              <NumberInput
+                min={prefs?.units.temp === 'fahrenheit' ? 40 : 5}
+                max={prefs?.units.temp === 'fahrenheit' ? 110 : 40}
+                value={displayTemp}
+                onChange={handleTempChange}
+              >
+                <NumberInputField />
+              </NumberInput>
+            </FormControl>{' '}
+          </VStack>
+        </Box>
+        <HStack spacing={2} mt={6} flexShrink={0}>
+          <Button onClick={onCancel} flex='1'>
+            Cancel
+          </Button>
+          <Button colorScheme='teal' flex='1' onClick={() => setStep(1)}>
+            Next
+          </Button>
+        </HStack>
+      </Flex>
     )
   }
 
@@ -352,47 +358,50 @@ export default function DiveForm ({
     const stepSpecies = speciesList.filter(sp => (sp.step || 1) === currentStep)
 
     return (
-      <Box p={6}>
-        <Heading size='lg' mb={4}>
-          Sightings – Step {currentStep}
-        </Heading>
-        <Progress value={progressValue} mb={4} colorScheme='teal' />
-
-        <VStack spacing={4} align='stretch'>
-          {stepSpecies.map(sp => (
-            <FormControl key={sp.id}>
-              <FormLabel>{sp.name}</FormLabel>
-              <NumberInput
-                min={0}
-                value={sightings.find(s => s.speciesId === sp.id)?.count || 0}
-                onChange={(_, v) => handleSightingChange(sp.id, v)}
-              >
-                <NumberInputField />
-              </NumberInput>
-            </FormControl>
-          ))}
-
-          <HStack spacing={2}>
-            <Button flex={1} onClick={() => setStep(step - 1)}>
-              Back
-            </Button>
-            <Button
-              flex={1}
-              colorScheme='teal'
-              onClick={() => setStep(step + 1)}
-            >
-              Next
-            </Button>
-          </HStack>
-        </VStack>
-      </Box>
+      <Flex
+        direction='column'
+        minH={{ base: '75vh', md: '38rem' }}
+        maxH='85vh'
+        p={{ base: 3, md: 6 }}
+      >
+        <Box flexShrink={0}>
+          <Heading size='lg' mb={{ base: 2, md: 4 }}>
+            Sightings – Step {currentStep}
+          </Heading>
+          <Progress value={progressValue} mb={4} colorScheme='teal' />
+        </Box>
+        <Box flex='1' overflowY='auto' pr={1}>
+          <VStack spacing={{ base: 2, md: 4 }} align='stretch'>
+            {stepSpecies.map(sp => (
+              <FormControl key={sp.id}>
+                <FormLabel>{sp.name}</FormLabel>
+                <NumberInput
+                  min={0}
+                  value={sightings.find(s => s.speciesId === sp.id)?.count || 0}
+                  onChange={(_, v) => handleSightingChange(sp.id, v)}
+                >
+                  <NumberInputField />
+                </NumberInput>
+              </FormControl>
+            ))}
+          </VStack>
+        </Box>
+        <HStack spacing={2} mt={6} flexShrink={0}>
+          <Button flex={1} onClick={() => setStep(step - 1)}>
+            Back
+          </Button>
+          <Button flex={1} colorScheme='teal' onClick={() => setStep(step + 1)}>
+            Next
+          </Button>
+        </HStack>
+      </Flex>
     )
   }
 
   // --- Final Step: Confirm ---
   if (step === maxStep + 1) {
     return (
-      <Box p={6}>
+      <Box p={{ base: 3, md: 6 }}>
         <Heading size='lg' mb={4}>
           Confirm Dive Entry
         </Heading>
