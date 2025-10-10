@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import {
   Box,
   Button,
@@ -29,21 +29,21 @@ import {
   useDisclosure,
   VStack
 } from '@chakra-ui/react'
-import {getDivesPage} from '@/services/dives'
-import {getBoats} from '@/services/boats'
-import {getSites} from '@/services/sites'
-import {getGuides} from '@/services/guides'
-import {getUserProfile} from '@/services/users'
-import {Boat, Dive, Guide, Site, Species} from '@/types/diveLogTypes'
-import {UserProfile} from '@/types/userTypes'
-import {formatDiveValue} from '@/utils/formatDiveValue'
-import {useAuth} from '@/context/AuthContext'
-import {getSpecies} from '@/services/species'
-import DiveActions from "@/components/diveForm/DiveActions";
-import {formatDiveDate} from "@/utils/dateUtils";
+import { getDivesPage } from '@/services/dives'
+import { getBoats } from '@/services/boats'
+import { getSites } from '@/services/sites'
+import { getGuides } from '@/services/guides'
+import { getUserProfile } from '@/services/users'
+import { Boat, Dive, Guide, Site, Species } from '@/types/diveLogTypes'
+import { UserProfile } from '@/types/userTypes'
+import { formatDiveValue } from '@/utils/formatDiveValue'
+import { useAuth } from '@/context/AuthContext'
+import { getSpecies } from '@/services/species'
+import { DiveActions } from '@/components/diveForm/DiveActions'
+import { formatDiveDate } from '@/utils/dateUtils'
 
-export default function ViewDivesPage() {
-  const {user, role} = useAuth()
+export default function ViewDivesPage () {
+  const { user, role } = useAuth()
   const [dives, setDives] = useState<Dive[]>([])
   const [boats, setBoats] = useState<Boat[]>([])
   const [sites, setSites] = useState<Site[]>([])
@@ -59,23 +59,23 @@ export default function ViewDivesPage() {
   const [selectedGuide, setSelectedGuide] = useState('')
   const [selectedSpecies, setSelectedSpecies] = useState('')
 
-  const {isOpen, onOpen, onClose} = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const [selectedDive, setSelectedDive] = useState<Dive | null>(null)
 
-  const isMobile = useBreakpointValue({base: true, md: false})
+  const isMobile = useBreakpointValue({ base: true, md: false })
 
   useEffect(() => {
-    async function load() {
+    async function load () {
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(
           profile?.preferences || {
-            units: {depth: 'meters', temp: 'celsius', pressure: 'bar'}
+            units: { depth: 'meters', temp: 'celsius', pressure: 'bar' }
           }
         )
       }
       const [
-        {dives: divesData, lastDoc: newLastDoc},
+        { dives: divesData, lastDoc: newLastDoc },
         boatsData,
         sitesData,
         speciesData,
@@ -99,10 +99,10 @@ export default function ViewDivesPage() {
     load()
   }, [user])
 
-  async function loadMore() {
+  async function loadMore () {
     if (!lastDoc) return
     setLoadingMore(true)
-    const {dives: newDives, lastDoc: newLastDoc} = await getDivesPage(
+    const { dives: newDives, lastDoc: newLastDoc } = await getDivesPage(
       25,
       lastDoc
     )
@@ -111,7 +111,7 @@ export default function ViewDivesPage() {
     setLoadingMore(false)
   }
 
-  if (loading) return <Spinner/>
+  if (loading) return <Spinner />
 
   const filteredDives = dives.filter(
     d =>
@@ -130,7 +130,7 @@ export default function ViewDivesPage() {
 
       {/* Filters */}
       <Stack
-        direction={{base: 'column', md: 'row'}}
+        direction={{ base: 'column', md: 'row' }}
         spacing={4}
         mb={6}
         w='100%'
@@ -207,7 +207,7 @@ export default function ViewDivesPage() {
                   : (dive as any)
                 return (
                   <Tr key={dive.id}>
-<Td>{formatDiveDate(dive.date)}</Td>
+                    <Td>{formatDiveDate(dive.date)}</Td>
 
                     <Td>{dive.diveSlot.toUpperCase()}</Td>
                     <Td>{dive.diveGuide}</Td>
@@ -231,7 +231,6 @@ export default function ViewDivesPage() {
             </Tbody>
           </Table>
           {lastDoc && (
-
             <Box textAlign='left' mt={4}>
               <Button onClick={loadMore} isLoading={loadingMore}>
                 Load More
@@ -255,11 +254,11 @@ export default function ViewDivesPage() {
               >
                 <CardHeader pb={2}>
                   <Heading size='sm'>
-  {formatDiveDate(dive.date)} - {dive.diveSlot.toUpperCase()}
-</Heading>
+                    {formatDiveDate(dive.date)} - {dive.diveSlot.toUpperCase()}
+                  </Heading>
                 </CardHeader>
                 <CardBody pt={2}>
-                  <Stack divider={<StackDivider/>} spacing={2}>
+                  <Stack divider={<StackDivider />} spacing={2}>
                     <Text>
                       <b>Guide:</b> {dive.diveGuide}
                     </Text>
@@ -296,16 +295,14 @@ export default function ViewDivesPage() {
             </Box>
           )}
         </VStack>
-      )
-      }
+      )}
 
-      {/* Modal for sightings */
-      }
+      {/* Modal for sightings */}
       <Modal isOpen={isOpen} onClose={onClose} size='md'>
-        <ModalOverlay/>
+        <ModalOverlay />
         <ModalContent>
           <ModalHeader>Sightings</ModalHeader>
-          <ModalCloseButton/>
+          <ModalCloseButton />
           <ModalBody>
             {selectedDive?.sightings?.length ? (
               selectedDive.sightings.map(s => {
