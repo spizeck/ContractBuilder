@@ -8,7 +8,8 @@ import { useDiveFormData } from './hooks/useDiveFormData'
 import { StepDiveInfo } from './steps/StepDiveInfo'
 import { StepSightings } from './steps/StepSightings'
 import { StepConfirm } from './steps/StepConfirm'
-import { DiveActions } from './DiveActions'
+import FormActions from '@/components/diveForm/FormActions'
+
 import {
   celsiusToFahrenheit,
   fahrenheitToCelsius,
@@ -45,11 +46,28 @@ export default function DiveForm ({
 
   useEffect(() => {
     if (initialDive) {
-      setDate(
-        initialDive.date instanceof Date
-          ? initialDive.date.toISOString().split('T')[0]
-          : ''
-      )
+      let formattedDate = ''
+
+      // Handle Firestore Timestamp
+      if (typeof (initialDive.date as any)?.toDate === 'function') {
+        formattedDate = (initialDive.date as any)
+          .toDate()
+          .toISOString()
+          .split('T')[0]
+      }
+      // Handle JS Date
+      else if (initialDive.date instanceof Date) {
+        formattedDate = initialDive.date.toISOString().split('T')[0]
+      }
+      // Handle ISO string or number
+      else if (
+        typeof initialDive.date === 'string' ||
+        typeof initialDive.date === 'number'
+      ) {
+        formattedDate = new Date(initialDive.date).toISOString().split('T')[0]
+      }
+
+      setDate(formattedDate)
       setDiveSlot(initialDive.diveSlot)
       setBoatId(initialDive.boatId)
       setDiveGuide(initialDive.diveGuide)
@@ -191,7 +209,7 @@ export default function DiveForm ({
         />
       )}
 
-      <DiveActions
+      <FormActions
         step={step}
         maxStep={maxStep}
         initialDive={!!initialDive}

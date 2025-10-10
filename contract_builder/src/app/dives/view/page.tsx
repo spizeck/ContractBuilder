@@ -39,7 +39,7 @@ import { UserProfile } from '@/types/userTypes'
 import { formatDiveValue } from '@/utils/formatDiveValue'
 import { useAuth } from '@/context/AuthContext'
 import { getSpecies } from '@/services/species'
-import { DiveActions } from '@/components/diveForm/DiveActions'
+import DiveActions from '@/components/diveForm/DiveActions'
 import { formatDiveDate } from '@/utils/dateUtils'
 
 export default function ViewDivesPage () {
@@ -65,7 +65,7 @@ export default function ViewDivesPage () {
   const isMobile = useBreakpointValue({ base: true, md: false })
 
   useEffect(() => {
-    async function load () {
+    const load = async () => {
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(

@@ -154,7 +154,7 @@ export function StepDiveInfo ({
             <NumberInput
               min={1}
               max={prefs?.units.depth === 'feet' ? 330 : 100}
-              value={displayDepth}
+              value={Number.isFinite(displayDepth) ? displayDepth : 0}
               onChange={onChange.handleDepthChange}
             >
               <NumberInputField />
@@ -166,7 +166,7 @@ export function StepDiveInfo ({
             <NumberInput
               min={prefs?.units.temp === 'fahrenheit' ? 40 : 5}
               max={prefs?.units.temp === 'fahrenheit' ? 110 : 40}
-              value={displayTemp}
+              value={Number.isFinite(displayTemp) ? displayTemp : 0}
               onChange={onChange.handleTempChange}
             >
               <NumberInputField />

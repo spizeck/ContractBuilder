@@ -22,7 +22,7 @@ export function useDiveFormData () {
   const [maxStep, setMaxStep] = useState(0)
 
   useEffect(() => {
-    async function load () {
+    const load = async () => {
       if (user) {
         const profile = await getUserProfile(user.uid)
         setPrefs(
