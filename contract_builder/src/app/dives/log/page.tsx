@@ -1,7 +1,7 @@
 'use client';
 
 import {useRouter} from "next/navigation";
-import DiveForm from "@/components/DiveForm";
+import DiveForm from "@/components/diveForm/DiveForm";
 import {addDive} from "@/services/dives";
 import ProtectedPage from "@/components/ProtectedPage";
 

@@ -161,7 +161,10 @@ export function calculateTotalCost (
   )
   if (focRoomType) {
     const baseRate = rates.find(
-      r => r.categoryId === focRoomType.categoryId && r.seasonId === season.id
+      r => 
+        r.categoryId === focRoomType.categoryId && 
+        r.seasonId === season.id && 
+        r.occupancyType.toLowerCase() === 'double'
     )
     if (baseRate) {
       const perGuestPerNight = baseRate.price / 2 // assume double occupancy
