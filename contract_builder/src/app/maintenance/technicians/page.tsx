@@ -40,8 +40,7 @@ export default function TechniciansPage() {
     <Box p={6}>
       <Heading size='lg' mb={4}>Technicians</Heading>
       <HStack mb={4}>
-        <Button size="sm" onClick={() => setEditingTechnician(t)}>Edit</Button>
-        <Button size="sm" colorScheme="red" ml={2} onClick={() => handleDelete(t.id)}>Delete</Button>
+        <Button size="sm" onClick={() => setShowForm(true)}>Add Technician</Button>
       </HStack>
 
       {loading ? (
@@ -64,8 +63,11 @@ export default function TechniciansPage() {
                 <Td>{t.role}</Td>
                 <Td>{t.certifications || ""}</Td>
                 <Td>
-                  <Button onClick={() => setEditingTechnician(t)}>Edit</Button>
-                  <Button onClick={() => handleDelete(t.id)}>Delete</Button>
+                  <Button size="sm" onClick={() => {
+                    setEditingTechnician(t)
+                    setShowForm(true)
+                  }}>Edit</Button>
+                  <Button size="sm" colorScheme="red" ml={2} onClick={() => handleDelete(t.id)}>Delete</Button>
                 </Td>
               </Tr>
             ))}

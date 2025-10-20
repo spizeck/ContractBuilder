@@ -91,6 +91,32 @@ export default function Home() {
           </List>
         </Box>
 
+        {/* Maintenance Section */}
+        <Box w="100%">
+          <Heading as="h2" size="md" mb={2}>
+            Maintenance
+          </Heading>
+          <List spacing={3} fontSize="md">
+            <ListItem>
+              • Manage shop assets and personnel in the{" "}
+              <Link color="teal.500" as={NextLink} href="/maintenance/technicians">
+                <b>Maintenance Section</b>
+              </Link>
+              .
+            </ListItem>
+            <ListItem>
+              • Keep track of certified technicians and their roles.
+            </ListItem>
+            <ListItem>
+              • Manage and track company assets like vehicles and equipment.
+            </ListItem>
+            <ListItem color="gray.500" fontStyle="italic">
+              Note: Maintenance features are only available to authorized users
+              (managers and admins).
+            </ListItem>
+          </List>
+        </Box>
+
         <Divider/>
 
       </VStack>

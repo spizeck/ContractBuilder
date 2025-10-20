@@ -47,6 +47,13 @@ export default function NavLinks() {
     </>
   )
 
+  const maintenanceLinks = (
+    <>
+      <MenuItem as={NextLink} href="/maintenance/technicians">Technicians</MenuItem>
+      <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
+    </>
+  )
+
   return (
     <>
       {/* Desktop Nav */}
@@ -75,6 +82,15 @@ export default function NavLinks() {
               </MenuButton>
               <MenuList color="teal">{diveLogLinks}</MenuList>
             </Menu>
+
+            {(role === 'admin' || role === 'manager') && (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Maintenance
+                </MenuButton>
+                <MenuList color="teal">{maintenanceLinks}</MenuList>
+              </Menu>
+            )}
 
             <Link as={NextLink} href="/profile" _hover={{ textDecoration: 'underline' }}>
               Profile
@@ -127,6 +143,16 @@ export default function NavLinks() {
               </AccordionButton>
               <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
             </AccordionItem>
+
+            {/* Maintenance Section */}
+            {(role === 'admin' || role === 'manager') && (
+              <AccordionItem>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">Maintenance</Box>
+                </AccordionButton>
+                <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
+              </AccordionItem>
+            )}
           </Accordion>
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
