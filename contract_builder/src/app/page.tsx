@@ -1,21 +1,29 @@
-import {Box, Divider, Heading, Link, List, ListItem, Text, VStack} from '@chakra-ui/react'
+import {
+  Box,
+  Divider,
+  Heading,
+  Link,
+  List,
+  ListItem,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import NextLink from "next/link";
 
 export default function Home() {
   return (
-    <Box p={5} maxW='4xl' mx='auto'>
-      <Heading as='h1' size='xl' mb={6} textAlign='left'>
+    <Box p={5} maxW="4xl" mx="auto">
+      <Heading as="h1" size="xl" mb={6} textAlign="left">
         Sea Saba Business App
       </Heading>
 
-      <Text fontSize='lg' mb={6} textAlign='left'>
+      <Text fontSize="lg" mb={6} textAlign="left">
         Welcome to the Sea Saba Business App. This platform streamlines our
         daily operations, including managing dive group contracts and logging
         dives for our boats and guests.
       </Text>
 
-      <VStack align='start' spacing={6}>
-
+      <VStack align="start" spacing={6}>
         {/* Dive Log Section */}
         <Box w="100%">
           <Heading as="h2" size="md" mb={2}>
@@ -30,14 +38,16 @@ export default function Home() {
               to record daily dives for each boat.
             </ListItem>
             <ListItem>
-              • Track dive sites, guides, customers, and ocean conditions for every trip.
+              • Track dive sites, guides, customers, and ocean conditions for
+              every trip.
             </ListItem>
             <ListItem>
-              • Add species sightings to support research and enhance guest experiences.
+              • Add species sightings to support research and enhance guest
+              experiences.
             </ListItem>
             <ListItem>
-              • Logs create a permanent record used for quality checks, marine park
-              reporting, and customer history.
+              • Logs create a permanent record used for quality checks, marine
+              park reporting, and customer history.
             </ListItem>
             <ListItem>
               • Previously recorded dives can be{" "}
@@ -77,16 +87,16 @@ export default function Home() {
               .
             </ListItem>
             <ListItem>
-              • Totals are calculated automatically, applying Free of Charge (FOC) rules
-              and commission rates.
+              • Totals are calculated automatically, applying Free of Charge
+              (FOC) rules and commission rates.
             </ListItem>
             <ListItem>
-              • Save contracts and generate a professional PDF for client confirmation
-              with one click.
+              • Save contracts and generate a professional PDF for client
+              confirmation with one click.
             </ListItem>
             <ListItem color="gray.500" fontStyle="italic">
-              Note: Contract Builder features are only available to authorized users
-              (managers and admins).
+              Note: Contract Builder features are only available to authorized
+              users (managers and admins).
             </ListItem>
           </List>
         </Box>
@@ -98,18 +108,35 @@ export default function Home() {
           </Heading>
           <List spacing={3} fontSize="md">
             <ListItem>
-              • Manage shop assets and personnel in the{" "}
-              <Link color="teal.500" as={NextLink} href="/maintenance/technicians">
-                <b>Maintenance Section</b>
+              • View and add maintenance records (service logs, costs, next
+              service due) via the{" "}
+              <Link color="teal.500" as={NextLink} href="/maintenance/logs">
+                <b>Maintenance Logs</b>
               </Link>
               .
             </ListItem>
             <ListItem>
-              • Keep track of certified technicians and their roles.
+              • Manage company assets in the{" "}
+              <Link color="teal.500" as={NextLink} href="/maintenance/assets">
+                <b>Assets Section</b>
+              </Link>
+              .
+            </ListItem>
+            <ListItem>
+              • Manage technicians and their roles in the{" "}
+              <Link
+                color="teal.500"
+                as={NextLink}
+                href="/maintenance/technicians"
+              >
+                <b>Technicians Section</b>
+              </Link>
+              .
             </ListItem>
             <ListItem>
               • Manage and track company assets like vehicles and equipment.
             </ListItem>
+
             <ListItem color="gray.500" fontStyle="italic">
               Note: Maintenance features are only available to authorized users
               (managers and admins).
@@ -117,16 +144,15 @@ export default function Home() {
           </List>
         </Box>
 
-        <Divider/>
-
+        <Divider />
       </VStack>
 
       <Box mt={8}>
-        <Text fontSize='sm' color='gray.500' textAlign='center'>
+        <Text fontSize="sm" color="gray.500" textAlign="center">
           Note: This application is still in development. Some features may be
           incomplete or subject to change.
         </Text>
       </Box>
     </Box>
-  )
+  );
 }

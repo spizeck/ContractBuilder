@@ -80,3 +80,11 @@ export function formatCurrency(value: number | null | undefined): string {
     maximumFractionDigits: 2,
   });
 }
+
+export function formatNumber(value: number | null | undefined, decimals = 0): string {
+  if (value == null) return "-";
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}

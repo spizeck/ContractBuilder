@@ -51,6 +51,7 @@ export default function NavLinks() {
     <>
       <MenuItem as={NextLink} href="/maintenance/technicians">Technicians</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
+      <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>
     </>
   )
 

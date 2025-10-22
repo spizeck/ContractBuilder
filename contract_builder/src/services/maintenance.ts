@@ -17,10 +17,18 @@ const logsCollection = collection(db, 'maintenanceLogs')
 export async function getMaintenanceLogs(): Promise<MaintenanceLog[]> {
   const q = query(logsCollection, orderBy('date', 'desc'))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map(docSnap => ({
-    id: docSnap.id,
-    ...docSnap.data()
-  })) as MaintenanceLog[]
+  return snapshot.docs.map(docSnap => {
+    const data: any = docSnap.data()
+    // Firestore returns Timestamps for date fields; convert to JS Date when present
+    const dateField = data.date
+    const createdAtField = data.createdAt
+    return ({
+      id: docSnap.id,
+      ...data,
+      date: dateField && typeof dateField.toDate === 'function' ? dateField.toDate() : dateField,
+      createdAt: createdAtField && typeof createdAtField.toDate === 'function' ? createdAtField.toDate() : createdAtField,
+    }) as MaintenanceLog
+  })
 }
 
 export async function addMaintenanceLog(data: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string }) {
