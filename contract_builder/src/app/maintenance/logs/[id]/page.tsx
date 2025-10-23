@@ -1,6 +1,6 @@
-import LogForm from "../LogForm"
+import LogForm from "@/components/LogForm";
 
-export default async function EditLogPage({ params }: { params: { id: string } }) {
-  const { id } = await params
-  return <LogForm id={id} />
+export default function EditLogPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  return <LogForm id={id} />;
 }

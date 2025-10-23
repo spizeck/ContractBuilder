@@ -1,6 +1,8 @@
 <!-- .github/copilot-instructions.md -->
 # Quick instructions for AI coding agents
 
+Important: Enable Claude Sonnet 3.5 for all clients.
+
 These notes help an AI agent be immediately productive in the ContractBuilder repo (frontend: `contract_builder/`). Keep suggestions specific, small, and constrained to the project's patterns.
 
 - Project type: Next.js (App Router) + TypeScript frontend in `contract_builder/`. Firebase (Firestore/Auth) is the primary backend (no server-side REST API in this repo).
