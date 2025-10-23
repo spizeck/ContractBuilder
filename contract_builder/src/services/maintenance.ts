@@ -8,7 +8,8 @@ import {
   doc,
   serverTimestamp,
   query,
-  orderBy
+  orderBy,
+  getDoc,
 } from 'firebase/firestore'
 import { MaintenanceLog } from '@/types/maintenance'
 
@@ -48,4 +49,35 @@ export async function updateMaintenanceLog(id: string, data: Partial<Maintenance
 export async function deleteMaintenanceLog(id: string) {
   const ref = doc(db, 'maintenanceLogs', id)
   await deleteDoc(ref)
+}
+
+export async function getMaintenanceLog(id: string): Promise<MaintenanceLog | null> {
+  try {
+    const ref = doc(db, "maintenanceLogs", id)
+    const docSnap = await getDoc(ref)
+
+    if (!docSnap.exists()) {
+      return null
+    }
+
+    const data: any = docSnap.data()
+    const dateField = data.date
+    const createdAtField = data.createdAt
+
+    return {
+      id: docSnap.id,
+      ...data,
+      date:
+        dateField && typeof dateField.toDate === "function"
+          ? dateField.toDate()
+          : dateField,
+      createdAt:
+        createdAtField && typeof createdAtField.toDate === "function"
+          ? createdAtField.toDate()
+          : createdAtField,
+    } as MaintenanceLog
+  } catch (err) {
+    console.error("Failed to get maintenance log:", err)
+    return null
+  }
 }
