@@ -32,6 +32,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   Stack,
+  TableContainer,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import {
@@ -177,30 +178,32 @@ export default function MaintenanceLogsPage() {
             />
           </HStack>
 
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Asset</Th>
-                <Th>Category</Th>
-                <Th>Current Hours</Th>
-                <Th>Next Service Due</Th>
-                <Th>Last Update</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {renderedRootRows(
-                assets,
-                logs,
-                categoryFilter,
-                searchQuery,
-                openLogsForAsset,
-                openAddForAsset,
-                user,
-                role
-              )}
-            </Tbody>
-          </Table>
+          <TableContainer>
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Asset</Th>
+                  <Th>Category</Th>
+                  <Th>Current Hours</Th>
+                  <Th>Next Service Due</Th>
+                  <Th>Last Update</Th>
+                  <Th>Actions</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {renderedRootRows(
+                  assets,
+                  logs,
+                  categoryFilter,
+                  searchQuery,
+                  openLogsForAsset,
+                  openAddForAsset,
+                  user,
+                  role
+                )}
+              </Tbody>
+            </Table>
+          </TableContainer>
         </>
       )}
 
@@ -451,15 +454,23 @@ function ParentRow({
         <Td>{nextDue != null ? formatNumber(nextDue as any, 2) : "-"}</Td>
         <Td>{lastDate ? formatDate(lastDate as any) : "-"}</Td>
         <Td>
-          <Stack direction={{ base: "column", md: "row" }} spacing={1}>
-            <Button size="sm" flex={1} onClick={() => onViewLogs(asset)}>
+          <Stack
+            direction={{ base: "column", md: "row" }}
+            spacing={{ base: 2, md: 1 }}
+            align="stretch"
+          >
+            <Button
+              size="sm"
+              w={{ base: "100%", md: "auto" }}
+              onClick={() => onViewLogs(asset)}
+              variant="outline"
+            >
               View Logs
             </Button>
             <Button
               size="sm"
-              flex={1}
+              w={{ base: "100%", md: "auto" }}
               colorScheme="blue"
-              ml={2}
               onClick={() => onAddLog(asset)}
             >
               Add Log

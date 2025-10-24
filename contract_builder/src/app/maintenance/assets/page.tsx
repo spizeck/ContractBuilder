@@ -3,23 +3,31 @@
 import { useEffect, useState } from "react";
 import {
   Box,
-  Button,
-  Heading,
-  HStack,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   Spinner,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Button,
   Select,
-  Checkbox,
-  TableContainer
+  HStack,
+  Input,
 } from "@chakra-ui/react";
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset } from "@/types/maintenance";
 import AddEditAssetForm from "./AddEditAssetForm";
+
+// Allowed categories going forward — use these for filters and parent assignment
+const ALLOWED_CATEGORIES = [
+  "Marine",
+  "Compressors",
+  "Vehicles",
+  "Scuba Equipment",
+  "Other",
+] as const;
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -27,7 +35,7 @@ export default function AssetsPage() {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [activeOnly, setActiveOnly] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     loadAssets();
@@ -67,81 +75,109 @@ export default function AssetsPage() {
     return acc;
   }, {});
 
+  // Categories for the UI filter: only from parent assets and restricted to allowed list
+  const categories = ALLOWED_CATEGORIES.filter((c) =>
+    (groupedAssets["root"] || []).some((p) => p.category === c)
+  );
+
   return (
-    <Box p={6}>
-      <Heading size="lg" mb={4}>
-        Assets
-      </Heading>
-
-      <HStack mb={4} spacing={4} align="center">
-        <Button colorScheme="blue" onClick={() => setShowForm(true)}>
-          Add Asset
-        </Button>
-
-        <Select
-          width="220px"
-          placeholder="All categories"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          {[...new Set(assets.map((a) => a.category).filter(Boolean))]
-            .sort()
-            .map((c) => (
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100%"
+      p={6}
+      overflow="hidden"
+    >
+      {/* top, non-scrolling filters section */}
+      <Box flexShrink={0} mb={4}>
+        <HStack spacing={4} flexWrap="wrap">
+          <Select
+            placeholder="All categories"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            width={{ base: "100%", md: "220px" }}
+          >
+            {/* always show canonical list */}
+            {ALLOWED_CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
-        </Select>
+          </Select>
 
-        <Checkbox isChecked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)}>
-          Active only
-        </Checkbox>
-      </HStack>
+          <Input
+            placeholder="Search asset name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            width={{ base: "100%", md: "300px" }}
+          />
+        </HStack>
+      </Box>
 
-      {loading ? (
-        <Spinner />
-      ) : (
-        <TableContainer overflow="auto" maxH="60vh">
-          <Table variant="simple" width="100%">
-            <Thead>
-              <Tr>
-                <Th>Name</Th>
-                <Th>Category</Th>
-                <Th>Active</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {(groupedAssets["root"] || [])
-                .filter((a) => (categoryFilter ? a.category === categoryFilter : true))
-                .filter((a) => (activeOnly ? Boolean(a.active) : true))
-                .sort((x, y) => {
-                  const catA = (x.category || "").toLowerCase()
-                  const catB = (y.category || "").toLowerCase()
-                  if (catA < catB) return -1
-                  if (catA > catB) return 1
-                  const nameA = (x.name || "").toLowerCase()
-                  const nameB = (y.name || "").toLowerCase()
-                  if (nameA < nameB) return -1
-                  if (nameA > nameB) return 1
-                  return 0
-                })
-                .map((parent) => (
-                  <ParentRow
-                    key={parent.id}
-                    asset={parent}
-                    groupedAssets={groupedAssets}
-                    onEdit={(a) => {
-                      setEditingAsset(a)
-                      setShowForm(true)
-                    }}
-                    onDelete={handleDelete}
-                  />
-                ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      )}
+      {/* table area fills remaining space and scrolls only here */}
+      <Box flex="1" overflow="auto">
+        {loading ? (
+          <Spinner />
+        ) : (
+          <TableContainer
+            maxH="100%"
+            overflowY="auto"
+            overflowX="auto"
+            sx={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <Table variant="simple" minW="720px" width="100%">
+              <Thead>
+                <Tr>
+                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                    Asset Name
+                  </Th>
+                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                    Category
+                  </Th>
+                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                    Active
+                  </Th>
+                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                    Actions
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {(groupedAssets["root"] || [])
+                  .filter((a) => (categoryFilter ? a.category === categoryFilter : true))
+                  .filter((a) =>
+                    searchQuery
+                      ? a.name.toLowerCase().includes(searchQuery.toLowerCase())
+                      : true
+                  )
+                  .sort((x, y) => {
+                    const catA = (x.category || "").toLowerCase();
+                    const catB = (y.category || "").toLowerCase();
+                    if (catA < catB) return -1;
+                    if (catA > catB) return 1;
+                    const nameA = (x.name || "").toLowerCase();
+                    const nameB = (y.name || "").toLowerCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                  })
+                  .map((parent) => (
+                    <ParentRow
+                      key={parent.id}
+                      asset={parent}
+                      groupedAssets={groupedAssets}
+                      onEdit={(a) => {
+                        setEditingAsset(a);
+                        setShowForm(true);
+                      }}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
 
       {showForm && (
         <AddEditAssetForm
@@ -157,6 +193,7 @@ export default function AssetsPage() {
   );
 }
 
+// ParentRow: show category from parent (if asset is a child) — children inherit parent's category
 function ParentRow({
   asset,
   groupedAssets,
@@ -170,30 +207,34 @@ function ParentRow({
   onDelete: (id: string) => void;
   level?: number;
 }) {
+  // For display, if this row is a child (parentAssetId present), prefer parent's category.
+  // However this component is used both for root parents and recursive children:
+  const parent =
+    asset.parentAssetId !== undefined
+      ? (groupedAssets["root"] || []).find((p) => p.id === asset.parentAssetId) || null
+      : null;
+  const displayCategory = parent ? parent.category : asset.category;
+
   return (
     <>
       <Tr>
         <Td style={{ paddingLeft: `${level * 20}px` }}>
-          {level > 0 && "↳ "} {asset.name}
+          {level > 0 && "↳ "}
+          {asset.name}
         </Td>
-        <Td>{asset.category}</Td>
+        <Td>{displayCategory}</Td>
         <Td>{asset.active ? "Yes" : "No"}</Td>
         <Td>
           <Button size="sm" onClick={() => onEdit(asset)}>
             Edit
           </Button>
-          <Button
-            size="sm"
-            colorScheme="red"
-            ml={2}
-            onClick={() => onDelete(asset.id)}
-          >
+          <Button size="sm" colorScheme="red" ml={2} onClick={() => onDelete(asset.id)}>
             Delete
           </Button>
         </Td>
       </Tr>
 
-      {groupedAssets[asset.id]?.map((child) => (
+      {(groupedAssets[asset.id] || []).map((child) => (
         <ParentRow
           key={child.id}
           asset={child}

@@ -5,7 +5,7 @@ import {
   Select, Textarea, VStack, useToast, Heading, HStack
 } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { addMaintenanceLog, updateMaintenanceLog, getMaintenanceLog } from "@/services/maintenance"
 import { getAssets } from "@/services/assets"
 import { getTechnicians } from "@/services/technicians"
@@ -14,6 +14,9 @@ import { useAuth } from "@/context/AuthContext"
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const prefillAssetId = searchParams?.get("assetId") ?? undefined
+
   const toInputDate = (d: Date) => d.toISOString().split("T")[0]
   const [form, setForm] = useState<any>({ date: toInputDate(new Date()) })
   const [assets, setAssets] = useState<Asset[]>([])
@@ -43,25 +46,32 @@ export default function LogForm({ id }: { id?: string }) {
           // derive cascading selects from the stored assetId
           deriveSelectionsFromAssetId(log.assetId, a)
         }
+      } else if (prefillAssetId) {
+        // New log opened with ?assetId=... — prefill cascading selects
+        deriveSelectionsFromAssetId(prefillAssetId, a)
       }
     }
     load()
-  }, [id])
+  }, [id, prefillAssetId])
 
   // derive category / parent / sub from an assetId and available assets list
   function deriveSelectionsFromAssetId(assetId: string | undefined, assetsList: Asset[]) {
     if (!assetId) return
     const target = assetsList.find((x) => x.id === assetId)
     if (!target) return
-    // If the asset is a child (has parentAssetId), find parent and set sub
+
+    // If the target is a child, prefer the parent's category so cascading selects
+    // show the parent's category (e.g., transmission (other) whose parent is a boat).
     if (target.parentAssetId) {
       const parent = assetsList.find((p) => p.id === target.parentAssetId)
-      setCategory(target.category || parent?.category || "")
+      const resolvedCategory = parent?.category || target.category || ""
+      setCategory(resolvedCategory)
       setParentAssetId(parent?.id || "")
       setSubAssetId(target.id)
+      // assetId should point to the actual item we are logging against (child)
       setForm((f: any) => ({ ...f, assetId: target.id }))
     } else {
-      // target is a parent asset
+      // target is a parent asset (no parentAssetId)
       setCategory(target.category || "")
       setParentAssetId(target.id)
       setSubAssetId("") // no sub selected
@@ -132,7 +142,7 @@ export default function LogForm({ id }: { id?: string }) {
   return (
     <Box maxW="600px" mx="auto" p={6}>
       <Heading size="md" mb={6}>{id ? "Edit Maintenance Log" : "New Maintenance Log"}</Heading>
-      <form autoComplete="off" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <VStack spacing={4} align="stretch">
           {/* Cascading dropdowns for asset selection */}
           <FormControl isRequired>
@@ -237,7 +247,7 @@ export default function LogForm({ id }: { id?: string }) {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Hours / Kilometers at Service</FormLabel>
+            <FormLabel>Hours at Service</FormLabel>
             <Input
               type="number"
               value={form.hoursAtService || ""}
@@ -246,7 +256,7 @@ export default function LogForm({ id }: { id?: string }) {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Next Service Due (hours / km)</FormLabel>
+            <FormLabel>Next Service Due (hours)</FormLabel>
             <Input
               type="number"
               value={form.nextServiceDue || ""}

@@ -2,12 +2,12 @@
 export interface Asset {
   id: string;
   name: string;
+  // canonical allowed categories (only on parent assets going forward)
   category:
-    | "Boat"
-    | "Compressor"
-    | "Vehicle"
-    | "Equipment"
-    | "Engine"
+    | "Marine"
+    | "Compressors"
+    | "Vehicles"
+    | "Scuba Equipment"
     | "Other";
   description?: string;
   serialNumber?: string;

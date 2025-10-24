@@ -1,7 +1,7 @@
 'use client'
 
 import {useEffect, useState} from "react";
-import {Box, Button, Heading, HStack, Spinner, Table, Tbody, Td, Th, Thead, Tr} from '@chakra-ui/react'
+import {Box, Button, Heading, HStack, Spinner, Table, Tbody, Td, Th, Thead, Tr, TableContainer} from '@chakra-ui/react'
 import {deleteTechnician, getTechnicians} from "@/services/technicians";
 import {Technician} from "@/types/maintenance";
 import AddEditTechnicianForm from "@/app/maintenance/technicians/AddEditTechnicianForm";
@@ -46,33 +46,35 @@ export default function TechniciansPage() {
       {loading ? (
         <Spinner/>
       ) : (
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Role</Th>
-              <Th>Certifications</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-
-          <Tbody>
-            {technicians.map(t => (
-              <Tr key={t.id}>
-                <Td>{t.name}</Td>
-                <Td>{t.role}</Td>
-                <Td>{t.certifications || ""}</Td>
-                <Td>
-                  <Button size="sm" onClick={() => {
-                    setEditingTechnician(t)
-                    setShowForm(true)
-                  }}>Edit</Button>
-                  <Button size="sm" colorScheme="red" ml={2} onClick={() => handleDelete(t.id)}>Delete</Button>
-                </Td>
+        <TableContainer overflow="auto" maxH="60vh">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Role</Th>
+                <Th>Certifications</Th>
+                <Th>Actions</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
+            </Thead>
+
+            <Tbody>
+              {technicians.map(t => (
+                <Tr key={t.id}>
+                  <Td>{t.name}</Td>
+                  <Td>{t.role}</Td>
+                  <Td>{t.certifications || ""}</Td>
+                  <Td>
+                    <Button size="sm" onClick={() => {
+                      setEditingTechnician(t)
+                      setShowForm(true)
+                    }}>Edit</Button>
+                    <Button size="sm" colorScheme="red" ml={2} onClick={() => handleDelete(t.id)}>Delete</Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
       {showForm && (
         <AddEditTechnicianForm

@@ -28,7 +28,7 @@ interface Props {
 
 export default function AddEditAssetForm({ asset, onClose }: Props) {
   const [form, setForm] = useState<Partial<Asset>>(
-    asset || { active: true, category: "Boat" }
+    asset || { active: true, category: "Marine" }
   );
   const [loading, setLoading] = useState(false);
   const [allAssets, setAllAssets] = useState<Asset[]>([]);
