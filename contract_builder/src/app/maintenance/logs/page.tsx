@@ -40,13 +40,16 @@ import {
   deleteMaintenanceLog,
 } from "@/services/maintenance";
 import { getAssets } from "@/services/assets";
+import { getTechnicians } from "@/services/technicians";
 import { MaintenanceLog, Asset } from "@/types/maintenance";
+import { Technician } from "@/types/maintenance";
 import { formatDate, formatNumber, formatCurrency } from "@/utils/formatters";
 import { useAuth } from "@/context/AuthContext"; // << added
 
 export default function MaintenanceLogsPage() {
   const [logs, setLogs] = useState<MaintenanceLog[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -76,9 +79,11 @@ export default function MaintenanceLogsPage() {
   async function loadAll() {
     setLoading(true);
     try {
-      const [a, l] = await Promise.all([getAssets(), getMaintenanceLogs()]);
+      // also load technicians so we can display names when logs don't contain technicianName
+      const [a, l, t] = await Promise.all([getAssets(), getMaintenanceLogs(), getTechnicians()]);
       setAssets(a);
       setLogs(l);
+      setTechnicians(t);
     } catch (err) {
       console.error("Failed to load assets or logs", err);
       setAssets([]);
@@ -231,13 +236,18 @@ export default function MaintenanceLogsPage() {
                     (user.uid === l.createdBy ||
                       role === "admin" ||
                       role === "manager");
+                  // technician name: prefer stored technicianName, fall back to lookup by id
+                  const techName =
+                    l.technicianName ||
+                    technicians.find((tt) => tt.id === l.technicianId)?.name ||
+                    "-";
 
                   return (
                     <Box key={l.id} p={3} borderWidth={1} borderRadius="md">
                       <Text fontWeight="bold">
                         {formatDate(l.date as any)} — {l.summary}
                       </Text>
-                      <Text>Technician: {l.technicianName}</Text>
+                      <Text>Technician: {techName}</Text>
                       <Text>
                         Hours:{" "}
                         {l.hoursAtService != null
@@ -311,7 +321,13 @@ export default function MaintenanceLogsPage() {
                 <Text fontWeight="bold">
                   {formatDate(viewLog.date as any)} — {viewLog.summary}
                 </Text>
-                <Text>Technician: {viewLog.technicianName}</Text>
+                {/* fallback to technician lookup if technicianName missing on the log */}
+                <Text>
+                  Technician:{" "}
+                  {viewLog.technicianName ||
+                    technicians.find((t) => t.id === viewLog.technicianId)?.name ||
+                    "-"}
+                </Text>
                 <Text>
                   Hours:{" "}
                   {viewLog.hoursAtService != null

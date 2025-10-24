@@ -142,7 +142,20 @@ export default function LogForm({ id }: { id?: string }) {
   return (
     <Box maxW="600px" mx="auto" p={6}>
       <Heading size="md" mb={6}>{id ? "Edit Maintenance Log" : "New Maintenance Log"}</Heading>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="off">
+        {/* prevent browser autofill by adding hidden username/password fields */}
+        <input
+          type="text"
+          name="__prevent_autofill_username"
+          autoComplete="username"
+          style={{ display: "none" }}
+        />
+        <input
+          type="password"
+          name="__prevent_autofill_password"
+          autoComplete="new-password"
+          style={{ display: "none" }}
+        />
         <VStack spacing={4} align="stretch">
           {/* Cascading dropdowns for asset selection */}
           <FormControl isRequired>
@@ -151,6 +164,7 @@ export default function LogForm({ id }: { id?: string }) {
               placeholder="-- Select category --"
               value={category}
               onChange={(e) => handleCategoryChange(e.target.value)}
+              autoComplete="off"
             >
               {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -165,6 +179,7 @@ export default function LogForm({ id }: { id?: string }) {
               value={parentAssetId}
               onChange={(e) => handleParentChange(e.target.value)}
               isDisabled={!category}
+              autoComplete="off"
             >
               {parentOptions.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -192,6 +207,7 @@ export default function LogForm({ id }: { id?: string }) {
                       setForm((f: any) => ({ ...f, assetId: v }))
                     }
                   }}
+                  autoComplete="off"
                 >
                   <option value={parentAssetId}>{`Use parent: ${parentOptions.find(p => p.id === parentAssetId)?.name ?? "Parent"}`}</option>
                   {childOptions.map((c) => (
@@ -213,6 +229,7 @@ export default function LogForm({ id }: { id?: string }) {
             <Select
               value={form.technicianId || ""}
               onChange={(e) => setForm({ ...form, technicianId: e.target.value })}
+              autoComplete="off"
             >
               <option value="">-- Select technician --</option>
               {techs.map((t) => (
@@ -227,6 +244,7 @@ export default function LogForm({ id }: { id?: string }) {
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
 
@@ -235,6 +253,7 @@ export default function LogForm({ id }: { id?: string }) {
             <Input
               value={form.summary || ""}
               onChange={(e) => setForm({ ...form, summary: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
 
@@ -243,6 +262,7 @@ export default function LogForm({ id }: { id?: string }) {
             <Textarea
               value={form.details || ""}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
 
@@ -252,6 +272,7 @@ export default function LogForm({ id }: { id?: string }) {
               type="number"
               value={form.hoursAtService || ""}
               onChange={(e) => setForm({ ...form, hoursAtService: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
 
@@ -261,6 +282,7 @@ export default function LogForm({ id }: { id?: string }) {
               type="number"
               value={form.nextServiceDue || ""}
               onChange={(e) => setForm({ ...form, nextServiceDue: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
 
@@ -271,6 +293,7 @@ export default function LogForm({ id }: { id?: string }) {
               step="0.01"
               value={form.cost || ""}
               onChange={(e) => setForm({ ...form, cost: e.target.value })}
+              autoComplete="off"
             />
           </FormControl>
         </VStack>
