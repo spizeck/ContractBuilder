@@ -1,5 +1,10 @@
-import LogForm from "@/components/maintenance/LogForm"
+import { Suspense } from "react";
+import LogForm from "@/components/maintenance/LogForm";
 
 export default function NewLogPage() {
-  return <LogForm />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LogForm />
+    </Suspense>
+  );
 }
