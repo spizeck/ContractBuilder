@@ -1,4 +1,4 @@
-import LogForm from "../LogForm"
+import LogForm from "@/components/LogForm"
 
 export default function NewLogPage() {
   return <LogForm />

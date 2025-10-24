@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Stack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import {
@@ -357,17 +358,20 @@ function ParentRow({
         <Td>{nextDue != null ? formatNumber(nextDue as any, 2) : "-"}</Td>
         <Td>{lastDate ? formatDate(lastDate as any) : "-"}</Td>
         <Td>
-          <Button size="sm" onClick={() => onViewLogs(asset)}>
-            View Logs
-          </Button>
-          <Button
-            size="sm"
-            colorScheme="blue"
-            ml={2}
-            onClick={() => onAddLog(asset)}
-          >
-            Add Log
-          </Button>
+          <Stack direction={{ base: "column", md: "row" }} spacing={1}>
+            <Button size="sm" flex={1} onClick={() => onViewLogs(asset)}>
+              View Logs
+            </Button>
+            <Button
+              size="sm"
+              flex={1}
+              colorScheme="blue"
+              ml={2}
+              onClick={() => onAddLog(asset)}
+            >
+              Add Log
+            </Button>
+          </Stack>
         </Td>
       </Tr>
 
