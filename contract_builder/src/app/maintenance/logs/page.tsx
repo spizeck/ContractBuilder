@@ -41,6 +41,7 @@ import {
 import { getAssets } from "@/services/assets";
 import { MaintenanceLog, Asset } from "@/types/maintenance";
 import { formatDate, formatNumber, formatCurrency } from "@/utils/formatters";
+import { useAuth } from "@/context/AuthContext"; // << added
 
 export default function MaintenanceLogsPage() {
   const [logs, setLogs] = useState<MaintenanceLog[]>([]);
@@ -59,6 +60,13 @@ export default function MaintenanceLogsPage() {
   const cancelRef = useRef<HTMLButtonElement | null>(null);
   const toast = useToast();
   const router = useRouter();
+
+  // auth (for permissions)
+  const { user, role } = useAuth();
+
+  // view single-log modal state (read-only)
+  const [viewLog, setViewLog] = useState<MaintenanceLog | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
   useEffect(() => {
     loadAll();
@@ -187,7 +195,9 @@ export default function MaintenanceLogsPage() {
                 categoryFilter,
                 searchQuery,
                 openLogsForAsset,
-                openAddForAsset
+                openAddForAsset,
+                user,
+                role
               )}
             </Tbody>
           </Table>
@@ -211,47 +221,115 @@ export default function MaintenanceLogsPage() {
               )}
 
               {selectedAsset &&
-                logsForAsset(selectedAsset.id).map((l) => (
-                  <Box key={l.id} p={3} borderWidth={1} borderRadius="md">
-                    <Text fontWeight="bold">
-                      {formatDate(l.date as any)} — {l.summary}
-                    </Text>
-                    <Text>Technician: {l.technicianName}</Text>
-                    <Text>
-                      Hours:{" "}
-                      {l.hoursAtService != null
-                        ? formatNumber(l.hoursAtService, 2)
-                        : "-"}
-                    </Text>
-                    <Text>
-                      Next Service Due:{" "}
-                      {l.nextServiceDue != null
-                        ? formatNumber(l.nextServiceDue, 2)
-                        : "-"}
-                    </Text>
-                    <Text>
-                      Cost:{" "}
-                      {l.cost != null ? `$${formatCurrency(l.cost)}` : "-"}
-                    </Text>
-                    <HStack mt={2}>
-                      <Button
-                        size="sm"
-                        colorScheme="yellow"
-                        onClick={() => openEditLog(l)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleDeleteLog(l.id)}
-                      >
-                        Delete
-                      </Button>
-                    </HStack>
-                  </Box>
-                ))}
+                logsForAsset(selectedAsset.id).map((l) => {
+                  // permission: who can edit/delete this log?
+                  const canEdit =
+                    user &&
+                    (user.uid === l.createdBy ||
+                      role === "admin" ||
+                      role === "manager");
+
+                  return (
+                    <Box key={l.id} p={3} borderWidth={1} borderRadius="md">
+                      <Text fontWeight="bold">
+                        {formatDate(l.date as any)} — {l.summary}
+                      </Text>
+                      <Text>Technician: {l.technicianName}</Text>
+                      <Text>
+                        Hours:{" "}
+                        {l.hoursAtService != null
+                          ? formatNumber(l.hoursAtService, 2)
+                          : "-"}
+                      </Text>
+                      <Text>
+                        Next Service Due:{" "}
+                        {l.nextServiceDue != null
+                          ? formatNumber(l.nextServiceDue, 2)
+                          : "-"}
+                      </Text>
+                      <Text>
+                        Cost:{" "}
+                        {l.cost != null ? `$${formatCurrency(l.cost)}` : "-"}
+                      </Text>
+                      <HStack mt={2}>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setViewLog(l);
+                            setShowViewModal(true);
+                          }}
+                        >
+                          View
+                        </Button>
+
+                        {canEdit && (
+                          <>
+                            <Button
+                              size="sm"
+                              colorScheme="yellow"
+                              onClick={() => openEditLog(l)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              colorScheme="red"
+                              onClick={() => handleDeleteLog(l.id)}
+                            >
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                      </HStack>
+                    </Box>
+                  );
+                })}
             </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Single Log View Modal (read-only) */}
+      <Modal
+        isOpen={showViewModal}
+        onClose={() => {
+          setViewLog(null);
+          setShowViewModal(false);
+        }}
+        size="md"
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>View Log</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {viewLog ? (
+              <VStack align="stretch" spacing={3}>
+                <Text fontWeight="bold">
+                  {formatDate(viewLog.date as any)} — {viewLog.summary}
+                </Text>
+                <Text>Technician: {viewLog.technicianName}</Text>
+                <Text>
+                  Hours:{" "}
+                  {viewLog.hoursAtService != null
+                    ? formatNumber(viewLog.hoursAtService, 2)
+                    : "-"}
+                </Text>
+                <Text>
+                  Next Service Due:{" "}
+                  {viewLog.nextServiceDue != null
+                    ? formatNumber(viewLog.nextServiceDue, 2)
+                    : "-"}
+                </Text>
+                <Text>Cost: {viewLog.cost != null ? `$${formatCurrency(viewLog.cost)}` : "-"}</Text>
+                <Text>Details:</Text>
+                <Box whiteSpace="pre-wrap" p={2} borderWidth={1} borderRadius="md">
+                  {viewLog.details || "-"}
+                </Box>
+              </VStack>
+            ) : (
+              <Text>No log selected.</Text>
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -293,7 +371,9 @@ function renderedRootRows(
   categoryFilter: string,
   searchQuery: string,
   onViewLogs: (a: Asset) => void,
-  onAddLog: (a: Asset | null) => void
+  onAddLog: (a: Asset | null) => void,
+  user: any,
+  role: string | undefined
 ) {
   const grouped = assets.reduce<Record<string, Asset[]>>((acc, asset) => {
     const key = asset.parentAssetId || "root";
@@ -320,6 +400,8 @@ function renderedRootRows(
         onViewLogs={onViewLogs}
         onAddLog={onAddLog}
         level={0}
+        user={user}
+        role={role}
       />
     ));
 }
@@ -331,6 +413,8 @@ function ParentRow({
   onViewLogs,
   onAddLog,
   level = 0,
+  user,
+  role,
 }: {
   asset: Asset;
   groupedAssets: Record<string, Asset[]>;
@@ -338,6 +422,8 @@ function ParentRow({
   onViewLogs: (a: Asset) => void;
   onAddLog: (a: Asset | null) => void;
   level?: number;
+  user?: any;
+  role?: string;
 }) {
   const assetLogs = logs
     .filter((l) => l.assetId === asset.id)
@@ -345,6 +431,13 @@ function ParentRow({
   const lastLog = assetLogs[0];
   const lastDate = lastLog?.date || asset.lastServiceDate;
   const nextDue = lastLog?.nextServiceDue ?? asset.nextServiceDue;
+
+  // Current hours: prefer most recent log hours, fall back to asset.hours or asset.currentHours
+  const currentHours =
+    lastLog?.hoursAtService ??
+    (asset as any).hours ??
+    (asset as any).currentHours ??
+    null;
 
   return (
     <>
@@ -354,7 +447,7 @@ function ParentRow({
           {asset.name}
         </Td>
         <Td>{asset.category}</Td>
-        <Td>{asset.hours != null ? formatNumber(asset.hours, 2) : "-"}</Td>
+        <Td>{currentHours != null ? formatNumber(currentHours as any, 2) : "-"}</Td>
         <Td>{nextDue != null ? formatNumber(nextDue as any, 2) : "-"}</Td>
         <Td>{lastDate ? formatDate(lastDate as any) : "-"}</Td>
         <Td>
@@ -384,6 +477,8 @@ function ParentRow({
           onViewLogs={onViewLogs}
           onAddLog={onAddLog}
           level={level + 1}
+          user={user}
+          role={role}
         />
       ))}
     </>
