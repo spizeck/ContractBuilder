@@ -13,6 +13,9 @@ import {
   Thead,
   Tr,
   Spinner,
+  Select,
+  Checkbox,
+  TableContainer
 } from "@chakra-ui/react";
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset } from "@/types/maintenance";
@@ -23,6 +26,8 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [activeOnly, setActiveOnly] = useState<boolean>(false);
 
   useEffect(() => {
     loadAssets();
@@ -68,39 +73,74 @@ export default function AssetsPage() {
         Assets
       </Heading>
 
-      <HStack mb={4}>
+      <HStack mb={4} spacing={4} align="center">
         <Button colorScheme="blue" onClick={() => setShowForm(true)}>
           Add Asset
         </Button>
+
+        <Select
+          width="220px"
+          placeholder="All categories"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          {[...new Set(assets.map((a) => a.category).filter(Boolean))]
+            .sort()
+            .map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+        </Select>
+
+        <Checkbox isChecked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)}>
+          Active only
+        </Checkbox>
       </HStack>
 
       {loading ? (
         <Spinner />
       ) : (
-        <Table variant="simple" width="100%">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Category</Th>
-              <Th>Active</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {groupedAssets["root"]?.map((parent) => (
-              <ParentRow
-                key={parent.id}
-                asset={parent}
-                groupedAssets={groupedAssets}
-                onEdit={(a) => {
-                  setEditingAsset(a);
-                  setShowForm(true);
-                }}
-                onDelete={handleDelete}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <TableContainer overflow="auto" maxH="60vh">
+          <Table variant="simple" width="100%">
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Category</Th>
+                <Th>Active</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {(groupedAssets["root"] || [])
+                .filter((a) => (categoryFilter ? a.category === categoryFilter : true))
+                .filter((a) => (activeOnly ? Boolean(a.active) : true))
+                .sort((x, y) => {
+                  const catA = (x.category || "").toLowerCase()
+                  const catB = (y.category || "").toLowerCase()
+                  if (catA < catB) return -1
+                  if (catA > catB) return 1
+                  const nameA = (x.name || "").toLowerCase()
+                  const nameB = (y.name || "").toLowerCase()
+                  if (nameA < nameB) return -1
+                  if (nameA > nameB) return 1
+                  return 0
+                })
+                .map((parent) => (
+                  <ParentRow
+                    key={parent.id}
+                    asset={parent}
+                    groupedAssets={groupedAssets}
+                    onEdit={(a) => {
+                      setEditingAsset(a)
+                      setShowForm(true)
+                    }}
+                    onDelete={handleDelete}
+                  />
+                ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
 
       {showForm && (
