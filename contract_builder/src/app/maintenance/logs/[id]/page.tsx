@@ -1,11 +1,11 @@
+import { Suspense } from "react";
 import LogForm from "@/components/maintenance/LogForm";
 
 export default function EditLogPage(props: any) {
   const { id } = props.params;
-  return <LogForm id={id} />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LogForm id={id} />
+    </Suspense>
+  );
 }
-
-// export default async function EditLogPage({ params }: { params: Promise<{ id: string }> }) {
-//   const { id } = await params
-//   return <LogForm id={id} />
-// }
