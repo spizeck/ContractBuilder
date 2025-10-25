@@ -108,6 +108,13 @@ export default function Home() {
           </Heading>
           <List spacing={3} fontSize="md">
             <ListItem>
+              • Access the{" "}
+              <Link color="teal.500" as={NextLink} href="/maintenance/dashboard">
+                <b>Maintenance Dashboard</b>
+              </Link>{" "}
+              to view overall maintenance status and key metrics.
+            </ListItem>
+            <ListItem>
               • View and add maintenance records (service logs, costs, next
               service due) via the{" "}
               <Link color="teal.500" as={NextLink} href="/maintenance/logs">
@@ -138,8 +145,9 @@ export default function Home() {
             </ListItem>
 
             <ListItem color="gray.500" fontStyle="italic">
-              Note: Maintenance features are only available to authorized users
-              (managers and admins).
+              Note: Maintenance logs can be viewed and entered by any staff
+              member. Assets and technicians can also be viewed by all staff,
+              but only managers and admins are authorized to edit them.
             </ListItem>
           </List>
         </Box>

@@ -49,6 +49,7 @@ export default function NavLinks() {
 
   const maintenanceLinks = (
     <>
+      <MenuItem as={NextLink} href="/maintenance/dashboard">Dashboard</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/technicians">Technicians</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>

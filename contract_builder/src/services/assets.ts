@@ -11,6 +11,9 @@ import {
   serverTimestamp,
   where,
   runTransaction,
+  onSnapshot,
+  FirestoreDataConverter,
+  orderBy,
 } from "firebase/firestore";
 import { Asset } from "@/types/maintenance";
 
@@ -135,5 +138,54 @@ export async function unlinkAssets(parentId: string, childId: string) {
       parentAssetName: null,
       updatedAt: serverTimestamp(),
     });
+  });
+}
+
+// Services for Dashboard
+const assetsConverter: FirestoreDataConverter<Asset> = {
+  toFirestore(asset: Asset) {
+    return asset as any;
+  },
+  fromFirestore(snapshot, options) {
+    const data = snapshot.data(options) as any;
+    return {
+      id: snapshot.id,
+      ...data,
+      lastServiceDate: data.lastServiceDate
+        ? (data.lastServiceDate.toDate?.() as Date) ?? data.lastServiceDate
+        : undefined,
+      updatedAt: data.updatedAt
+        ? (data.updatedAt.toDate?.() as Date) ?? data.updatedAt
+        : undefined,
+      createdAt: data.createdAt
+        ? (data.createdAt.toDate?.() as Date) ?? data.createdAt
+        : undefined,
+    } as Asset;
+  },
+};
+
+export function subscribeAssets(
+  opts?: { activeOnly?: boolean }
+): () => void {
+  const col = collection(db, "assets").withConverter(assetsConverter);
+  const q = opts?.activeOnly
+    ? query(col, where("active", "==", true), orderBy("name"))
+    : query(col, orderBy("name"));
+
+  // No-op subscriber; callers should provide their own handler via wrapper hooks.
+  return onSnapshot(q, () => {});
+}
+
+export function onAssetsSnapshot(
+  handler: (assets: Asset[]) => void,
+  opts?: { activeOnly?: boolean }
+): () => void {
+  const col = collection(db, "assets").withConverter(assetsConverter);
+  const q = opts?.activeOnly
+    ? query(col, where("active", "==", true), orderBy("name"))
+    : query(col, orderBy("name"));
+
+  return onSnapshot(q, (snap) => {
+    handler(snap.docs.map((d) => d.data()));
   });
 }
