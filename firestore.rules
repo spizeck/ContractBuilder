@@ -89,12 +89,12 @@ service cloud.firestore {
     }
 
     match /assets/{assetId} {
-      allow read: if isStaffOrAbove();;
+      allow read: if isStaffOrAbove();
       allow write: if isManagerOrAbove();
     }
 
     match /technicians/{techId} {
-       allow read: if isStaffOrAbove();;
+      allow read: if isStaffOrAbove();
       allow write: if isManagerOrAbove();
     }
 
