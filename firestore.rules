@@ -85,15 +85,17 @@ service cloud.firestore {
     }
 
     match /maintenanceLogs/{logId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isStaffOrAbove();
     }
 
     match /assets/{assetId} {
-      allow read, write: if request.auth != null;
+      allow read: if isStaffOrAbove();;
+      allow write: if isManagerOrAbove();
     }
 
     match /technicians/{techId} {
-      allow read, write: if request.auth != null;
+       allow read: if isStaffOrAbove();;
+      allow write: if isManagerOrAbove();
     }
 
     // Helpers
