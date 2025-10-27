@@ -71,5 +71,30 @@ If you need more detail
 
 Be conservative: modify data shapes only when you update all callers (services, forms, and tests). Prefer adding deprecations and migration steps rather than silent breaking changes.
 
----
-If anything here is unclear or you want additional examples (e.g., common Firestore queries, form validation helpers, or sample tests), tell me which area and I will expand the file.
+## Addendum (2025-10-27)
+
+Chakra UI and Color Mode
+- Place ColorModeScript as the first child of <body> in app/layout.tsx to avoid hydration mismatches.
+- Use useColorModeValue for backgrounds, borders, and hover states; avoid hard-coded white in dark mode.
+- When creating sticky headers or toolbars, set bg and border via useColorModeValue and prefer zIndex="base" unless a Portal is needed.
+- For testing, ThemeToggle can be placed in NavLinks; comment it out for production.
+
+Next.js App Router and Hydration
+- Avoid invalid DOM nesting (e.g., no div or span directly inside tbody; no nested buttons).
+- Remove stray {" "} nodes in tables to prevent hydration errors.
+- Client hooks only in 'use client' components. Await params in dynamic server components if used.
+- Prefer TableContainer with a flex layout: page h="100vh", outer overflow="hidden", inner table wrapper flex="1" overflow="auto".
+
+Firestore and Types
+- Dates stored as Firestore Timestamps; convert to JS Date in services.
+- MaintenanceLog should include technicianId, technicianName, summary, details, hoursAtService, nextServiceDue, cost, createdBy, updatedAt.
+- Asset categories limited to: Marine, Compressors, Vehicles, Scuba Equipment, Other. Categories apply only to parent assets; children inherit parent category.
+
+Maintenance UI Conventions
+- Assets page: filters fixed at top, table scrolls; category select uses the canonical list; search filters by name.
+- Dashboard header: color-mode-aware bg/border; low zIndex to avoid covering navbar dropdowns.
+- TechnicianActivity: render Tr rows directly inside Tbody; place Tooltip inside Td; row click filters/opens technician activity.
+
+Forms
+- Disable autofill where needed: form autoComplete="off" and hidden username/password fields to discourage browser autofill.
+- Avoid nested interactive elements (no IconButton inside Button).

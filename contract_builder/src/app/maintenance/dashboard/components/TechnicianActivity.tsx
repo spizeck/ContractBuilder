@@ -2,14 +2,15 @@
 
 import {
   Box,
+  Heading,
   Table,
   Thead,
   Tbody,
   Tr,
   Th,
   Td,
-  Heading,
-  Badge,
+  Tooltip,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import type { Technician, MaintenanceLog } from "@/types/maintenance";
 import { useMemo, useState } from "react";
@@ -20,52 +21,97 @@ export default function TechnicianActivity({
   onSelectTechnician,
 }: {
   technicians: Technician[];
-  logs: MaintenanceLog[]; // expected: last 30 days subset
+  logs: MaintenanceLog[];
   onSelectTechnician: (technicianId: string) => void;
 }) {
   const [sortDesc, setSortDesc] = useState(true);
 
+  const rowHoverBg = useColorModeValue("gray.50", "gray.700");
+  const tooltipBg = useColorModeValue("white", "gray.700");
+  const tooltipColor = useColorModeValue("gray.800", "white");
+  const headerBg = useColorModeValue("gray.100", "gray.900");
+
+  // Automatically restrict logs to last 30 days
+  const recentLogs = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    return logs.filter((l) => new Date(l.date) >= cutoff);
+  }, [logs]);
+
+  // Compute activity counts per technician
   const rows = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const l of logs) {
+    for (const l of recentLogs) {
+      if (!l.technicianId) continue;
       counts.set(l.technicianId, (counts.get(l.technicianId) ?? 0) + 1);
     }
     return technicians
       .map((t) => ({
         ...t,
         count: counts.get(t.id) ?? 0,
-        active: !!t.active,
       }))
       .sort((a, b) => (sortDesc ? b.count - a.count : a.count - b.count));
-  }, [technicians, logs, sortDesc]);
+  }, [technicians, recentLogs, sortDesc]);
 
   return (
-    <Box>
-      <Heading size="sm" mb={2}>
-        Technician Activity (30 days)
+    <Box overflow="auto" pl={{ base: 0, lg: 2 }} maxH="calc(100vh - 320px)">
+      <Heading size="sm" mb={3}>
+        Technicians (last 30 days)
       </Heading>
       <Table size="sm" variant="simple">
-        <Thead>
+        <Thead
+          position="sticky"
+          top={0}
+          bg={headerBg}
+          zIndex={1}
+          boxShadow="sm"
+        >
           <Tr>
-            <Th>Technician</Th>
-            <Th isNumeric cursor="pointer" onClick={() => setSortDesc((s) => !s)}>
-              Logs {sortDesc ? "▼" : "▲"}
+            <Th>Name</Th>
+            <Th
+              cursor="pointer"
+              onClick={() => setSortDesc((v) => !v)}
+              title="Toggle sort"
+            >
+              Activity
             </Th>
-            <Th>Active</Th>
-            <Th>Certifications</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {rows.map((t) => (
-            <Tr key={t.id} _hover={{ bg: "gray.50" }} cursor="pointer" onClick={() => onSelectTechnician(t.id)}>
-              <Td>{t.name}</Td>
-              <Td isNumeric>{t.count}</Td>
-              <Td>
-                <Badge colorScheme={t.active ? "green" : "gray"}>{t.active ? "Yes" : "No"}</Badge>
+          {rows.length === 0 ? (
+            <Tr>
+              <Td colSpan={2} textAlign="center" py={4} color="gray.500">
+                No technician activity in the past 30 days.
               </Td>
-              <Td>{t.certifications ?? "-"}</Td>
             </Tr>
-          ))}
+          ) : (
+            rows.map((t) => (
+              <Tr
+                key={t.id}
+                cursor="pointer"
+                _hover={{
+                  bg: rowHoverBg,
+                  transform: "scale(1.01)",
+                }}
+                transition="all 0.1s ease-in-out"
+                onClick={() => onSelectTechnician(t.id)}
+              >
+                <Td>
+                  <Tooltip
+                    label={`${t.name} — ${t.count} log${
+                      t.count === 1 ? "" : "s"
+                    }`}
+                    bg={tooltipBg}
+                    color={tooltipColor}
+                    hasArrow
+                  >
+                    <Box as="span">{t.name}</Box>
+                  </Tooltip>
+                </Td>
+                <Td>{t.count}</Td>
+              </Tr>
+            ))
+          )}
         </Tbody>
       </Table>
     </Box>

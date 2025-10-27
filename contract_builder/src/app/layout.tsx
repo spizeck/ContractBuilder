@@ -1,24 +1,24 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import Providers from './providers'
-import { ColorModeScript } from '@chakra-ui/react'
-import theme from '@/theme'
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from '@vercel/speed-insights/react'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Providers from "./providers";
+import { ColorModeScript } from "@chakra-ui/react";
+import theme from "@/theme";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Sea Saba Business App',
-  description: 'App to assemble dive group contracts and manage Dive Logs'
-}
+  title: "Sea Saba Business App",
+  description: "App to assemble dive group contracts and manage Dive Logs",
+};
 
-export default function RootLayout ({
-  children
+export default function RootLayout({
+  children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang='en'>
+    <html lang="en">
       <head>
         {/* Ensure Chakra sets correct class before hydration */}
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
@@ -29,5 +29,5 @@ export default function RootLayout ({
         <SpeedInsights />
       </body>
     </html>
-  )
+  );
 }

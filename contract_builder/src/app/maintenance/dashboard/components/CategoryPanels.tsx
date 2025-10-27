@@ -139,11 +139,6 @@ function PaginatedAssetTable({
                     <Button size="xs" onClick={() => onViewLogs(row.asset)} flex={1} minW={0}>
                       View Logs
                     </Button>
-                    {canEdit && (
-                      <Button size="xs" variant="outline" onClick={() => onEditAsset?.(row.asset)} flex={1} minW={0}>
-                        Edit
-                      </Button>
-                    )}
                   </Stack>
                 </Td>
               </Tr>

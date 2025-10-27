@@ -1,10 +1,27 @@
 "use client";
 
-import { Box, HStack, Input, Select, Button, Flex, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Input,
+  Select,
+  Button,
+  Flex,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import type { Technician } from "@/types/maintenance";
 import { useMemo } from "react";
+import { IconButton } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 
-const categories = ["All", "Marine", "Compressors", "Vehicles", "Scuba Equipment", "Other"] as const;
+const categories = [
+  "All",
+  "Marine",
+  "Compressors",
+  "Vehicles",
+  "Scuba Equipment",
+  "Other",
+] as const;
 
 export interface DashboardHeaderProps {
   keyword: string;
@@ -27,10 +44,6 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
     [props.technicians]
   );
 
-  // adapt header background/border to color mode so it isn't bright white in dark mode
-  const headerBg = useColorModeValue("white", "gray.800");
-  const headerBorder = useColorModeValue("gray.200", "gray.700");
-
   // Ensure the dashboard header does not obscure global navbar dropdowns.
   // Set a low zIndex here so portal-based dropdowns (which typically use high z-indices)
   // render above this header. If a navbar dropdown still appears behind the header,
@@ -39,13 +52,15 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
     <Box
       position="sticky"
       top={0}
-      bg={headerBg}
       borderBottomWidth="1px"
-      borderBottomColor={headerBorder}
       zIndex={0}
       p={3}
     >
-      <Flex gap={3} direction={{ base: "column", md: "row" }} align={{ base: "stretch", md: "center" }}>
+      <Flex
+        gap={3}
+        direction={{ base: "column", md: "row" }}
+        align={{ base: "stretch", md: "center" }}
+      >
         <Input
           placeholder="Search assets, summaries, details, technicians..."
           value={props.keyword}
@@ -96,14 +111,13 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
               })
             }
           />
-          <Button
+          <IconButton
+            aria-label="Clear dates"
             variant="outline"
-            onClick={() =>
-              props.onRange({ start: null, end: null })
-            }
-          >
-            Clear dates
-          </Button>
+            size="sm"
+            icon={<DeleteIcon />}
+            onClick={() => props.onRange({ start: null, end: null })}
+          />
         </HStack>
       </Flex>
     </Box>
