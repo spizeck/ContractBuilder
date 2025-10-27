@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Spinner,
@@ -20,7 +20,11 @@ import {
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset, AssetCategory } from "@/types/maintenance";
 import AddEditAssetForm from "./AddEditAssetForm";
-import { getTrackingLabel, getCurrentReading, getNextDueDisplay } from "@/utils/maintenanceSelectors";
+import {
+  getTrackingLabel,
+  getCurrentReading,
+  getNextDueDisplay,
+} from "@/utils/maintenanceSelectors";
 
 // Allowed categories going forward — use these for filters and parent assignment
 const ALLOWED_CATEGORIES = [
@@ -31,14 +35,23 @@ const ALLOWED_CATEGORIES = [
   "Other",
 ] as const;
 
+// Category sort order
+const CATEGORY_ORDER: Record<AssetCategory, number> = {
+  Marine: 0,
+  Compressors: 1,
+  Vehicles: 2,
+  "Scuba Equipment": 3,
+  Other: 4,
+};
+
 export default function AssetsPage() {
   const thBg = useColorModeValue("gray.50", "gray.800");
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
-  const [showForm, setShowForm] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
 
   useEffect(() => {
     loadAssets();
@@ -47,50 +60,57 @@ export default function AssetsPage() {
   async function loadAssets() {
     setLoading(true);
     try {
-      const assetsData = await getAssets();
-      setAssets(assetsData);
-    } catch (error) {
-      console.error("Failed to fetch assets:", error);
-      setAssets([]);
+      const data = await getAssets();
+      setAssets(data);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (confirm("Delete this asset?")) {
-      try {
-        await deleteAsset(id);
-        await loadAssets();
-        alert("Asset deleted successfully.");
-      } catch (error) {
-        console.error("Error deleting asset:", error);
-        alert("Failed to delete asset. Please try again.");
-      }
+  const filtered = useMemo(() => {
+    let list = assets;
+    if (categoryFilter) {
+      list = list.filter((a) => a.category === categoryFilter);
     }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((a) => a.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [assets, categoryFilter, searchQuery]);
+
+  // Group by parentAssetId to restore parent/child rendering and markers
+  const groupedAssets = useMemo(() => {
+    const map: Record<string, Asset[]> = {};
+    for (const a of filtered) {
+      const key = a.parentAssetId ?? "root";
+      if (!map[key]) map[key] = [];
+      map[key].push(a);
+    }
+    // Sort siblings by name for stable ordering
+    Object.keys(map).forEach((k) => map[k].sort((a, b) => a.name.localeCompare(b.name)));
+    return map;
+  }, [filtered]);
+
+  // Sort root assets by category (defined order), then by name
+  const sortedRootAssets = useMemo(() => {
+    const roots = groupedAssets["root"] || [];
+    return [...roots].sort((a, b) => {
+      const ca = CATEGORY_ORDER[a.category];
+      const cb = CATEGORY_ORDER[b.category];
+      if (ca !== cb) return ca - cb;
+      return a.name.localeCompare(b.name);
+    });
+  }, [groupedAssets]);
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this asset?")) return;
+    await deleteAsset(id);
+    loadAssets();
   }
 
-  // 🧩 Build parent → child map
-  const groupedAssets = assets.reduce<Record<string, Asset[]>>((acc, asset) => {
-    const key = asset.parentAssetId || "root";
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(asset);
-    return acc;
-  }, {});
-
-  // Categories for the UI filter: only from parent assets and restricted to allowed list
-  const categories = ALLOWED_CATEGORIES.filter((c) =>
-    (groupedAssets["root"] || []).some((p) => p.category === c)
-  );
-
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      height="100%"
-      p={6}
-      overflow="hidden"
-    >
+    <Box display="flex" flexDirection="column" height="100%" p={6} overflow="hidden">
       {/* top, non-scrolling filters section */}
       <Box flexShrink={0} mb={4}>
         <HStack spacing={4} flexWrap="wrap">
@@ -134,13 +154,8 @@ export default function AssetsPage() {
         {loading ? (
           <Spinner />
         ) : (
-          <TableContainer
-            maxH="100%"
-            overflowY="auto"
-            overflowX="auto"
-            sx={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <Table variant="simple" minW="720px" width="100%">
+          <TableContainer maxH="100%" overflowY="auto" overflowX="auto">
+            <Table variant="simple" minW="900px" width="100%">
               <Thead>
                 <Tr>
                   <Th position="sticky" top={0} bg={thBg}>
@@ -153,10 +168,10 @@ export default function AssetsPage() {
                     Active
                   </Th>
                   <Th position="sticky" top={0} bg={thBg}>
-                    Tracking Label
+                    Tracking
                   </Th>
                   <Th position="sticky" top={0} bg={thBg}>
-                    Current Reading
+                    Current
                   </Th>
                   <Th position="sticky" top={0} bg={thBg}>
                     Next Due
@@ -167,37 +182,20 @@ export default function AssetsPage() {
                 </Tr>
               </Thead>
               <Tbody>
-                {(groupedAssets["root"] || [])
-                  .filter((a) => (categoryFilter ? a.category === categoryFilter : true))
-                  .filter((a) =>
-                    searchQuery
-                      ? a.name.toLowerCase().includes(searchQuery.toLowerCase())
-                      : true
-                  )
-                  .sort((x, y) => {
-                    const catA = (x.category || "").toLowerCase();
-                    const catB = (y.category || "").toLowerCase();
-                    if (catA < catB) return -1;
-                    if (catA > catB) return 1;
-                    const nameA = (x.name || "").toLowerCase();
-                    const nameB = (y.name || "").toLowerCase();
-                    if (nameA < nameB) return -1;
-                    if (nameA > nameB) return 1;
-                    return 0;
-                  })
-                  .map((parent) => (
-                    <ParentRow
-                      key={parent.id}
-                      asset={parent}
-                      groupedAssets={groupedAssets}
-                      onEdit={(a) => {
-                        setEditingAsset(a);
-                        setShowForm(true);
-                      }}
-                      onDelete={handleDelete}
-                      inheritedCategory={undefined}
-                    />
-                  ))}
+                {sortedRootAssets.map((parent) => (
+                  <ParentRow
+                    key={parent.id}
+                    asset={parent}
+                    groupedAssets={groupedAssets}
+                    onEdit={(a) => {
+                      setEditingAsset(a);
+                      setShowForm(true);
+                    }}
+                    onDelete={handleDelete}
+                    level={0}
+                    inheritedCategory={undefined}
+                  />
+                ))}
               </Tbody>
             </Table>
           </TableContainer>
@@ -218,7 +216,7 @@ export default function AssetsPage() {
   );
 }
 
-// ParentRow: children inherit category from ancestor without scanning only "root"
+// ParentRow: children inherit category from ancestor; marker "↳" shows relationship
 function ParentRow({
   asset,
   groupedAssets,
@@ -234,7 +232,6 @@ function ParentRow({
   level?: number;
   inheritedCategory?: AssetCategory;
 }) {
-  // Prefer category inherited from the closest ancestor; otherwise use asset.category
   const displayCategory: AssetCategory = inheritedCategory ?? asset.category;
 
   return (

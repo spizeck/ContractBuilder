@@ -32,16 +32,18 @@ export interface DashboardHeaderProps {
   onTechnician: (v: string | "All") => void;
   range: { start: Date | null; end: Date | null };
   onRange: (r: { start: Date | null; end: Date | null }) => void;
-  technicians: Technician[];
+  technicians?: Technician[]; // make optional
 }
 
 export default function DashboardHeader(props: DashboardHeaderProps) {
+  const technicians = props.technicians ?? []; // guard undefined
+
   const techOptions = useMemo(
     () =>
       [{ id: "All", name: "All Technicians" } as any].concat(
-        props.technicians.map((t) => ({ id: t.id, name: t.name }))
+        technicians.map((t) => ({ id: t.id, name: t.name }))
       ),
-    [props.technicians]
+    [technicians]
   );
 
   // Ensure the dashboard header does not obscure global navbar dropdowns.
