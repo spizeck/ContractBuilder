@@ -255,7 +255,6 @@ export default function ProfilePage () {
 
             <TableContainer overflowX='auto'>
               <Table variant='simple' size='sm'>
-                {' '}
                 {/* optional size="sm" for mobile */}
                 <Thead>
                   <Tr>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, HStack, Input, Select, Button, Flex } from "@chakra-ui/react";
+import { Box, HStack, Input, Select, Button, Flex, useColorModeValue } from "@chakra-ui/react";
 import type { Technician } from "@/types/maintenance";
 import { useMemo } from "react";
 
@@ -27,8 +27,24 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
     [props.technicians]
   );
 
+  // adapt header background/border to color mode so it isn't bright white in dark mode
+  const headerBg = useColorModeValue("white", "gray.800");
+  const headerBorder = useColorModeValue("gray.200", "gray.700");
+
+  // Ensure the dashboard header does not obscure global navbar dropdowns.
+  // Set a low zIndex here so portal-based dropdowns (which typically use high z-indices)
+  // render above this header. If a navbar dropdown still appears behind the header,
+  // increase the dropdown zIndex or ensure it renders in a Portal.
   return (
-    <Box position="sticky" top={0} bg="white" zIndex={1} borderBottomWidth="1px" p={3}>
+    <Box
+      position="sticky"
+      top={0}
+      bg={headerBg}
+      borderBottomWidth="1px"
+      borderBottomColor={headerBorder}
+      zIndex={0}
+      p={3}
+    >
       <Flex gap={3} direction={{ base: "column", md: "row" }} align={{ base: "stretch", md: "center" }}>
         <Input
           placeholder="Search assets, summaries, details, technicians..."
