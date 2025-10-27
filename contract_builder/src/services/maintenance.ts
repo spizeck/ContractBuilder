@@ -18,26 +18,63 @@ import {
 } from 'firebase/firestore'
 import { MaintenanceLog } from '@/types/maintenance'
 
+// Central collection ref
 const logsCollection = collection(db, 'maintenanceLogs')
 
-export async function getMaintenanceLogs(): Promise<MaintenanceLog[]> {
-  const q = query(logsCollection, orderBy('date', 'desc'))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map(docSnap => {
-    const data: any = docSnap.data()
-    // Firestore returns Timestamps for date fields; convert to JS Date when present
-    const dateField = data.date
-    const createdAtField = data.createdAt
-    return ({
-      id: docSnap.id,
-      ...data,
-      date: dateField && typeof dateField.toDate === 'function' ? dateField.toDate() : dateField,
-      createdAt: createdAtField && typeof createdAtField.toDate === 'function' ? createdAtField.toDate() : createdAtField,
-    }) as MaintenanceLog
-  })
+// ---- Normalization (consolidated from utils) ----
+export function normalizeLog(doc: any, id: string): MaintenanceLog {
+  return {
+    id,
+    assetId: doc.assetId,
+    assetName: doc.assetName ?? "",
+    category: doc.category,
+    kind: doc.kind ?? "service",
+    date: toDate(doc.date) ?? new Date(),
+    summary: doc.summary ?? "",
+    details: doc.details ?? undefined,
+    technicianId: doc.technicianId ?? undefined,
+    technicianName: doc.technicianName ?? undefined,
+    readingHours: num(doc.readingHours) ?? num(doc.hoursAtService),
+    nextServiceDueHours: num(doc.nextServiceDueHours) ?? num(doc.nextServiceDue),
+    readingKilometers: num(doc.readingKilometers),
+    nextServiceDueKilometers: num(doc.nextServiceDueKilometers),
+    nextServiceDueDate: toDate(doc.nextServiceDueDate),
+    cost: num(doc.cost),
+    attachments: Array.isArray(doc.attachments) ? doc.attachments : [],
+    createdBy: doc.createdBy ?? "",
+    createdAt: toDate(doc.createdAt) ?? new Date(),
+    // legacy
+    hoursAtService: num(doc.hoursAtService),
+    nextServiceDue: num(doc.nextServiceDue),
+  };
 }
 
-export async function addMaintenanceLog(data: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string }) {
+function toDate(v: any): Date | undefined {
+  if (!v) return undefined;
+  if (v instanceof Date) return v;
+  if (v?.toDate) return v.toDate() as Date;
+  if (typeof v === "string") {
+    const d = new Date(v);
+    return isNaN(+d) ? undefined : d;
+  }
+  return undefined;
+}
+function num(v: any): number | undefined {
+  if (v == null) return undefined;
+  const n = Number(v);
+  return isNaN(n) ? undefined : n;
+}
+
+// ---- CRUD ----
+
+export async function getMaintenanceLogs(): Promise<MaintenanceLog[]> {
+  const snap = await getDocs(logsCollection)
+  return snap.docs.map((d) => normalizeLog(d.data(), d.id))
+}
+
+export async function addMaintenanceLog(
+  data: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string }
+) {
   return await addDoc(logsCollection, {
     ...data,
     createdAt: serverTimestamp(),
@@ -60,47 +97,23 @@ export async function getMaintenanceLog(id: string): Promise<MaintenanceLog | nu
   try {
     const ref = doc(db, "maintenanceLogs", id)
     const docSnap = await getDoc(ref)
-
-    if (!docSnap.exists()) {
-      return null
-    }
-
-    const data: any = docSnap.data()
-    const dateField = data.date
-    const createdAtField = data.createdAt
-
-    return {
-      id: docSnap.id,
-      ...data,
-      date:
-        dateField && typeof dateField.toDate === "function"
-          ? dateField.toDate()
-          : dateField,
-      createdAt:
-        createdAtField && typeof createdAtField.toDate === "function"
-          ? createdAtField.toDate()
-          : createdAtField,
-    } as MaintenanceLog
+    if (!docSnap.exists()) return null
+    return normalizeLog(docSnap.data(), docSnap.id)
   } catch (err) {
     console.error("Failed to get maintenance log:", err)
     return null
   }
 }
 
-// Services for Dashboard
+// ---- Live subscriptions ----
 
 const logConverter: FirestoreDataConverter<MaintenanceLog> = {
   toFirestore(l: MaintenanceLog) {
     return l as any;
   },
   fromFirestore(snapshot, options) {
-    const data = snapshot.data(options) as any;
-    return {
-      id: snapshot.id,
-      ...data,
-      date: (data.date?.toDate?.() as Date) ?? data.date,
-      createdAt: (data.createdAt?.toDate?.() as Date) ?? data.createdAt,
-    } as MaintenanceLog;
+    // Normalize everything including Dates
+    return normalizeLog(snapshot.data(options), snapshot.id);
   },
 };
 
@@ -127,7 +140,6 @@ export function onLogsInDateRange(
 ): () => void {
   const col = collection(db, "maintenanceLogs").withConverter(logConverter);
 
-  // Build range query when possible to reduce traffic; otherwise stream recent months and filter client-side.
   const constraints: any[] = [orderBy("date", "desc")];
   if (start) constraints.push(where("date", ">=", Timestamp.fromDate(start)));
   if (end) constraints.push(where("date", "<=", Timestamp.fromDate(end)));

@@ -15,10 +15,12 @@ import {
   Select,
   HStack,
   Input,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { getAssets, deleteAsset } from "@/services/assets";
-import { Asset } from "@/types/maintenance";
+import { Asset, AssetCategory } from "@/types/maintenance";
 import AddEditAssetForm from "./AddEditAssetForm";
+import { getTrackingLabel, getCurrentReading, getNextDueDisplay } from "@/utils/maintenanceSelectors";
 
 // Allowed categories going forward — use these for filters and parent assignment
 const ALLOWED_CATEGORIES = [
@@ -30,6 +32,7 @@ const ALLOWED_CATEGORIES = [
 ] as const;
 
 export default function AssetsPage() {
+  const thBg = useColorModeValue("gray.50", "gray.800");
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -111,6 +114,18 @@ export default function AssetsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             width={{ base: "100%", md: "300px" }}
           />
+
+          {/* New Asset button (opens the modal with empty form) */}
+          <Button
+            ml="auto"
+            colorScheme="blue"
+            onClick={() => {
+              setEditingAsset(null);
+              setShowForm(true);
+            }}
+          >
+            New Asset
+          </Button>
         </HStack>
       </Box>
 
@@ -128,16 +143,25 @@ export default function AssetsPage() {
             <Table variant="simple" minW="720px" width="100%">
               <Thead>
                 <Tr>
-                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                  <Th position="sticky" top={0} bg={thBg}>
                     Asset Name
                   </Th>
-                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                  <Th position="sticky" top={0} bg={thBg}>
                     Category
                   </Th>
-                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                  <Th position="sticky" top={0} bg={thBg}>
                     Active
                   </Th>
-                  <Th position="sticky" top={0} bg="chakra-subtle-bg">
+                  <Th position="sticky" top={0} bg={thBg}>
+                    Tracking Label
+                  </Th>
+                  <Th position="sticky" top={0} bg={thBg}>
+                    Current Reading
+                  </Th>
+                  <Th position="sticky" top={0} bg={thBg}>
+                    Next Due
+                  </Th>
+                  <Th position="sticky" top={0} bg={thBg}>
                     Actions
                   </Th>
                 </Tr>
@@ -171,6 +195,7 @@ export default function AssetsPage() {
                         setShowForm(true);
                       }}
                       onDelete={handleDelete}
+                      inheritedCategory={undefined}
                     />
                   ))}
               </Tbody>
@@ -193,27 +218,24 @@ export default function AssetsPage() {
   );
 }
 
-// ParentRow: show category from parent (if asset is a child) — children inherit parent's category
+// ParentRow: children inherit category from ancestor without scanning only "root"
 function ParentRow({
   asset,
   groupedAssets,
   onEdit,
   onDelete,
   level = 0,
+  inheritedCategory,
 }: {
   asset: Asset;
   groupedAssets: Record<string, Asset[]>;
   onEdit: (a: Asset) => void;
   onDelete: (id: string) => void;
   level?: number;
+  inheritedCategory?: AssetCategory;
 }) {
-  // For display, if this row is a child (parentAssetId present), prefer parent's category.
-  // However this component is used both for root parents and recursive children:
-  const parent =
-    asset.parentAssetId !== undefined
-      ? (groupedAssets["root"] || []).find((p) => p.id === asset.parentAssetId) || null
-      : null;
-  const displayCategory = parent ? parent.category : asset.category;
+  // Prefer category inherited from the closest ancestor; otherwise use asset.category
+  const displayCategory: AssetCategory = inheritedCategory ?? asset.category;
 
   return (
     <>
@@ -224,6 +246,9 @@ function ParentRow({
         </Td>
         <Td>{displayCategory}</Td>
         <Td>{asset.active ? "Yes" : "No"}</Td>
+        <Td>{getTrackingLabel(asset)}</Td>
+        <Td>{getCurrentReading(asset) ?? "-"}</Td>
+        <Td>{getNextDueDisplay(asset)}</Td>
         <Td>
           <Button size="sm" onClick={() => onEdit(asset)}>
             Edit
@@ -242,6 +267,7 @@ function ParentRow({
           onEdit={onEdit}
           onDelete={onDelete}
           level={level + 1}
+          inheritedCategory={displayCategory}
         />
       ))}
     </>
