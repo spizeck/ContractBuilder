@@ -5,9 +5,7 @@ import {
   HStack,
   Input,
   Select,
-  Button,
   Flex,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import type { Technician } from "@/types/maintenance";
 import { useMemo } from "react";

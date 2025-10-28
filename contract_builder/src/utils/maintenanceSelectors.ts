@@ -4,6 +4,24 @@ import type { Asset } from "@/types/maintenance";
 
 export type StatusColor = "red" | "orange" | "green" | "gray";
 
+function toDateSafe(v: unknown): Date | undefined {
+  if (!v) return undefined;
+  if (v instanceof Date) return v;
+  const anyV = v as any;
+  if (anyV?.toDate && typeof anyV.toDate === "function") {
+    try {
+      return anyV.toDate();
+    } catch {
+      // fall through
+    }
+  }
+  if (typeof v === "string") {
+    const d = new Date(v);
+    return isNaN(+d) ? undefined : d;
+  }
+  return undefined;
+}
+
 export function getTrackingLabel(a: Asset): "None" | "Hours" | "Kilometers" | "Date" {
   if (a.serviceTracking === "hours") return "Hours";
   if (a.serviceTracking === "kilometers") return "Kilometers";
@@ -17,11 +35,17 @@ export function getCurrentReading(a: Asset): number | undefined {
   return undefined;
 }
 
-// Human-readable “next due” for table display
 export function getNextDueDisplay(a: Asset): string {
-  if (a.serviceTracking === "hours") return a.nextServiceDueHours != null ? String(a.nextServiceDueHours) : "-";
-  if (a.serviceTracking === "kilometers") return a.nextServiceDueKilometers != null ? String(a.nextServiceDueKilometers) : "-";
-  if (a.serviceTracking === "date") return a.nextServiceDueDate ? new Date(a.nextServiceDueDate).toLocaleDateString() : "-";
+  if (a.serviceTracking === "hours") {
+    return a.nextServiceDueHours != null ? String(a.nextServiceDueHours) : "-";
+  }
+  if (a.serviceTracking === "kilometers") {
+    return a.nextServiceDueKilometers != null ? String(a.nextServiceDueKilometers) : "-";
+  }
+  if (a.serviceTracking === "date") {
+    const dt = toDateSafe(a.nextServiceDueDate);
+    return dt ? dt.toLocaleDateString() : "-";
+  }
   return "-";
 }
 
@@ -37,6 +61,7 @@ export function getAssetStatus(a: Asset): "Overdue" | "Due Soon" | "OK" {
     if (interval && next - cur <= Math.max(interval * 0.1, 1)) return "Due Soon";
     return "OK";
   }
+
   if (a.serviceTracking === "kilometers") {
     const cur = a.currentKilometers ?? 0;
     const next = a.nextServiceDueKilometers;
@@ -46,8 +71,9 @@ export function getAssetStatus(a: Asset): "Overdue" | "Due Soon" | "OK" {
     if (interval && next - cur <= Math.max(interval * 0.1, 1)) return "Due Soon";
     return "OK";
   }
+
   if (a.serviceTracking === "date") {
-    const next = a.nextServiceDueDate;
+    const next = toDateSafe(a.nextServiceDueDate);
     if (!next) return "OK";
     const nextMid = new Date(next.getFullYear(), next.getMonth(), next.getDate());
     const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -56,6 +82,7 @@ export function getAssetStatus(a: Asset): "Overdue" | "Due Soon" | "OK" {
     if (diffDays <= 14) return "Due Soon";
     return "OK";
   }
+
   return "OK";
 }
 
