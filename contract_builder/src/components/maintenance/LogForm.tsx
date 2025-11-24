@@ -130,7 +130,7 @@ export default function LogForm({ id }: { id?: string }) {
       }
 
       toast({ title: "Saved", status: "success" })
-      router.push("/maintenance/logs")
+      router.push("/maintenance/dashboard")
     } catch (err) {
       console.error(err)
       toast({ title: "Save failed", status: "error" })
