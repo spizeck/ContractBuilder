@@ -233,9 +233,7 @@ export default function MaintenanceLogsPage() {
                   // permission: who can edit/delete this log?
                   const canEdit =
                     user &&
-                    (user.uid === l.createdBy ||
-                      role === "admin" ||
-                      role === "manager");
+                    (user.uid === l.createdBy || role === "admin" || role === "manager");
                   // technician name: prefer stored technicianName, fall back to lookup by id
                   const techName =
                     l.technicianName ||

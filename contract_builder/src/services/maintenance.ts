@@ -17,6 +17,7 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { MaintenanceLog } from '@/types/maintenance'
+import { updateAsset } from '@/services/assets'
 
 // Central collection ref
 const logsCollection = collection(db, 'maintenanceLogs')
@@ -65,6 +66,64 @@ function num(v: any): number | undefined {
   return isNaN(n) ? undefined : n;
 }
 
+async function syncAssetFromLog(raw: any) {
+  if (!raw) return;
+
+  const assetId = raw.assetId;
+  if (!assetId) return;
+
+  const date = toDate(raw.date);
+
+  // Load current asset state so we can avoid overwriting with older logs
+  const assetRef = doc(db, "assets", assetId);
+  const assetSnap = await getDoc(assetRef);
+  if (!assetSnap.exists()) return;
+
+  const assetRaw = assetSnap.data();
+  const assetLastServiceDate = toDate(assetRaw?.lastServiceDate);
+  const assetCurrentHours = num(
+    assetRaw?.currentHours != null ? assetRaw.currentHours : assetRaw?.hours
+  );
+
+  const reading =
+    raw.readingHours != null
+      ? num(raw.readingHours)
+      : raw.hoursAtService != null
+      ? num(raw.hoursAtService)
+      : undefined;
+
+  const nextDue =
+    raw.nextServiceDueHours != null
+      ? num(raw.nextServiceDueHours)
+      : raw.nextServiceDue != null
+      ? num(raw.nextServiceDue)
+      : undefined;
+
+  const update: any = {};
+
+  if (reading != null) {
+    // Never roll back current hours; only move forward
+    if (assetCurrentHours == null || reading >= assetCurrentHours) {
+      update.currentHours = reading;
+    }
+  }
+
+  if (nextDue != null) {
+    // Only update next service / last service date if this log is not older
+    // than the asset's existing lastServiceDate (when present).
+    if (!date || !assetLastServiceDate || date >= assetLastServiceDate) {
+      update.nextServiceDueHours = nextDue;
+      if (date) {
+        update.lastServiceDate = date;
+      }
+    }
+  }
+
+  if (Object.keys(update).length === 0) return;
+
+  await updateAsset(assetId, update);
+}
+
 // ---- CRUD ----
 
 export async function getMaintenanceLogs(): Promise<MaintenanceLog[]> {
@@ -75,17 +134,51 @@ export async function getMaintenanceLogs(): Promise<MaintenanceLog[]> {
 export async function addMaintenanceLog(
   data: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string }
 ) {
-  return await addDoc(logsCollection, {
+  const payload: any = {
     ...data,
+  };
+
+  if (payload.readingHours == null && payload.hoursAtService != null) {
+    const n = num(payload.hoursAtService);
+    if (n != null) payload.readingHours = n;
+  }
+
+  if (payload.nextServiceDueHours == null && payload.nextServiceDue != null) {
+    const n = num(payload.nextServiceDue);
+    if (n != null) payload.nextServiceDueHours = n;
+  }
+
+  const result = await addDoc(logsCollection, {
+    ...payload,
     createdAt: serverTimestamp(),
-  })
+  });
+
+  await syncAssetFromLog(payload);
+
+  return result;
 }
 
 export async function updateMaintenanceLog(id: string, data: Partial<MaintenanceLog>) {
   const ref = doc(db, 'maintenanceLogs', id)
-  await updateDoc(ref, {
+  const payload: any = {
     ...data,
-  })
+  };
+
+  if (payload.readingHours == null && payload.hoursAtService != null) {
+    const n = num(payload.hoursAtService);
+    if (n != null) payload.readingHours = n;
+  }
+
+  if (payload.nextServiceDueHours == null && payload.nextServiceDue != null) {
+    const n = num(payload.nextServiceDue);
+    if (n != null) payload.nextServiceDueHours = n;
+  }
+
+  await updateDoc(ref, {
+    ...payload,
+  });
+
+  await syncAssetFromLog(payload);
 }
 
 export async function deleteMaintenanceLog(id: string) {
