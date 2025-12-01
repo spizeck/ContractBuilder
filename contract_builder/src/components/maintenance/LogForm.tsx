@@ -123,10 +123,15 @@ export default function LogForm({ id }: { id?: string }) {
         return
       }
 
+      // Strip undefined fields before sending to Firebase to prevent update errors
+      const cleanedPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, value]) => value !== undefined)
+      )
+
       if (id) {
-        await updateMaintenanceLog(id, payload)
+        await updateMaintenanceLog(id, cleanedPayload)
       } else {
-        await addMaintenanceLog(payload)
+        await addMaintenanceLog(cleanedPayload)
       }
 
       toast({ title: "Saved", status: "success" })
@@ -299,7 +304,7 @@ export default function LogForm({ id }: { id?: string }) {
         </VStack>
 
         <HStack mt={6} justify="space-between">
-          <Button variant="outline" onClick={() => router.push("/maintenance/logs")}>
+          <Button variant="outline" onClick={() => router.push("/maintenance/dashboard")}>
             Cancel
           </Button>
           <Button colorScheme="blue" type="submit" isLoading={loading}>

@@ -47,6 +47,10 @@ export default function LogsModal({
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const detailsColor = useColorModeValue("gray.700", "gray.300");
   const noLogsColor = useColorModeValue("gray.500", "gray.400");
+  const hoverBg = useColorModeValue("gray.50", "gray.700");
+  const cardText = useColorModeValue("gray.900", "gray.100");
+  const mutedText = useColorModeValue("gray.600", "gray.400");
+  const badgeColorScheme = useColorModeValue("gray", "gray");
 
   useEffect(() => {
     if (!asset) return;
@@ -85,7 +89,7 @@ export default function LogsModal({
     };
 
     loadTechs();
-  }, [isOpen]);
+  }, [isOpen, asset]);
 
   const goToAddLog = () => {
     if (!asset?.id) return;
@@ -143,11 +147,14 @@ export default function LogsModal({
                       borderRadius="md"
                       p={3}
                       bg={cardBg}
+                      color={cardText}
+                      _hover={{ bg: hoverBg }}
+                      transition="background-color 0.2s"
                     >
                       <HStack justify="space-between" mb={1}>
-                        <Text fontWeight="bold">{formatDate(l.date)}</Text>
+                        <Text fontWeight="bold" color={cardText}>{formatDate(l.date)}</Text>
                         <HStack spacing={2}>
-                          <Badge>
+                          <Badge colorScheme={badgeColorScheme}>
                             {l.technicianName ||
                               technicians.find((t) => t.id === l.technicianId)?.name ||
                               ""}
@@ -161,7 +168,7 @@ export default function LogsModal({
                           </Button>
                         </HStack>
                       </HStack>
-                      <Text fontWeight="semibold">{l.summary}</Text>
+                      <Text fontWeight="semibold" color={cardText}>{l.summary}</Text>
                       {!isCollapsed && l.details && (
                         <Box
                           whiteSpace="pre-wrap"
@@ -255,23 +262,28 @@ export default function LogsModal({
           size="md"
         >
           <ModalOverlay />
-          <ModalContent>
+          <ModalContent bg={cardBg} color={cardText}>
             <ModalHeader>View Log</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <VStack align="stretch" spacing={3}>
-                <Text fontWeight="bold">
+                <Text fontWeight="bold" color={cardText}>
                   {formatDate(selectedLog.date)} — {selectedLog.summary}
                 </Text>
-                <Text>
-                  Technician: {selectedLog.technicianName || "-"}
+                <Text color={mutedText}>
+                  Technician: {selectedLog.technicianName ||
+                    technicians.find((t) => t.id === selectedLog.technicianId)?.name ||
+                    "-"}
                 </Text>
                 {selectedLog.details && (
                   <Box
                     whiteSpace="pre-wrap"
                     p={2}
                     borderWidth={1}
+                    borderColor={borderColor}
                     borderRadius="md"
+                    bg={cardBg}
+                    color={detailsColor}
                   >
                     {selectedLog.details}
                   </Box>
