@@ -13,6 +13,9 @@ import {
   where,
   orderBy,
   onSnapshot,
+  limit,
+  startAfter,
+  DocumentSnapshot,
 } from "firebase/firestore";
 import { Technician } from "@/types/maintenance";
 
@@ -24,6 +27,40 @@ export async function getTechnicians(): Promise<Technician[]> {
     id: docSnap.id,
     ...docSnap.data(),
   })) as Technician[];
+}
+
+export interface PaginatedTechniciansResult {
+  technicians: Technician[];
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  lastDoc?: DocumentSnapshot;
+}
+
+export async function getTechniciansPaginated(
+  pageSize: number = 10,
+  startAfterDoc?: DocumentSnapshot
+): Promise<PaginatedTechniciansResult> {
+  const q = startAfterDoc
+    ? query(
+        techCollection,
+        orderBy("name"),
+        startAfter(startAfterDoc),
+        limit(pageSize)
+      )
+    : query(techCollection, orderBy("name"), limit(pageSize));
+  
+  const snapshot = await getDocs(q);
+  const technicians = snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  })) as Technician[];
+
+  return {
+    technicians,
+    hasNextPage: technicians.length === pageSize,
+    hasPrevPage: !!startAfterDoc,
+    lastDoc: snapshot.docs[snapshot.docs.length - 1],
+  };
 }
 
 export async function addTechnician(data: Omit<Technician, "id">) {
