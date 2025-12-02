@@ -17,7 +17,7 @@ import CategoryPanels from "./components/CategoryPanels";
 import LogsModal from "./components/LogsModal";
 import TechnicianActivity from "./components/TechnicianActivity";
 import { useMaintenanceData } from "./hooks/useMaintenanceSearch";
-import { useMaintenanceSummary } from "./hooks/useMaintenanceSummary";
+import { useDashboardFilters } from "./hooks/useDashboardFilters";
 import type { Asset } from "@/types/maintenance";
 import { useAuth } from "@/context/AuthContext";
 
@@ -25,19 +25,20 @@ export default function MaintenanceDashboardPage() {
   const { role } = useAuth(); // expects roles like 'viewer', 'manager', 'admin'
   const canEdit = role === "admin" || role === "manager";
 
-  const [keyword, setKeyword] = useState("");
-  const [category, setCategory] = useState<"All" | "Marine" | "Compressors" | "Vehicles" | "Scuba Equipment" | "Other">("All");
-  const [technicianId, setTechnicianId] = useState<string | "All">("All");
-  const [range, setRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
-
-  const { assets, logs, technicians, loading } = useMaintenanceData({
-    keyword,
-    category,
-    technicianId,
-    range,
+  // Get raw data (unfiltered) from the existing hook
+  const { assets: rawAssets, logs: rawLogs, technicians: rawTechnicians, loading } = useMaintenanceData({
+    keyword: "", // Get all data, we'll filter it ourselves
+    category: "All",
+    technicianId: "All",
+    range: { start: null, end: null },
   });
 
-  const summary = useMaintenanceSummary(assets, logs);
+  // Apply unified filtering
+  const { filters, filterResult, updateFilters } = useDashboardFilters(
+    rawAssets,
+    rawLogs,
+    rawTechnicians
+  );
 
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -47,27 +48,20 @@ export default function MaintenanceDashboardPage() {
     onOpen();
   };
 
-  // Clicking summary cards adjusts filters
+  // Handle summary card clicks
   const handleSummaryFilter = (type: "all" | "overdue" | "dueSoon" | "recentLogs") => {
     switch (type) {
       case "all":
-        setKeyword("");
-        setCategory("All");
-        setTechnicianId("All");
-        setRange({ start: null, end: null });
+        updateFilters.reset();
         break;
-      case "recentLogs": {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-        setRange({ start, end: null });
+      case "recentLogs":
+        updateFilters.cardFilter("LOGS_THIS_MONTH");
         break;
-      }
       case "overdue":
-        // Keep a keyword that won't filter; filter happens in panels via status badges (already reflected in counts)
-        setKeyword("");
+        updateFilters.cardFilter("OVERDUE_SERVICES");
         break;
       case "dueSoon":
-        setKeyword("");
+        updateFilters.cardFilter("UPCOMING_SERVICES");
         break;
     }
   };
@@ -75,15 +69,15 @@ export default function MaintenanceDashboardPage() {
   return (
     <Box h="100%" display="flex" flexDirection="column" overflow="hidden">
       <DashboardHeader
-        keyword={keyword}
-        onKeyword={setKeyword}
-        category={category}
-        onCategory={setCategory}
-        technicianId={technicianId}
-        onTechnician={setTechnicianId}
-        range={range}
-        onRange={setRange}
-        technicians={technicians}
+        keyword={filters.searchTerm}
+        onKeyword={updateFilters.searchTerm}
+        category={filters.categoryId}
+        onCategory={updateFilters.categoryId}
+        technicianId={filters.technicianId}
+        onTechnician={updateFilters.technicianId}
+        range={{ start: filters.dateRange.from, end: filters.dateRange.to }}
+        onRange={(r) => updateFilters.dateRange({ from: r.start, to: r.end })}
+        technicians={rawTechnicians}
       />
 
       <Box px={3} pt={3} overflow="hidden">
@@ -91,7 +85,11 @@ export default function MaintenanceDashboardPage() {
           <Spinner />
         ) : (
           <>
-            <SummaryCards summary={summary} onFilterSelect={handleSummaryFilter} />
+            <SummaryCards 
+              summary={filterResult.stats} 
+              onFilterSelect={handleSummaryFilter}
+              activeCardFilter={filters.cardFilter}
+            />
 
             <Grid
               templateColumns={{ base: "1fr", lg: "2fr 1fr" }}
@@ -101,7 +99,7 @@ export default function MaintenanceDashboardPage() {
             >
               <GridItem overflow="auto" pr={{ base: 0, lg: 2 }} maxH="calc(100vh - 220px)">
                 <CategoryPanels
-                  assets={assets}
+                  assets={filterResult.filteredAssets}
                   onViewLogs={onViewLogs}
                   canEdit={canEdit}
                   onEditAsset={(a) => {
@@ -113,9 +111,8 @@ export default function MaintenanceDashboardPage() {
 
               <GridItem overflow="auto" pl={{ base: 0, lg: 2 }} maxH="calc(100vh - 220px)">
                 <TechnicianActivity
-                  technicians={technicians}
-                  logs={logs.filter((l) => isWithinLastNDays(l.date, 30))}
-                  onSelectTechnician={(id) => setTechnicianId(id)}
+                  activities={filterResult.filteredTechnicianActivities}
+                  onSelectTechnician={(id) => updateFilters.technicianId(id)}
                 />
               </GridItem>
             </Grid>
@@ -123,14 +120,13 @@ export default function MaintenanceDashboardPage() {
         )}
       </Box>
 
-      <LogsModal isOpen={isOpen} onClose={onClose} asset={selectedAsset} />
+      <LogsModal 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        asset={selectedAsset} 
+        searchKeyword={filters.searchTerm} 
+        dateRange={filters.dateRange}
+      />
     </Box>
   );
-}
-
-function isWithinLastNDays(d: Date, n: number) {
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setDate(now.getDate() - n);
-  return d >= cutoff;
 }

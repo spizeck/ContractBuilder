@@ -17,7 +17,7 @@ import {
   Badge,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Asset, MaintenanceLog, Technician } from "@/types/maintenance";
 import { onLogsForAsset, deleteMaintenanceLog } from "@/services/maintenance";
 import { useRouter } from "next/navigation";
@@ -28,10 +28,14 @@ export default function LogsModal({
   isOpen,
   onClose,
   asset,
+  searchKeyword,
+  dateRange,
 }: {
   isOpen: boolean;
   onClose: () => void;
   asset: Asset | null;
+  searchKeyword?: string;
+  dateRange?: { from: Date | null; to: Date | null };
 }) {
   const [logs, setLogs] = useState<MaintenanceLog[] | null>(null);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -76,8 +80,10 @@ export default function LogsModal({
     return () => unsubs.forEach((u) => u());
   }, [asset?.id]);
 
+  const shouldLoadTechs = isOpen === true;
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!shouldLoadTechs) return;
 
     const loadTechs = async () => {
       try {
@@ -89,7 +95,7 @@ export default function LogsModal({
     };
 
     loadTechs();
-  }, [isOpen, asset]);
+  }, [shouldLoadTechs]);
 
   const goToAddLog = () => {
     if (!asset?.id) return;
@@ -110,11 +116,51 @@ export default function LogsModal({
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Filter logs based on search keyword and date range
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    
+    let filtered = logs;
+    
+    // Apply date range filter
+    if (dateRange?.from || dateRange?.to) {
+      filtered = filtered.filter((log) => {
+        const logDate = new Date(log.date);
+        
+        if (dateRange?.from && logDate < dateRange.from) return false;
+        if (dateRange?.to && logDate > dateRange.to) return false;
+        
+        return true;
+      });
+    }
+    
+    // Apply search keyword filter
+    if (searchKeyword?.trim()) {
+      const keywordLc = searchKeyword.trim().toLowerCase();
+      filtered = filtered.filter((l) => {
+        const haystack = [
+          l.summary,
+          l.details,
+          l.technicianName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(keywordLc);
+      });
+    }
+    
+    return filtered;
+  }, [logs, searchKeyword, dateRange]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [searchKeyword, dateRange]);
+
   const pageSize = 10;
-  const totalPages = logs ? Math.ceil(logs.length / pageSize) : 0;
-  const pagedLogs = logs
-    ? logs.slice(page * pageSize, page * pageSize + pageSize)
-    : [];
+  const totalPages = Math.ceil(filteredLogs.length / pageSize);
+  const pagedLogs = filteredLogs.slice(page * pageSize, page * pageSize + pageSize);
 
   return (
     <>
@@ -126,9 +172,9 @@ export default function LogsModal({
           <ModalBody overflowY="auto" pb={4}>
             {!logs ? (
               <Spinner mx="auto" display="block" />
-            ) : logs.length === 0 ? (
+            ) : filteredLogs.length === 0 ? (
               <Text textAlign="center" color={noLogsColor}>
-                No logs found.
+                {searchKeyword?.trim() ? "No logs match your search." : "No logs found."}
               </Text>
             ) : (
               <VStack align="stretch" spacing={3}>
@@ -217,7 +263,7 @@ export default function LogsModal({
             )}
           </ModalBody>
           <ModalFooter>
-            {logs && logs.length > pageSize && (
+            {filteredLogs.length > pageSize && (
               <HStack flex="1" spacing={3} mr={4}>
                 <Button
                   size="sm"
@@ -233,10 +279,10 @@ export default function LogsModal({
                   size="sm"
                   onClick={() =>
                     setPage((p) =>
-                      logs ? Math.min(totalPages - 1, p + 1) : p
+                      Math.min(totalPages - 1, p + 1)
                     )
                   }
-                  isDisabled={!logs || page >= totalPages - 1}
+                  isDisabled={page >= totalPages - 1}
                 >
                   Next
                 </Button>

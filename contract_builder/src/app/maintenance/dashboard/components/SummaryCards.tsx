@@ -8,16 +8,18 @@ import {
   Box,
   useColorModeValue,
 } from "@chakra-ui/react";
-import type { Summary } from "../hooks/useMaintenanceSummary";
+import type { DashboardFilterResult, DashboardFilter } from "@/types/dashboard";
 
 export interface SummaryCardsProps {
-  summary: Summary;
+  summary: DashboardFilterResult["stats"];
   onFilterSelect: (type: "all" | "overdue" | "dueSoon" | "recentLogs") => void;
+  activeCardFilter: DashboardFilter["cardFilter"];
 }
 
 export default function SummaryCards({
   summary,
   onFilterSelect,
+  activeCardFilter,
 }: SummaryCardsProps) {
   return (
     <SimpleGrid columns={{ base: 2, md: 4 }} spacing={3} p={3}>
@@ -25,25 +27,25 @@ export default function SummaryCards({
         color="green.500"
         label="Total Assets"
         value={summary.totalAssets}
-        onClick={() => onFilterSelect("all")}
+        isClickable={false}
       />
       <Card
         color="green.600"
-        label="Logs This Month"
+        label="Total Logs"
         value={summary.logsThisMonth}
-        onClick={() => onFilterSelect("recentLogs")}
+        isClickable={false}
       />
       <Card
         color="red.500"
         label="Overdue Services"
-        value={summary.overdue}
-        onClick={() => onFilterSelect("overdue")}
+        value={summary.overdueServices}
+        isClickable={false}
       />
       <Card
         color="orange.500"
         label="Upcoming Services"
-        value={summary.dueSoon}
-        onClick={() => onFilterSelect("dueSoon")}
+        value={summary.upcomingServices}
+        isClickable={false}
       />
     </SimpleGrid>
   );
@@ -53,18 +55,14 @@ function Card(props: {
   color: string;
   label: string;
   value: number;
-  onClick: () => void;
+  isClickable: boolean;
 }) {
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
   return (
     <Box
       borderWidth="1px"
       borderRadius="md"
       p={3}
-      cursor="pointer"
-      onClick={props.onClick}
-      _hover={{ bg: hoverBg }}
-      transition={"background-color 0.2s ease"}
+      cursor={props.isClickable ? "pointer" : "default"}
     >
       <Stat>
         <StatLabel>{props.label}</StatLabel>
