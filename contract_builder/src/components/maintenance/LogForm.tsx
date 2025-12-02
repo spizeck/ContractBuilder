@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { addMaintenanceLog, updateMaintenanceLog, getMaintenanceLog } from "@/services/maintenance"
 import { getAssets } from "@/services/assets"
 import { getTechnicians } from "@/services/technicians"
-import { Asset, Technician } from "@/types/maintenance"
+import { Asset, Technician, MaintenanceLog } from "@/types/maintenance"
 import { useAuth } from "@/context/AuthContext"
 
 export default function LogForm({ id }: { id?: string }) {
@@ -124,7 +124,7 @@ export default function LogForm({ id }: { id?: string }) {
       }
 
       // Strip undefined fields before sending to Firebase to prevent update errors
-      const cleanedPayload = Object.fromEntries(
+      const cleanedPayload: any = Object.fromEntries(
         Object.entries(payload).filter(([_, value]) => value !== undefined)
       )
 
