@@ -84,6 +84,8 @@ export interface SeasonalWildlifePattern {
 
 export interface DiveDashboardData {
   stats: DiveDashboardStats;
+  statsLast30Days: DiveDashboardStats;
+  statsCurrentYear: DiveDashboardStats;
   siteMatrix: DailySiteMatrix[];
   temperatureTrends: TemperatureTrend[];
   siteVisitation: SiteVisitationData[];

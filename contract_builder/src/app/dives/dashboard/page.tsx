@@ -23,6 +23,7 @@ export default function DiveDashboardPage() {
   const [dashboardData, setDashboardData] = useState<DiveDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPeriod, setCurrentPeriod] = useState<'allTime' | 'last30days' | 'currentYear'>('allTime')
 
   const isMobile = useBreakpointValue({ base: true, md: false })
 
@@ -74,7 +75,13 @@ export default function DiveDashboardPage() {
           </Box>
 
           {/* Summary Statistics */}
-          <SummaryCards stats={dashboardData.stats} />
+          <SummaryCards 
+            stats={dashboardData.stats}
+            statsLast30Days={dashboardData.statsLast30Days}
+            statsCurrentYear={dashboardData.statsCurrentYear}
+            onPeriodChange={setCurrentPeriod}
+            currentPeriod={currentPeriod}
+          />
 
           {/* Main Content Grid */}
           <Box

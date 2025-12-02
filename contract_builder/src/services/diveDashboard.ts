@@ -26,6 +26,9 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
   ])
 
   const stats = calculateDiveStats(dives, boats, guides)
+  const statsLast30Days = calculateDiveStatsForPeriod(dives, boats, guides, 'last30days')
+  const statsCurrentYear = calculateDiveStatsForPeriod(dives, boats, guides, 'currentYear')
+  
   const siteMatrix = generateSiteMatrix(dives, boats, sites)
   const temperatureTrends = calculateTemperatureTrends(dives)
   const siteVisitation = calculateSiteVisitation(dives, sites)
@@ -33,6 +36,8 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
 
   return {
     stats,
+    statsLast30Days,
+    statsCurrentYear,
     siteMatrix,
     temperatureTrends,
     siteVisitation,
@@ -92,10 +97,19 @@ function calculateDiveStats(
     }))
     .sort((a, b) => b.diveCount - a.diveCount)
 
-  // Calculate average temperature
-  const temperatures = dives.map(dive => dive.waterTemperature).filter(temp => temp != null)
-  const averageTemperature = temperatures.length > 0 
-    ? temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length 
+  // Calculate average temperature for last 14 days
+  const fourteenDaysAgo = new Date()
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+  
+  const recentTemperatures = dives
+    .filter(dive => {
+      const diveDate = new Date(dive.date)
+      return diveDate >= fourteenDaysAgo && dive.waterTemperature != null
+    })
+    .map(dive => dive.waterTemperature!)
+  
+  const averageTemperature = recentTemperatures.length > 0 
+    ? recentTemperatures.reduce((sum, temp) => sum + temp, 0) / recentTemperatures.length 
     : 0
 
   return {
@@ -105,6 +119,32 @@ function calculateDiveStats(
     divesByGuide,
     averageTemperature: Math.round(averageTemperature * 10) / 10
   }
+}
+
+function calculateDiveStatsForPeriod(
+  dives: Dive[],
+  boats: Boat[],
+  guides: Guide[],
+  period: 'last30days' | 'currentYear'
+): DiveDashboardStats {
+  let filteredDives: Dive[]
+  
+  if (period === 'last30days') {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    filteredDives = dives.filter(dive => {
+      const diveDate = new Date(dive.date)
+      return diveDate >= thirtyDaysAgo
+    })
+  } else {
+    const currentYear = new Date().getFullYear()
+    filteredDives = dives.filter(dive => {
+      const diveDate = new Date(dive.date)
+      return diveDate.getFullYear() === currentYear
+    })
+  }
+  
+  return calculateDiveStats(filteredDives, boats, guides)
 }
 
 function generateSiteMatrix(
@@ -148,15 +188,27 @@ function generateSiteMatrix(
       const boat = boats.find(b => b.id === boatId)
       if (!boat) return
 
-      const uniqueSites = new Set(diveList.map(dive => dive.diveSiteId))
-      const siteList = Array.from(uniqueSites)
-        .map(siteId => sites.find(s => s.id === siteId))
-        .filter((site): site is Site => site !== undefined)
+      // Sort dives by slot order
+      const slotOrder = { "9am": 1, "11am": 2, "1pm": 3, "4pm": 4, "night": 5 }
+      const sortedDives = diveList.sort((a, b) => {
+        const aOrder = slotOrder[a.diveSlot] || 999
+        const bOrder = slotOrder[b.diveSlot] || 999
+        return aOrder - bOrder
+      })
+
+      // Group sites by dive slot and maintain order
+      const sitesWithDives: { site: Site, dive: Dive }[] = []
+      sortedDives.forEach(dive => {
+        const site = sites.find(s => s.id === dive.diveSiteId)
+        if (site && !sitesWithDives.find(item => item.site.id === site.id)) {
+          sitesWithDives.push({ site, dive })
+        }
+      })
 
       boatSites.push({
         boat,
-        sites: siteList,
-        dives: diveList
+        sites: sitesWithDives.map(item => item.site),
+        dives: sortedDives
       })
     })
 

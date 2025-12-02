@@ -101,6 +101,30 @@ export default function Home() {
           </List>
         </Box>
 
+        {/* Dive Dashboard Section */}
+        <Box w="100%">
+          <Heading as="h2" size="md" mb={2}>
+            Dive Dashboard
+          </Heading>
+          <List spacing={3} fontSize="md">
+            <ListItem>
+              • Access the{" "}
+              <Link color="teal.500" as={NextLink} href="/dives/dashboard">
+                <b>Dive Operations Dashboard</b>
+              </Link>{" "}
+              to view comprehensive dive statistics, site utilization, and operational insights.
+            </ListItem>
+            <ListItem>
+              • Monitor dive activity, boat and guide performance, site repetition patterns, and temperature trends.
+            </ListItem>
+            <ListItem>
+              • Track 7-day site matrices, seasonal wildlife patterns, and detailed operational metrics.
+            </ListItem>
+          </List>
+        </Box>
+
+        <Divider />
+
         {/* Maintenance Section */}
         <Box w="100%">
           <Heading as="h2" size="md" mb={2}>

@@ -23,6 +23,10 @@ interface TemperatureChartProps {
 
 export default function TemperatureChart({ trends }: TemperatureChartProps) {
   const isMobile = useBreakpointValue({ base: true, md: false })
+  
+  const celsiusToFahrenheit = (celsius: number) => {
+    return Math.round((celsius * 9/5 + 32) * 10) / 10
+  }
 
   if (trends.length === 0) {
     return (
@@ -66,20 +70,23 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
           <Stat>
             <StatLabel fontSize="xs" color="gray.600">Current</StatLabel>
             <StatNumber fontSize="lg" color="orange.600">
-              {latestTemp}°C
+              {latestTemp}°C / {celsiusToFahrenheit(latestTemp)}°F
             </StatNumber>
           </Stat>
           <Stat>
             <StatLabel fontSize="xs" color="gray.600">Average</StatLabel>
             <StatNumber fontSize="lg">
-              {avgTemp.toFixed(1)}°C
+              {avgTemp.toFixed(1)}°C / {celsiusToFahrenheit(avgTemp)}°F
             </StatNumber>
           </Stat>
           <Stat>
             <StatLabel fontSize="xs" color="gray.600">Range</StatLabel>
             <StatNumber fontSize="lg">
-              {minTemp.toFixed(1)}° - {maxTemp.toFixed(1)}°
+              {minTemp.toFixed(1)}° - {maxTemp.toFixed(1)}°C
             </StatNumber>
+            <Text fontSize="xs" color="gray.600" textAlign="center">
+              {celsiusToFahrenheit(minTemp)}° - {celsiusToFahrenheit(maxTemp)}°F
+            </Text>
           </Stat>
         </HStack>
 
@@ -104,8 +111,8 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
                         width={`${((trend.temperature - minTemp) / tempRange) * 100}%`}
                         minW="2px"
                       />
-                      <Text fontSize="xs" fontWeight="medium" minW="35px">
-                        {trend.temperature}°C
+                      <Text fontSize="xs" fontWeight="medium" minW="60px">
+                        {trend.temperature}°C / {celsiusToFahrenheit(trend.temperature)}°F
                       </Text>
                     </HStack>
                   </Box>
@@ -119,7 +126,10 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
               <HStack spacing={0} align="flex-end" mb={2}>
                 <Box minW="40px">
                   <Text fontSize="xs" color="gray.600" textAlign="right">
-                    {maxTemp.toFixed(1)}°
+                    {maxTemp.toFixed(1)}°C
+                  </Text>
+                  <Text fontSize="xs" color="gray.500" textAlign="right">
+                    {celsiusToFahrenheit(maxTemp)}°F
                   </Text>
                 </Box>
                 <Box flex="1" h="4px" bg="gray.200" borderRadius="sm" />
@@ -134,7 +144,7 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
                       bg="orange.400"
                       borderRadius="sm"
                       h={`${((trend.temperature - minTemp) / tempRange) * maxBarHeight}px`}
-                      title={`${formatDiveDate(new Date(trend.date))}: ${trend.temperature}°C (${trend.diveCount} dives)`}
+                      title={`${formatDiveDate(new Date(trend.date))}: ${trend.temperature}°C / ${celsiusToFahrenheit(trend.temperature)}°F (${trend.diveCount} dives)`}
                     />
                   </VStack>
                 ))}
@@ -155,7 +165,10 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
               <HStack spacing={0} align="flex-start" mt={2}>
                 <Box minW="40px">
                   <Text fontSize="xs" color="gray.600" textAlign="right">
-                    {minTemp.toFixed(1)}°
+                    {minTemp.toFixed(1)}°C
+                  </Text>
+                  <Text fontSize="xs" color="gray.500" textAlign="right">
+                    {celsiusToFahrenheit(minTemp)}°F
                   </Text>
                 </Box>
                 <Box flex="1" h="4px" bg="gray.200" borderRadius="sm" />

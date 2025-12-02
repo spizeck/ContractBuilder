@@ -192,7 +192,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
 
         {/* Wildlife Insights */}
         <VStack spacing={3} align="stretch">
-          <Text fontSize="sm" fontWeight="medium" color="gray.700">
+          <Text fontSize="sm" fontWeight="medium">
             Wildlife Planning Insights:
           </Text>
           

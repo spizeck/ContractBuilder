@@ -34,7 +34,7 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
     return (
       <Card>
         <CardHeader>
-          <Heading size="md">7-Day Site Matrix</Heading>
+          <Heading size="md">7-Day Site Matrix by Boat</Heading>
         </CardHeader>
         <CardBody>
           <Text color="gray.500">No dive activity in the last 7 days</Text>
@@ -43,32 +43,49 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
     )
   }
 
-  // Check for potential site repetitions
-  const checkForRepetitions = (matrix: DailySiteMatrix[]) => {
-    const siteUsage = new Map<string, { dates: string[], boats: string[] }>()
+  // Check for boat-specific site repetitions
+  const checkForBoatRepetitions = (matrix: DailySiteMatrix[]) => {
+    const boatSiteUsage = new Map<string, Map<string, { dates: string[], count: number }>>()
     
     matrix.forEach(day => {
       day.boatSites.forEach(boatEntry => {
+        if (!boatSiteUsage.has(boatEntry.boat.id)) {
+          boatSiteUsage.set(boatEntry.boat.id, new Map())
+        }
+        const boatUsage = boatSiteUsage.get(boatEntry.boat.id)!
+        
         boatEntry.sites.forEach(site => {
-          const key = site.id
-          if (!siteUsage.has(key)) {
-            siteUsage.set(key, { dates: [], boats: [] })
+          if (!boatUsage.has(site.id)) {
+            boatUsage.set(site.id, { dates: [], count: 0 })
           }
-          const usage = siteUsage.get(key)!
+          const usage = boatUsage.get(site.id)!
           usage.dates.push(day.date)
-          usage.boats.push(boatEntry.boat.name)
+          usage.count++
         })
       })
     })
 
-    const repetitions = Array.from(siteUsage.entries())
-      .filter(([_, usage]) => usage.dates.length > 1)
-      .map(([siteId, usage]) => ({ siteId, usage }))
+    const repetitions: { boatId: string, siteId: string, usage: { dates: string[], count: number } }[] = []
+    
+    boatSiteUsage.forEach((siteMap, boatId) => {
+      siteMap.forEach((usage, siteId) => {
+        if (usage.count > 1) {
+          repetitions.push({ boatId, siteId, usage })
+        }
+      })
+    })
 
     return repetitions
   }
 
-  const repetitions = checkForRepetitions(siteMatrix)
+  const repetitions = checkForBoatRepetitions(siteMatrix)
+  
+  // Get repetition level for a specific boat and site
+  const getRepetitionLevel = (boatId: string, siteId: string) => {
+    const repetition = repetitions.find(r => r.boatId === boatId && r.siteId === siteId)
+    if (!repetition) return 0
+    return repetition.usage.count
+  }
 
   return (
     <Card>
@@ -78,6 +95,20 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
           <Text fontSize="sm" color="gray.600">
             Shows which sites each boat has visited to prevent repetition
           </Text>
+          <HStack spacing={4} fontSize="xs" color="gray.500">
+            <HStack spacing={1}>
+              <Badge colorScheme="blue" variant="subtle">Blue</Badge>
+              <Text>First visit</Text>
+            </HStack>
+            <HStack spacing={1}>
+              <Badge colorScheme="orange" variant="solid">Orange</Badge>
+              <Text>2nd visit</Text>
+            </HStack>
+            <HStack spacing={1}>
+              <Badge colorScheme="red" variant="solid">Red</Badge>
+              <Text>3rd+ visit</Text>
+            </HStack>
+          </HStack>
         </VStack>
       </CardHeader>
       <CardBody>
@@ -85,9 +116,9 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
           <Alert status="warning" mb={4} borderRadius="md">
             <AlertIcon />
             <Box>
-              <Text fontWeight="medium">Site Repetitions Detected</Text>
+              <Text fontWeight="medium">Boat Site Repetitions Detected</Text>
               <Text fontSize="sm">
-                {repetitions.length} site(s) used multiple times in the last 7 days
+                {repetitions.length} boat-site combination(s) repeated in the last 7 days
               </Text>
             </Box>
           </Alert>
@@ -108,13 +139,24 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
                         {boatEntry.boat.name}
                       </Text>
                       <HStack flexWrap="wrap" spacing={2}>
-                        {boatEntry.sites.map((site) => {
-                          const isRepeated = repetitions.some(r => r.siteId === site.id)
+                        {boatEntry.sites.map((site, index) => {
+                          const repetitionLevel = getRepetitionLevel(boatEntry.boat.id, site.id)
+                          let colorScheme = "blue"
+                          let variant = "subtle"
+                          
+                          if (repetitionLevel === 2) {
+                            colorScheme = "orange"
+                            variant = "solid"
+                          } else if (repetitionLevel >= 3) {
+                            colorScheme = "red"
+                            variant = "solid"
+                          }
+                          
                           return (
                             <Badge
                               key={site.id}
-                              colorScheme={isRepeated ? "orange" : "blue"}
-                              variant={isRepeated ? "solid" : "subtle"}
+                              colorScheme={colorScheme}
+                              variant={variant}
                             >
                               {site.name}
                             </Badge>
@@ -159,12 +201,23 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
                               {boatEntry ? (
                                 <HStack spacing={1} flexWrap="wrap">
                                   {boatEntry.sites.map((site) => {
-                                    const isRepeated = repetitions.some(r => r.siteId === site.id)
+                                    const repetitionLevel = getRepetitionLevel(boat.id, site.id)
+                                    let colorScheme = "blue"
+                                    let variant = "subtle"
+                                    
+                                    if (repetitionLevel === 2) {
+                                      colorScheme = "orange"
+                                      variant = "solid"
+                                    } else if (repetitionLevel >= 3) {
+                                      colorScheme = "red"
+                                      variant = "solid"
+                                    }
+                                    
                                     return (
                                       <Badge
                                         key={site.id}
-                                        colorScheme={isRepeated ? "orange" : "blue"}
-                                        variant={isRepeated ? "solid" : "subtle"}
+                                        colorScheme={colorScheme}
+                                        variant={variant}
                                         fontSize="xs"
                                       >
                                         {site.name}
@@ -189,20 +242,32 @@ export default function SiteMatrix({ siteMatrix }: SiteMatrixProps) {
         {repetitions.length > 0 && (
           <Box mt={4} p={3} bg="orange.50" borderRadius="md">
             <Text fontSize="sm" fontWeight="medium" color="orange.800" mb={2}>
-              Repeated Sites:
+              Boat Site Repetitions (Last 7 Days):
             </Text>
             <VStack spacing={1} align="start">
-              {repetitions.map(({ siteId, usage }) => {
+              {repetitions.map(({ boatId, siteId, usage }) => {
+                const boat = siteMatrix
+                  .flatMap(day => day.boatSites)
+                  .find(bs => bs.boat.id === boatId)?.boat
                 const site = siteMatrix
                   .flatMap(day => day.boatSites)
                   .flatMap(boatEntry => boatEntry.sites)
                   .find(s => s.id === siteId)
                 
-                return site ? (
-                  <Text key={siteId} fontSize="xs" color="orange.700">
-                    {site.name}: Used on {usage.dates.length} different days
+                if (!boat || !site) return null
+                
+                let repetitionText = ""
+                if (usage.count === 2) {
+                  repetitionText = "(2 visits - orange)"
+                } else if (usage.count >= 3) {
+                  repetitionText = `(${usage.count}+ visits - red)`
+                }
+                
+                return (
+                  <Text key={`${boatId}-${siteId}`} fontSize="xs" color="orange.700">
+                    {boat.name} - {site.name}: {usage.count} times {repetitionText}
                   </Text>
-                ) : null
+                )
               })}
             </VStack>
           </Box>
