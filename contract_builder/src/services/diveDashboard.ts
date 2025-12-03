@@ -30,7 +30,7 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
   const statsCurrentYear = calculateDiveStatsForPeriod(dives, boats, guides, 'currentYear')
   
   const siteMatrix = generateSiteMatrix(dives, boats, sites)
-  const temperatureTrends = calculateTemperatureTrends(dives)
+  const temperatureTrends = calculateTemperatureTrends(dives, 'all') // Get all data for client-side filtering
   const siteVisitation = calculateSiteVisitation(dives, sites)
   const seasonalPatterns = calculateSeasonalPatterns(dives, species)
 
@@ -43,6 +43,11 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
     siteVisitation,
     seasonalPatterns
   }
+}
+
+export async function getTemperatureTrends(period: 'all' | '30days' | '12months' | '24months' = 'all'): Promise<TemperatureTrend[]> {
+  const dives = await getDives()
+  return calculateTemperatureTrends(dives, period)
 }
 
 function calculateDiveStats(
@@ -221,7 +226,7 @@ function generateSiteMatrix(
   return matrix
 }
 
-function calculateTemperatureTrends(dives: Dive[]): TemperatureTrend[] {
+function calculateTemperatureTrends(dives: Dive[], period: 'all' | '30days' | '12months' | '24months' = 'all'): TemperatureTrend[] {
   const tempByDate = new Map<string, { temperatures: number[], count: number }>()
 
   dives.forEach(dive => {
@@ -238,7 +243,27 @@ function calculateTemperatureTrends(dives: Dive[]): TemperatureTrend[] {
   })
 
   const trends: TemperatureTrend[] = []
-  const sortedDates = Array.from(tempByDate.keys()).sort().slice(-30) // Last 30 days
+  let sortedDates = Array.from(tempByDate.keys()).sort()
+
+  // Filter by period
+  const now = new Date()
+  let cutoffDate: Date
+  
+  switch (period) {
+    case '30days':
+      cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      break
+    case '12months':
+      cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+      break
+    case '24months':
+      cutoffDate = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate())
+      break
+    default:
+      cutoffDate = new Date(0) // All data
+  }
+  
+  sortedDates = sortedDates.filter(date => new Date(date) >= cutoffDate)
 
   sortedDates.forEach(date => {
     const data = tempByDate.get(date)!

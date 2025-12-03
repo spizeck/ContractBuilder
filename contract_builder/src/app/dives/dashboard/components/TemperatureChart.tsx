@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   Box,
   Card,
@@ -12,53 +13,289 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  useBreakpointValue
+  Button,
+  ButtonGroup,
+  useBreakpointValue,
+  Spinner
 } from '@chakra-ui/react'
 import type { TemperatureTrend } from '@/types/dashboard'
 import { formatDiveDate } from '@/utils/dateUtils'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { getTemperatureTrends } from '@/services/diveDashboard'
 
 interface TemperatureChartProps {
   trends: TemperatureTrend[]
 }
 
+type TimePeriod = '30days' | '12months' | '24months'
+
 export default function TemperatureChart({ trends }: TemperatureChartProps) {
   const isMobile = useBreakpointValue({ base: true, md: false })
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('30days')
+  const [periodTrends, setPeriodTrends] = useState<TemperatureTrend[]>(trends)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchPeriodData = async () => {
+      setLoading(true)
+      try {
+        const data = await getTemperatureTrends(selectedPeriod)
+        setPeriodTrends(data)
+      } catch (error) {
+        console.error('Failed to fetch temperature trends:', error)
+        // Fallback to client-side filtering if API fails
+        const filtered = filterDataByPeriod(trends, selectedPeriod)
+        setPeriodTrends(filtered)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPeriodData()
+  }, [selectedPeriod])
   
   const celsiusToFahrenheit = (celsius: number) => {
     return Math.round((celsius * 9/5 + 32) * 10) / 10
   }
 
-  if (trends.length === 0) {
+  // Outlier detection using IQR method
+  const removeOutliers = (data: TemperatureTrend[]): TemperatureTrend[] => {
+    if (data.length < 5) return data // Need minimum data points for outlier detection
+    
+    const temperatures = data.map(d => d.temperature)
+    const sorted = [...temperatures].sort((a, b) => a - b)
+    
+    const q1Index = Math.floor(sorted.length * 0.25)
+    const q3Index = Math.floor(sorted.length * 0.75)
+    const q1 = sorted[q1Index]
+    const q3 = sorted[q3Index]
+    const iqr = q3 - q1
+    
+    const lowerBound = q1 - (1.5 * iqr)
+    const upperBound = q3 + (1.5 * iqr)
+    
+    return data.filter(d => d.temperature >= lowerBound && d.temperature <= upperBound)
+  }
+
+  // Apply smoothing using moving average
+  const smoothData = (data: TemperatureTrend[], windowSize: number = 3): TemperatureTrend[] => {
+    if (data.length <= windowSize) return data
+    
+    const smoothed: TemperatureTrend[] = []
+    
+    for (let i = 0; i < data.length; i++) {
+      const start = Math.max(0, i - Math.floor(windowSize / 2))
+      const end = Math.min(data.length, i + Math.floor(windowSize / 2) + 1)
+      const window = data.slice(start, end)
+      
+      const avgTemp = window.reduce((sum, d) => sum + d.temperature, 0) / window.length
+      const totalDives = window.reduce((sum, d) => sum + d.diveCount, 0)
+      
+      smoothed.push({
+        ...data[i],
+        temperature: Math.round(avgTemp * 10) / 10,
+        diveCount: Math.round(totalDives / window.length)
+      })
+    }
+    
+    return smoothed
+  }
+
+  const filterDataByPeriod = (data: TemperatureTrend[], period: TimePeriod) => {
+    const now = new Date()
+    let cutoffDate: Date
+    
+    switch (period) {
+      case '30days':
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        break
+      case '12months':
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+        break
+      case '24months':
+        cutoffDate = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate())
+        break
+      default:
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    }
+    
+    return data.filter(trend => new Date(trend.date) >= cutoffDate)
+  }
+
+  if (loading) {
     return (
       <Card>
         <CardHeader>
-          <Heading size="md">Temperature Trends</Heading>
+          <VStack align="start" spacing={1}>
+            <HStack justify="space-between" w="full">
+              <Heading size="md">Temperature Trends</Heading>
+              <ButtonGroup size="sm" isAttached variant="outline">
+                <Button 
+                  onClick={() => setSelectedPeriod('30days')}
+                  bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
+                >
+                  30 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('12months')}
+                  bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
+                >
+                  12 Months
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('24months')}
+                  bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
+                >
+                  24 Months
+                </Button>
+              </ButtonGroup>
+            </HStack>
+            <Text fontSize="sm" color="gray.600">
+              Water temperature patterns over time
+            </Text>
+          </VStack>
         </CardHeader>
-        <CardBody>
-          <Text color="gray.500">No temperature data available</Text>
+        <CardBody display="flex" justifyContent="center" alignItems="center" minH="300px">
+          <VStack spacing={4}>
+            <Spinner size="xl" color="orange.500" />
+            <Text color="gray.600">Loading temperature data...</Text>
+          </VStack>
         </CardBody>
       </Card>
     )
   }
 
-  const sortedTrends = [...trends].sort((a, b) => 
+  if (periodTrends.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <VStack align="start" spacing={1}>
+            <HStack justify="space-between" w="full">
+              <Heading size="md">Temperature Trends</Heading>
+              <ButtonGroup size="sm" isAttached variant="outline">
+                <Button 
+                  onClick={() => setSelectedPeriod('30days')}
+                  bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
+                >
+                  30 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('12months')}
+                  bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
+                >
+                  12 Months
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('24months')}
+                  bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
+                  color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
+                >
+                  24 Months
+                </Button>
+              </ButtonGroup>
+            </HStack>
+            <Text fontSize="sm" color="gray.600">
+              Water temperature patterns over time
+            </Text>
+          </VStack>
+        </CardHeader>
+        <CardBody>
+          <Text color="gray.500">No temperature data available for selected period</Text>
+        </CardBody>
+      </Card>
+    )
+  }
+
+  const sortedTrends = [...periodTrends].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
   )
 
-  const latestTemp = sortedTrends[sortedTrends.length - 1]?.temperature || 0
-  const avgTemp = sortedTrends.reduce((sum, trend) => sum + trend.temperature, 0) / sortedTrends.length
-  const maxTemp = Math.max(...sortedTrends.map(t => t.temperature))
-  const minTemp = Math.min(...sortedTrends.map(t => t.temperature))
+  // Apply outlier removal and smoothing
+  const cleanedTrends = removeOutliers(sortedTrends)
+  const smoothedTrends = smoothData(cleanedTrends)
+  
+  // Calculate stats from cleaned data
+  const latestTemp = smoothedTrends[smoothedTrends.length - 1]?.temperature || 0
+  const avgTemp = smoothedTrends.reduce((sum, trend) => sum + trend.temperature, 0) / smoothedTrends.length || 0
+  const maxTemp = Math.max(...smoothedTrends.map(t => t.temperature))
+  const minTemp = Math.min(...smoothedTrends.map(t => t.temperature))
 
-  // Simple bar chart visualization using Chakra UI components
-  const maxBarHeight = 100
-  const tempRange = maxTemp - minTemp || 1
+  // Prepare data for recharts
+  const chartData = smoothedTrends.map(trend => ({
+    date: formatDiveDate(new Date(trend.date)),
+    temperature: trend.temperature,
+    fahrenheit: celsiusToFahrenheit(trend.temperature),
+    diveCount: trend.diveCount
+  }))
+
+  // Calculate Y-axis domain with padding
+  const tempRange = maxTemp - minTemp
+  const yDomain = [
+    Math.max(0, minTemp - tempRange * 0.1), // 10% padding below, but not below 0
+    maxTemp + tempRange * 0.1 // 10% padding above
+  ]
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box bg="white" p={2} border="1px solid" borderColor="gray.200" borderRadius="md">
+          <Text fontSize="sm" fontWeight="medium">{payload[0].payload.date}</Text>
+          <Text fontSize="sm" color="orange.600">
+            {payload[0].value}°C / {payload[0].payload.fahrenheit}°F
+          </Text>
+          <Text fontSize="xs" color="gray.600">
+            {payload[0].payload.diveCount} dives
+          </Text>
+        </Box>
+      )
+    }
+    return null
+  }
 
   return (
     <Card>
       <CardHeader>
         <VStack align="start" spacing={1}>
-          <Heading size="md">Temperature Trends (Last 30 Days)</Heading>
+          <HStack justify="space-between" w="full">
+            <Heading size="md">Temperature Trends</Heading>
+            <ButtonGroup size="sm" isAttached variant="outline">
+              <Button 
+                onClick={() => setSelectedPeriod('30days')}
+                bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
+                color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
+              >
+                30 Days
+              </Button>
+              <Button 
+                onClick={() => setSelectedPeriod('12months')}
+                bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
+                color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
+              >
+                12 Months
+              </Button>
+              <Button 
+                onClick={() => setSelectedPeriod('24months')}
+                bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
+                color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
+              >
+                24 Months
+              </Button>
+            </ButtonGroup>
+          </HStack>
           <Text fontSize="sm" color="gray.600">
             Water temperature patterns over time
           </Text>
@@ -90,98 +327,64 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
           </Stat>
         </HStack>
 
-        {/* Temperature Chart */}
-        <Box>
-          <Text fontSize="sm" fontWeight="medium" mb={3}>Daily Temperatures</Text>
-          
-          {isMobile ? (
-            // Mobile: Show last 7 days
-            <VStack spacing={2} align="stretch">
-              {sortedTrends.slice(-7).map((trend) => (
-                <HStack key={trend.date} justify="space-between" align="center">
-                  <Text fontSize="xs" color="gray.600" minW="60px">
-                    {formatDiveDate(new Date(trend.date))}
-                  </Text>
-                  <Box flex="1" px={2}>
-                    <HStack spacing={2} align="center">
-                      <Box
-                        h="20px"
-                        bg="orange.400"
-                        borderRadius="sm"
-                        width={`${((trend.temperature - minTemp) / tempRange) * 100}%`}
-                        minW="2px"
-                      />
-                      <Text fontSize="xs" fontWeight="medium" minW="60px">
-                        {trend.temperature}°C / {celsiusToFahrenheit(trend.temperature)}°F
-                      </Text>
-                    </HStack>
-                  </Box>
-                </HStack>
-              ))}
-            </VStack>
-          ) : (
-            // Desktop: Show bar chart
-            <Box>
-              {/* Y-axis labels */}
-              <HStack spacing={0} align="flex-end" mb={2}>
-                <Box minW="40px">
-                  <Text fontSize="xs" color="gray.600" textAlign="right">
-                    {maxTemp.toFixed(1)}°C
-                  </Text>
-                  <Text fontSize="xs" color="gray.500" textAlign="right">
-                    {celsiusToFahrenheit(maxTemp)}°F
-                  </Text>
-                </Box>
-                <Box flex="1" h="4px" bg="gray.200" borderRadius="sm" />
-              </HStack>
+        {/* Line Chart */}
+        <Box h="300px" w="full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                yAxisId="celsius"
+                tick={{ fontSize: 12 }}
+                label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', dy: 75 }}
+                domain={yDomain}
+                tickFormatter={(value) => Number(value).toFixed(1)}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                yAxisId="celsius"
+                type="monotone" 
+                dataKey="temperature" 
+                stroke="#ed8936" 
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
 
-              {/* Chart bars */}
-              <HStack spacing={1} align="flex-end" h={maxBarHeight}>
-                {sortedTrends.slice(-14).map((trend) => (
-                  <VStack key={trend.date} flex="1" spacing={0}>
-                    <Box
-                      w="full"
-                      bg="orange.400"
-                      borderRadius="sm"
-                      h={`${((trend.temperature - minTemp) / tempRange) * maxBarHeight}px`}
-                      title={`${formatDiveDate(new Date(trend.date))}: ${trend.temperature}°C / ${celsiusToFahrenheit(trend.temperature)}°F (${trend.diveCount} dives)`}
-                    />
-                  </VStack>
-                ))}
-              </HStack>
-
-              {/* X-axis labels */}
-              <HStack spacing={1} mt={2}>
-                {sortedTrends.slice(-14).map((trend) => (
-                  <Box key={trend.date} flex="1">
-                    <Text fontSize="xs" color="gray.600" textAlign="center">
-                      {new Date(trend.date).getDate()}
-                    </Text>
-                  </Box>
-                ))}
-              </HStack>
-
-              {/* Min temp label */}
-              <HStack spacing={0} align="flex-start" mt={2}>
-                <Box minW="40px">
-                  <Text fontSize="xs" color="gray.600" textAlign="right">
-                    {minTemp.toFixed(1)}°C
-                  </Text>
-                  <Text fontSize="xs" color="gray.500" textAlign="right">
-                    {celsiusToFahrenheit(minTemp)}°F
-                  </Text>
-                </Box>
-                <Box flex="1" h="4px" bg="gray.200" borderRadius="sm" />
-              </HStack>
-            </Box>
-          )}
-
-          {/* Legend */}
-          <Box mt={4} p={2} bg="gray.50" borderRadius="md">
-            <Text fontSize="xs" color="gray.600">
-              Showing last {isMobile ? '7' : '14'} days of temperature data
+        {/* Temperature Insights */}
+        <Box mt={6} p={4} bg="orange.50" borderRadius="md">
+          <Text fontSize="sm" fontWeight="medium" color="orange.800" mb={2}>
+            Temperature Insights
+          </Text>
+          <VStack align="start" spacing={1}>
+            <Text fontSize="xs" color="orange.700">
+              • Raw data points: {sortedTrends.length} temperature readings
             </Text>
-          </Box>
+            <Text fontSize="xs" color="orange.700">
+              • After cleaning: {smoothedTrends.length} data points displayed
+            </Text>
+            <Text fontSize="xs" color="orange.700">
+              • Temperature variance: {(maxTemp - minTemp).toFixed(1)}°C
+            </Text>
+            <Text fontSize="xs" color="orange.700">
+              • Trending: {avgTemp > latestTemp ? 'Cooling ' : avgTemp < latestTemp ? 'Warming ' : 'Stable '} 
+              {Math.abs(avgTemp - latestTemp).toFixed(1)}°C from average
+            </Text>
+            {sortedTrends.length > smoothedTrends.length && (
+              <Text fontSize="xs" color="orange.600" fontStyle="italic">
+                • Outliers removed: {sortedTrends.length - smoothedTrends.length} data points filtered
+              </Text>
+            )}
+          </VStack>
         </Box>
       </CardBody>
     </Card>
