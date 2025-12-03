@@ -34,6 +34,7 @@ export default function NavLinks() {
 
   const diveLogLinks = (
     <>
+      <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
       <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
       <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
       {(role === 'admin' || role === 'manager') && (
