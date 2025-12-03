@@ -7,8 +7,11 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Flex
+  Flex,
+  Input,
+  IconButton
 } from '@chakra-ui/react'
+import { CheckIcon, CloseIcon } from '@chakra-ui/icons'
 import {
   ContractData,
   DivePackage,
@@ -31,7 +34,8 @@ import {
 import {
   calculateNumberOfNights,
   calculateTotalCost,
-  determineSeason
+  determineSeason,
+  getCommissionRate
 } from '@/utils/contractCalculations'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { getRoomTypes } from '@/services/roomTypes'
@@ -57,6 +61,118 @@ export default function TotalCostCalculation ({
     typeof calculateTotalCost
   > | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // Custom room rates state
+  const [customRates, setCustomRates] = useState<{ [key: string]: number }>({})
+  const [isEditingRates, setIsEditingRates] = useState(false)
+  const [tempRates, setTempRates] = useState<{ [key: string]: number }>({})
+  const [originalRates, setOriginalRates] = useState<{ [key: string]: number }>({})
+
+  // Handler functions for rate editing
+  const handleStartEditingRates = () => {
+    if (results && results.roomCosts) {
+      const rates: { [key: string]: number } = {}
+      results.roomCosts.forEach((rc, idx) => {
+        // Extract rate from description string
+        const rateMatch = rc.description.match(/@ \$(\d+\.\d+)\/night/)
+        if (rateMatch) {
+          rates[idx] = parseFloat(rateMatch[1])
+        }
+      })
+      setTempRates(rates)
+      setOriginalRates(rates)
+      setIsEditingRates(true)
+    }
+  }
+
+  const handleSaveRates = () => {
+    setCustomRates(tempRates)
+    setIsEditingRates(false)
+    // Recalculate costs with new rates
+    recalculateWithCustomRates(tempRates)
+  }
+
+  const handleCancelEditingRates = () => {
+    setTempRates(originalRates)
+    setIsEditingRates(false)
+  }
+
+  const handleRateChange = (idx: number, value: string) => {
+    const numValue = parseFloat(value)
+    if (!isNaN(numValue) && numValue >= 0) {
+      setTempRates(prev => ({ ...prev, [idx]: numValue }))
+    }
+  }
+
+  const recalculateWithCustomRates = (rates: { [key: string]: number }) => {
+    // This will be implemented to recalculate costs with custom rates
+    // For now, we'll trigger a re-render by updating results
+    if (results && season) {
+      // Create a copy of results with updated rates
+      const updatedRoomCosts = results.roomCosts.map((rc, idx) => {
+        if (rates[idx] !== undefined) {
+          const nightsMatch = rc.description.match(/for (\d+) nights/)
+          const roomsMatch = rc.description.match(/(\d+) x/)
+          const nights = nightsMatch ? parseInt(nightsMatch[1]) : 1
+          const numRooms = roomsMatch ? parseInt(roomsMatch[1]) : 1
+          const newRate = rates[idx]
+          const gross = numRooms * nights * newRate
+          const commissionRate = getCommissionRate(contractData.bookingType || '')
+          const commission = gross * commissionRate
+          const net = gross - commission
+          
+          // Update description with new rate
+          const newDescription = rc.description.replace(/@ \$\d+\.\d+\/night/, `@ $${newRate.toFixed(2)}/night`)
+          
+          return {
+            ...rc,
+            description: newDescription,
+            gross,
+            commission,
+            net
+          }
+        }
+        return rc
+      })
+
+      // Recalculate totals
+      const newRoomTotals = updatedRoomCosts.reduce(
+        (acc, rc) => ({
+          gross: acc.gross + rc.gross,
+          foc: acc.foc + (rc.foc || 0),
+          commission: acc.commission + rc.commission,
+          net: acc.net + rc.net
+        }),
+        { gross: 0, foc: 0, commission: 0, net: 0 }
+      )
+
+      // Apply FOC calculation similar to original
+      const focDeduction = results.roomTotals.foc || 0
+      const adjustedGross = newRoomTotals.gross - focDeduction
+      const commissionRate = getCommissionRate(contractData.bookingType || '')
+      const finalRoomTotals = {
+        gross: newRoomTotals.gross,
+        foc: focDeduction,
+        commission: adjustedGross * commissionRate,
+        net: adjustedGross * (1 - commissionRate)
+      }
+
+      // Update overall totals
+      const newOverall = {
+        gross: finalRoomTotals.gross + (results.diveTotals?.gross || 0) + (results.mealTotals?.gross || 0),
+        foc: (finalRoomTotals.foc || 0) + (results.diveTotals?.foc || 0),
+        commission: finalRoomTotals.commission + (results.diveTotals?.commission || 0) + (results.mealTotals?.commission || 0),
+        net: finalRoomTotals.net + (results.diveTotals?.net || 0) + (results.mealTotals?.net || 0)
+      }
+
+      setResults({
+        ...results,
+        roomCosts: updatedRoomCosts,
+        roomTotals: finalRoomTotals,
+        overall: newOverall
+      })
+    }
+  }
 
   const handleConfirm = async () => {
     try {
@@ -245,21 +361,67 @@ export default function TotalCostCalculation ({
         <CardHeader py={2} px={3}>
           <Flex justify='space-between'>
             <Text fontWeight='bold'>Rooms</Text>
-            {onEditStep && (
-              <Button size='sm' onClick={() => onEditStep(2)}>
-                Edit
+            <HStack spacing={2}>
+              {onEditStep && (
+                <Button size='sm' onClick={() => onEditStep(2)}>
+                  Edit Rooms
+                </Button>
+              )}
+              <Button size='sm' onClick={isEditingRates ? handleCancelEditingRates : handleStartEditingRates}>
+                {isEditingRates ? 'Cancel' : 'Edit Rates'}
               </Button>
-            )}
+            </HStack>
           </Flex>
         </CardHeader>
         <CardBody>
           {roomCosts.map((rc, idx) => (
-            <Text key={idx}>{rc.description}</Text>
+            <VStack key={idx} align='stretch' spacing={1}>
+              {isEditingRates ? (
+                <HStack spacing={2}>
+                  <Text flex={1}>{rc.description.replace(/@ \$\d+\.\d+\/night/, '@ $')}</Text>
+                  <Input
+                    type='number'
+                    value={tempRates[idx]?.toFixed(2) || ''}
+                    onChange={(e) => handleRateChange(idx, e.target.value)}
+                    size='sm'
+                    width='80px'
+                    step='0.01'
+                    min='0'
+                  />
+                  <Text>/night</Text>
+                </HStack>
+              ) : (
+                <Text>
+                  {rc.description}
+                  {customRates[idx] !== undefined && ' *'}
+                </Text>
+              )}
+            </VStack>
           ))}
           <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
           <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
           <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
+          {isEditingRates && (
+            <HStack spacing={2} mt={3}>
+              <Button
+                size='sm'
+                colorScheme='green'
+                leftIcon={<CheckIcon />}
+                onClick={handleSaveRates}
+              >
+                Save Rates
+              </Button>
+              <Button
+                size='sm'
+                colorScheme='red'
+                leftIcon={<CloseIcon />}
+                onClick={handleCancelEditingRates}
+              >
+                Cancel
+              </Button>
+            </HStack>
+          )}
         </CardBody>
       </Card>
 
