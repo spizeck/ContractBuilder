@@ -23,6 +23,8 @@ import { onLogsForAsset, deleteMaintenanceLog } from "@/services/maintenance";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getTechnicians } from "@/services/technicians";
+import { isHoursTracked, isKmTracked } from "@/types/maintenance";
+import UpdateTrackingModal from "./UpdateTrackingModal";
 
 export default function LogsModal({
   isOpen,
@@ -43,6 +45,7 @@ export default function LogsModal({
   const [selectedLog, setSelectedLog] = useState<MaintenanceLog | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [showUpdateTrackingModal, setShowUpdateTrackingModal] = useState(false);
   const router = useRouter();
   const { user, role } = useAuth();
 
@@ -110,6 +113,14 @@ export default function LogsModal({
 
   const handleDeleteLog = async (log: MaintenanceLog) => {
     await deleteMaintenanceLog(log.id);
+  };
+
+  const openUpdateTrackingModal = () => {
+    setShowUpdateTrackingModal(true);
+  };
+
+  const closeUpdateTrackingModal = () => {
+    setShowUpdateTrackingModal(false);
   };
 
   const toggleCollapsed = (id: string) => {
@@ -291,6 +302,16 @@ export default function LogsModal({
             <Button variant="ghost" mr={3} onClick={onClose}>
               Close
             </Button>
+            {asset && (isHoursTracked(asset) || isKmTracked(asset)) && (
+              <Button 
+                variant="outline" 
+                mr={3} 
+                onClick={openUpdateTrackingModal}
+                isDisabled={!asset?.id}
+              >
+                Update {isHoursTracked(asset) ? "Hours" : "Kilometers"}
+              </Button>
+            )}
             <Button colorScheme="blue" onClick={goToAddLog} isDisabled={!asset?.id}>
               Add Log
             </Button>
@@ -339,6 +360,12 @@ export default function LogsModal({
           </ModalContent>
         </Modal>
       )}
+
+      <UpdateTrackingModal
+        isOpen={showUpdateTrackingModal}
+        onClose={closeUpdateTrackingModal}
+        asset={asset}
+      />
     </>
   );
 }
