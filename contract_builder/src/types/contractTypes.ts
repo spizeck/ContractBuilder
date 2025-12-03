@@ -10,6 +10,8 @@ export interface ContractData {
   numDivers?: number;
   mealPackageId?: string;
   createdAt?: Date;
+  customRates?: { [key: string]: number }; // Custom room rates for this contract
+  hasCustomRates?: boolean; // Flag to indicate if custom rates are used
 }
 
 export interface RoomSelection {
@@ -96,6 +98,8 @@ export interface GroupContract {
   diveTotals?: Totals;
   mealTotals?: Totals;
   overall?: Totals;
+  customRates?: { [key: string]: number }; // Custom room rates for this contract
+  hasCustomRates?: boolean; // Flag to indicate if custom rates are used
 }
 
 export interface Rate {

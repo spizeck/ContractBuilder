@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   Box,
+  Button,
   Divider,
   Heading,
+  HStack,
   Spinner,
   Text,
   VStack,
-  HStack
 } from '@chakra-ui/react'
 import { getGroupContractById } from '@/services/groupContracts'
 import { getHotelById } from '@/services/hotels'
@@ -23,11 +24,20 @@ import { getCommissionRate } from '@/utils/contractCalculations'
 
 export default function ViewContractPage () {
   const params = useParams()
+  const router = useRouter()
   const { id } = params // Firestore contract id
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const handleGoBack = () => {
+    router.back()
+  }
+
+  const handlePrintToPDF = () => {
+    window.print()
+  }
 
   useEffect(() => {
     async function fetchData () {
@@ -72,7 +82,24 @@ export default function ViewContractPage () {
 
   return (
     <VStack p={10} spacing={6} align='stretch'>
-      <Heading size='lg'>Group Contract</Heading>
+      <HStack justify='space-between' align='center'>
+        <Heading size='lg'>Group Contract</Heading>
+        <HStack spacing={3} className='no-print'>
+          <Button 
+            onClick={handlePrintToPDF}
+            colorScheme='blue'
+            variant='outline'
+          >
+            Print to PDF
+          </Button>
+          <Button 
+            onClick={handleGoBack}
+            colorScheme='gray'
+          >
+            Go Back
+          </Button>
+        </HStack>
+      </HStack>
       <Divider />
 
       {/* Contract Details */}
@@ -212,7 +239,7 @@ export default function ViewContractPage () {
       </Box>
 
       {/* Signature */}
-      <Box mt={6}>
+      <Box mt={6} className='signature-section'>
         <Heading size='md' mb={2} py={4}>
           Customer Acceptance
         </Heading>
@@ -236,4 +263,62 @@ export default function ViewContractPage () {
       </Box>
     </VStack>
   )
+}
+
+// Add print styles for better PDF output
+if (typeof window !== 'undefined') {
+  const style = document.createElement('style')
+  style.textContent = `
+    @media print {
+      @page {
+        margin: 0.5in;
+        size: A4;
+      }
+      
+      body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .no-print {
+        display: none !important;
+      }
+      
+      /* Reduce top margin for first page */
+      main {
+        padding: 1rem 2rem !important;
+      }
+      
+      /* Reduce padding on the contract container */
+      .chakra-vstack {
+        padding: 1rem !important;
+      }
+      
+      /* Ensure text doesn't break awkwardly */
+      * {
+        page-break-inside: avoid;
+      }
+      
+      /* Force proper spacing */
+      h1, h2, h3 {
+        page-break-after: avoid;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      /* Ensure signatures are on the same page */
+      .signature-section {
+        page-break-inside: avoid;
+        margin-top: 2rem;
+      }
+      
+      /* Reduce spacing between sections */
+      .chakra-stack {
+        margin-top: 0.5rem !important;
+      }
+    }
+  `
+  document.head.appendChild(style)
 }

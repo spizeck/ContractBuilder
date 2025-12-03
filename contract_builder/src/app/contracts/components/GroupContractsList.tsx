@@ -57,8 +57,16 @@ export default function GroupContractsList ({
   const fetchContracts = async () => {
     const contractsData = await getGroupContracts()
     const activeContracts = contractsData.filter(c => !c.archived)
-    setContracts(activeContracts)
-    setFilteredContracts(activeContracts)
+    
+    // Sort contracts by start date (oldest first)
+    const sortedContracts = activeContracts.sort((a, b) => {
+      const dateA = new Date(a.startDate)
+      const dateB = new Date(b.startDate)
+      return dateA.getTime() - dateB.getTime()
+    })
+    
+    setContracts(sortedContracts)
+    setFilteredContracts(sortedContracts)
   }
 
   const fetchHotels = async () => {
@@ -99,7 +107,14 @@ export default function GroupContractsList ({
       )
     }
 
-    setFilteredContracts(filtered)
+    // Maintain sorting by start date even after filtering
+    const sortedFiltered = filtered.sort((a, b) => {
+      const dateA = new Date(a.startDate)
+      const dateB = new Date(b.startDate)
+      return dateA.getTime() - dateB.getTime()
+    })
+
+    setFilteredContracts(sortedFiltered)
   }
 
   function parseCreatedAt (dateVal: any): Date {

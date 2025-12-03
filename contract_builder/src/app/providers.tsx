@@ -25,6 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           px={8}
           align="center"
           justify="space-between"
+          className="no-print"
         >
           <Link as={NextLink} href="/" _hover={{ textDecoration: 'none' }}>
             <Heading as="h1" size="lg">
