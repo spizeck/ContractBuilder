@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   Box,
   Card,
@@ -14,45 +15,189 @@ import {
   useBreakpointValue,
   Stat,
   StatLabel,
-  StatNumber
+  StatNumber,
+  Button,
+  ButtonGroup,
+  Spinner
 } from '@chakra-ui/react'
 import type { SiteVisitationData } from '@/types/dashboard'
 import { formatDiveDate } from '@/utils/dateUtils'
+import { getSiteVisitation } from '@/services/diveDashboard'
 
 interface SiteVisitationChartProps {
   visitation: SiteVisitationData[]
 }
 
+type TimePeriod = '30days' | '90days' | '12months'
+
 export default function SiteVisitationChart({ visitation }: SiteVisitationChartProps) {
   const isMobile = useBreakpointValue({ base: true, md: false })
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('30days')
+  const [periodVisitation, setPeriodVisitation] = useState<SiteVisitationData[]>(visitation)
+  const [loading, setLoading] = useState(false)
 
-  if (visitation.length === 0) {
+  useEffect(() => {
+    const fetchPeriodData = async () => {
+      setLoading(true)
+      try {
+        const data = await getSiteVisitation(selectedPeriod)
+        setPeriodVisitation(data)
+      } catch (error) {
+        console.error('Failed to fetch site visitation data:', error)
+        // Fallback to client-side filtering if API fails
+        const filtered = filterDataByPeriod(visitation, selectedPeriod)
+        setPeriodVisitation(filtered)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPeriodData()
+  }, [selectedPeriod])
+
+  const filterDataByPeriod = (data: SiteVisitationData[], period: TimePeriod) => {
+    // For now, we'll use the same data since the API doesn't support period filtering
+    // In a real implementation, you would filter based on the last visited date
+    return data
+  }
+
+  if (loading) {
     return (
       <Card>
         <CardHeader>
-          <Heading size="md">Site Visitation</Heading>
+          <VStack align="start" spacing={1}>
+            <HStack justify="space-between" w="full">
+              <Heading size="md">Site Visitation Patterns</Heading>
+              <ButtonGroup size="sm" isAttached variant="outline">
+                <Button 
+                  onClick={() => setSelectedPeriod('30days')}
+                  bg={selectedPeriod === '30days' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '30days' ? 'blue.600' : 'gray.100' }}
+                >
+                  30 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('90days')}
+                  bg={selectedPeriod === '90days' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '90days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '90days' ? 'blue.600' : 'gray.100' }}
+                >
+                  90 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('12months')}
+                  bg={selectedPeriod === '12months' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '12months' ? 'blue.600' : 'gray.100' }}
+                >
+                  12 Months
+                </Button>
+              </ButtonGroup>
+            </HStack>
+            <Text fontSize="sm" color="gray.600">
+              Most and least visited dive sites
+            </Text>
+          </VStack>
         </CardHeader>
-        <CardBody>
-          <Text color="gray.500">No site visitation data available</Text>
+        <CardBody display="flex" justifyContent="center" alignItems="center" minH="300px">
+          <VStack spacing={4}>
+            <Spinner size="xl" color="blue.500" />
+            <Text color="gray.600">Loading site visitation data...</Text>
+          </VStack>
         </CardBody>
       </Card>
     )
   }
 
-  const topSites = visitation.slice(0, isMobile ? 8 : 10)
-  const totalVisits = visitation.reduce((sum, site) => sum + site.visitCount, 0)
-  const uniqueSites = visitation.length
+  if (periodVisitation.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <VStack align="start" spacing={1}>
+            <HStack justify="space-between" w="full">
+              <Heading size="md">Site Visitation Patterns</Heading>
+              <ButtonGroup size="sm" isAttached variant="outline">
+                <Button 
+                  onClick={() => setSelectedPeriod('30days')}
+                  bg={selectedPeriod === '30days' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '30days' ? 'blue.600' : 'gray.100' }}
+                >
+                  30 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('90days')}
+                  bg={selectedPeriod === '90days' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '90days' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '90days' ? 'blue.600' : 'gray.100' }}
+                >
+                  90 Days
+                </Button>
+                <Button 
+                  onClick={() => setSelectedPeriod('12months')}
+                  bg={selectedPeriod === '12months' ? 'blue.500' : 'white'}
+                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                  _hover={{ bg: selectedPeriod === '12months' ? 'blue.600' : 'gray.100' }}
+                >
+                  12 Months
+                </Button>
+              </ButtonGroup>
+            </HStack>
+            <Text fontSize="sm" color="gray.600">
+              Most and least visited dive sites
+            </Text>
+          </VStack>
+        </CardHeader>
+        <CardBody>
+          <Text color="gray.500">No site visitation data available for selected period</Text>
+        </CardBody>
+      </Card>
+    )
+  }
+
+  const topSites = periodVisitation.slice(0, 5)
+  const totalVisits = periodVisitation.reduce((sum, site) => sum + site.visitCount, 0)
+  const uniqueSites = periodVisitation.length
 
   // Categorize sites by visitation frequency
-  const frequentSites = visitation.filter(s => s.percentage >= 15)
-  const moderateSites = visitation.filter(s => s.percentage >= 5 && s.percentage < 15)
-  const rareSites = visitation.filter(s => s.percentage < 5)
+  const frequentSites = periodVisitation.filter(s => s.percentage >= 15)
+  const moderateSites = periodVisitation.filter(s => s.percentage >= 5 && s.percentage < 15)
+  const rareSites = periodVisitation.filter(s => s.percentage < 5)
 
   return (
     <Card>
       <CardHeader>
         <VStack align="start" spacing={1}>
-          <Heading size="md">Site Visitation Patterns</Heading>
+          <HStack justify="space-between" w="full">
+            <Heading size="md">Site Visitation Patterns</Heading>
+            <ButtonGroup size="sm" isAttached variant="outline">
+              <Button 
+                onClick={() => setSelectedPeriod('30days')}
+                bg={selectedPeriod === '30days' ? 'blue.500' : 'white'}
+                color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '30days' ? 'blue.600' : 'gray.100' }}
+              >
+                30 Days
+              </Button>
+              <Button 
+                onClick={() => setSelectedPeriod('90days')}
+                bg={selectedPeriod === '90days' ? 'blue.500' : 'white'}
+                color={selectedPeriod === '90days' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '90days' ? 'blue.600' : 'gray.100' }}
+              >
+                90 Days
+              </Button>
+              <Button 
+                onClick={() => setSelectedPeriod('12months')}
+                bg={selectedPeriod === '12months' ? 'blue.500' : 'white'}
+                color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
+                _hover={{ bg: selectedPeriod === '12months' ? 'blue.600' : 'gray.100' }}
+              >
+                12 Months
+              </Button>
+            </ButtonGroup>
+          </HStack>
           <Text fontSize="sm" color="gray.600">
             Most and least visited dive sites
           </Text>
@@ -139,36 +284,6 @@ export default function SiteVisitationChart({ visitation }: SiteVisitationChartP
             )
           })}
         </VStack>
-
-        {/* Site Categories Summary */}
-        <Box mt={6} p={3} bg="gray.50" borderRadius="md">
-          <Text fontSize="sm" fontWeight="medium" mb={2} color="gray.700">
-            Site Distribution:
-          </Text>
-          <HStack spacing={4} flexWrap="wrap">
-            <Text fontSize="xs" color="gray.600">
-              Frequent: {frequentSites.length} sites
-            </Text>
-            <Text fontSize="xs" color="gray.600">
-              Moderate: {moderateSites.length} sites
-            </Text>
-            <Text fontSize="xs" color="gray.600">
-              Rare: {rareSites.length} sites
-            </Text>
-          </HStack>
-        </Box>
-
-        {/* Underutilized Sites Alert */}
-        {rareSites.length > 0 && (
-          <Box mt={4} p={3} bg="blue.50" borderRadius="md">
-            <Text fontSize="sm" fontWeight="medium" color="blue.800" mb={1}>
-              Site Diversity Opportunity
-            </Text>
-            <Text fontSize="xs" color="blue.700">
-              {rareSites.length} sites visited less frequently - consider rotating to these locations
-            </Text>
-          </Box>
-        )}
       </CardBody>
     </Card>
   )

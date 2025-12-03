@@ -31,7 +31,7 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
   
   const siteMatrix = generateSiteMatrix(dives, boats, sites)
   const temperatureTrends = calculateTemperatureTrends(dives, 'all') // Get all data for client-side filtering
-  const siteVisitation = calculateSiteVisitation(dives, sites)
+  const siteVisitation = calculateSiteVisitation(dives, sites, 'all') // Get all data for client-side filtering
   const seasonalPatterns = calculateSeasonalPatterns(dives, species)
 
   return {
@@ -48,6 +48,11 @@ export async function getDiveDashboardData(): Promise<DiveDashboardData> {
 export async function getTemperatureTrends(period: 'all' | '30days' | '12months' | '24months' = 'all'): Promise<TemperatureTrend[]> {
   const dives = await getDives()
   return calculateTemperatureTrends(dives, period)
+}
+
+export async function getSiteVisitation(period: 'all' | '30days' | '90days' | '12months' = 'all'): Promise<SiteVisitationData[]> {
+  const [dives, sites] = await Promise.all([getDives(), getSites()])
+  return calculateSiteVisitation(dives, sites, period)
 }
 
 function calculateDiveStats(
@@ -281,14 +286,38 @@ function calculateTemperatureTrends(dives: Dive[], period: 'all' | '30days' | '1
   return trends
 }
 
-function calculateSiteVisitation(dives: Dive[], sites: Site[]): SiteVisitationData[] {
+function calculateSiteVisitation(dives: Dive[], sites: Site[], period: 'all' | '30days' | '90days' | '12months' = 'all'): SiteVisitationData[] {
+  // Filter dives by period
+  let filteredDives: Dive[] = dives
+  
+  if (period !== 'all') {
+    const now = new Date()
+    let cutoffDate: Date
+    
+    switch (period) {
+      case '30days':
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        break
+      case '90days':
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+        break
+      case '12months':
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+        break
+      default:
+        cutoffDate = new Date(0)
+    }
+    
+    filteredDives = dives.filter(dive => new Date(dive.date) >= cutoffDate)
+  }
+
   const siteStats = new Map<string, { count: number, lastVisited: Date }>()
 
   sites.forEach(site => {
     siteStats.set(site.id, { count: 0, lastVisited: new Date(0) })
   })
 
-  dives.forEach(dive => {
+  filteredDives.forEach(dive => {
     const stats = siteStats.get(dive.diveSiteId)
     if (stats) {
       stats.count++
@@ -299,7 +328,7 @@ function calculateSiteVisitation(dives: Dive[], sites: Site[]): SiteVisitationDa
     }
   })
 
-  const totalVisits = dives.length
+  const totalVisits = filteredDives.length
   const visitation: SiteVisitationData[] = []
 
   siteStats.forEach((stats, siteId) => {
