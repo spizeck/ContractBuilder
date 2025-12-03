@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Button, Heading, Text, VStack, TableContainer } from '@chakra-ui/react'
-import GroupContractWizard from './GroupContractWizard'
-import GroupContractsList from './GroupContractsList'
+import GroupContractWizard from './components/GroupContractWizard'
+import GroupContractsList from './components/GroupContractsList'
 import ProtectedPage from "@/components/ProtectedPage";
 
 export default function ContractPage () {
