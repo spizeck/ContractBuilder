@@ -13,6 +13,7 @@ import {
   where,
   onSnapshot,
   runTransaction,
+  DocumentData,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Asset, AssetCategory, ServiceTracking } from "@/types/maintenance";
@@ -21,7 +22,7 @@ import type { Asset, AssetCategory, ServiceTracking } from "@/types/maintenance"
 const assetsCollection = collection(db, "assets");
 
 // ---- Normalization (consolidated from utils) ----
-export function normalizeAsset(doc: any, id: string): Asset {
+export function normalizeAsset(doc: DocumentData, id: string): Asset {
   const serviceTracking: ServiceTracking = (doc.serviceTracking as ServiceTracking) ?? "none";
 
   const createdAt = toDate(doc.createdAt);
@@ -81,17 +82,19 @@ export function normalizeAsset(doc: any, id: string): Asset {
   return { ...base, serviceTracking: "none" };
 }
 
-function toDate(v: any): Date | undefined {
+function toDate(v: unknown): Date | undefined {
   if (!v) return undefined;
   if (v instanceof Date) return v;
-  if (v?.toDate) return v.toDate() as Date;
+  if (typeof v === 'object' && v !== null && 'toDate' in v && typeof v.toDate === 'function') {
+    return v.toDate() as Date;
+  }
   if (typeof v === "string") {
     const d = new Date(v);
     return isNaN(+d) ? undefined : d;
   }
   return undefined;
 }
-function num(v: any): number | undefined {
+function num(v: unknown): number | undefined {
   if (v == null) return undefined;
   const n = Number(v);
   return isNaN(n) ? undefined : n;
@@ -206,7 +209,7 @@ export async function unlinkAssets(parentId: string, childId: string) {
 
 const assetsConverter: FirestoreDataConverter<Asset> = {
   toFirestore(asset: Asset) {
-    return asset as any;
+    return asset as DocumentData;
   },
   fromFirestore(snapshot, options) {
     // Normalize everything including Dates/tracking

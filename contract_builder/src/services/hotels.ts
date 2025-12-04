@@ -6,12 +6,13 @@ import {
   doc,
   getDoc,
   getDocs,
-  updateDoc
+  updateDoc,
+  DocumentData,
 } from 'firebase/firestore'
 import { Hotel } from '@/types/contractTypes'
 
 // Add a new hotel
-export async function addHotel (hotelData: any) {
+export async function addHotel(hotelData: Omit<Hotel, 'id'>) {
   try {
     const docRef = await addDoc(collection(db, 'hotels'), hotelData)
     console.log('Hotel added with ID: ', docRef.id)
@@ -31,7 +32,7 @@ export async function getHotels (): Promise<Hotel[]> {
 }
 
 // Edit hotel data
-export async function updateHotel (hotelId: string, hotelData: any) {
+export async function updateHotel(hotelId: string, hotelData: Partial<Hotel>) {
   const hotelRef = doc(db, 'hotels', hotelId)
   try {
     await updateDoc(hotelRef, hotelData)

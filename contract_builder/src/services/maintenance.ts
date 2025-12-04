@@ -15,15 +15,19 @@ import {
   onSnapshot,
   limit,
   Timestamp,
+  DocumentData,
+  QueryConstraint,
 } from 'firebase/firestore'
 import { MaintenanceLog } from '@/types/maintenance'
 import { updateAsset } from '@/services/assets'
+import type { Asset } from '@/types/maintenance'
+import { handleError, AppError, NotFoundError, safeAsync } from '@/utils/errorHandler'
 
 // Central collection ref
 const logsCollection = collection(db, 'maintenanceLogs')
 
 // ---- Normalization (consolidated from utils) ----
-export function normalizeLog(doc: any, id: string): MaintenanceLog {
+export function normalizeLog(doc: DocumentData, id: string): MaintenanceLog {
   return {
     id,
     assetId: doc.assetId,
@@ -50,29 +54,28 @@ export function normalizeLog(doc: any, id: string): MaintenanceLog {
   };
 }
 
-function toDate(v: any): Date | undefined {
+function toDate(v: unknown): Date | undefined {
   if (!v) return undefined;
   if (v instanceof Date) return v;
-  if (v?.toDate) return v.toDate() as Date;
+  if (typeof v === 'object' && v !== null && 'toDate' in v && typeof v.toDate === 'function') {
+    return v.toDate() as Date;
+  }
   if (typeof v === "string") {
     const d = new Date(v);
     return isNaN(+d) ? undefined : d;
   }
   return undefined;
 }
-function num(v: any): number | undefined {
+function num(v: unknown): number | undefined {
   if (v == null) return undefined;
   const n = Number(v);
   return isNaN(n) ? undefined : n;
 }
 
-async function syncAssetFromLog(raw: any) {
-  if (!raw) return;
-
-  const assetId = raw.assetId;
+async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, nextServiceDueHours, nextServiceDue }: DocumentData) {
   if (!assetId) return;
 
-  const date = toDate(raw.date);
+  const logDate = toDate(date);
 
   // Load current asset state so we can avoid overwriting with older logs
   const assetRef = doc(db, "assets", assetId);
@@ -86,17 +89,17 @@ async function syncAssetFromLog(raw: any) {
   );
 
   const reading =
-    raw.readingHours != null
-      ? num(raw.readingHours)
-      : raw.hoursAtService != null
-      ? num(raw.hoursAtService)
+    readingHours != null
+      ? num(readingHours)
+      : hoursAtService != null
+      ? num(hoursAtService)
       : undefined;
 
   const nextDue =
-    raw.nextServiceDueHours != null
-      ? num(raw.nextServiceDueHours)
-      : raw.nextServiceDue != null
-      ? num(raw.nextServiceDue)
+    nextServiceDueHours != null
+      ? num(nextServiceDueHours)
+      : nextServiceDue != null
+      ? num(nextServiceDue)
       : undefined;
 
   const update: any = {};
@@ -111,10 +114,10 @@ async function syncAssetFromLog(raw: any) {
   if (nextDue != null) {
     // Only update next service / last service date if this log is not older
     // than the asset's existing lastServiceDate (when present).
-    if (!date || !assetLastServiceDate || date >= assetLastServiceDate) {
+    if (!logDate || !assetLastServiceDate || logDate >= assetLastServiceDate) {
       update.nextServiceDueHours = nextDue;
-      if (date) {
-        update.lastServiceDate = date;
+      if (logDate) {
+        update.lastServiceDate = logDate;
       }
     }
   }
@@ -187,15 +190,21 @@ export async function deleteMaintenanceLog(id: string) {
 }
 
 export async function getMaintenanceLog(id: string): Promise<MaintenanceLog | null> {
-  try {
+  const [result, error] = await safeAsync(async () => {
     const ref = doc(db, "maintenanceLogs", id)
     const docSnap = await getDoc(ref)
-    if (!docSnap.exists()) return null
+    if (!docSnap.exists()) {
+      throw new NotFoundError("Maintenance log not found")
+    }
     return normalizeLog(docSnap.data(), docSnap.id)
-  } catch (err) {
-    console.error("Failed to get maintenance log:", err)
+  }, "getMaintenanceLog")
+  
+  if (error) {
+    console.error("Failed to get maintenance log:", error)
     return null
   }
+  
+  return result
 }
 
 // ---- Live subscriptions ----
@@ -233,7 +242,7 @@ export function onLogsInDateRange(
 ): () => void {
   const col = collection(db, "maintenanceLogs").withConverter(logConverter);
 
-  const constraints: any[] = [orderBy("date", "desc")];
+  const constraints: QueryConstraint[] = [orderBy("date", "desc")];
   if (start) constraints.push(where("date", ">=", Timestamp.fromDate(start)));
   if (end) constraints.push(where("date", "<=", Timestamp.fromDate(end)));
   if (opts?.technicianId) constraints.push(where("technicianId", "==", opts.technicianId));

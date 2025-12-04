@@ -7,15 +7,16 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  serverTimestamp,
-  FirestoreDataConverter,
   query,
-  where,
   orderBy,
+  where,
   onSnapshot,
   limit,
   startAfter,
   DocumentSnapshot,
+  DocumentData,
+  FirestoreDataConverter,
+  serverTimestamp,
 } from "firebase/firestore";
 import { Technician } from "@/types/maintenance";
 
@@ -84,10 +85,10 @@ export async function deleteTechnician(id: string) {
 
 const techConverter: FirestoreDataConverter<Technician> = {
   toFirestore(t: Technician) {
-    return t as any;
+    return t as DocumentData;
   },
   fromFirestore(snapshot, options) {
-    const data = snapshot.data(options) as any;
+    const data = snapshot.data(options) as DocumentData;
     return {
       id: snapshot.id,
       ...data,

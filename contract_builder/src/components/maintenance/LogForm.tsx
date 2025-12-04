@@ -9,8 +9,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { addMaintenanceLog, updateMaintenanceLog, getMaintenanceLog } from "@/services/maintenance"
 import { getAssets } from "@/services/assets"
 import { getTechnicians } from "@/services/technicians"
-import { Asset, Technician, MaintenanceLog } from "@/types/maintenance"
-import { useAuth } from "@/context/AuthContext"
+import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
+import { MaintenanceLogForm } from '@/types/formTypes'
+import { useAuth } from '@/context/AuthContext'
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()
@@ -18,7 +19,12 @@ export default function LogForm({ id }: { id?: string }) {
   const prefillAssetId = searchParams?.get("assetId") ?? undefined
 
   const toInputDate = (d: Date) => d.toISOString().split("T")[0]
-  const [form, setForm] = useState<any>({ date: toInputDate(new Date()) })
+  const [form, setForm] = useState<MaintenanceLogForm>({ 
+    date: toInputDate(new Date()),
+    assetId: '',
+    summary: '',
+    kind: 'service'
+  })
   const [assets, setAssets] = useState<Asset[]>([])
   const [techs, setTechs] = useState<Technician[]>([])
   const [loading, setLoading] = useState(false)
@@ -40,8 +46,22 @@ export default function LogForm({ id }: { id?: string }) {
         const log = await getMaintenanceLog(id)
         if (log) {
           setForm({
-            ...log,
             date: toInputDate(new Date(log.date)),
+            assetId: log.assetId,
+            summary: log.summary,
+            details: log.details,
+            technicianId: log.technicianId,
+            kind: log.kind,
+            readingHours: log.readingHours,
+            nextServiceDueHours: log.nextServiceDueHours,
+            readingKilometers: log.readingKilometers,
+            nextServiceDueKilometers: log.nextServiceDueKilometers,
+            nextServiceDueDate: log.nextServiceDueDate ? toInputDate(new Date(log.nextServiceDueDate)) : undefined,
+            cost: log.cost,
+            attachments: log.attachments,
+            // Legacy fields
+            hoursAtService: log.hoursAtService,
+            nextServiceDue: log.nextServiceDue,
           })
           // derive cascading selects from the stored assetId
           deriveSelectionsFromAssetId(log.assetId, a)
@@ -69,13 +89,13 @@ export default function LogForm({ id }: { id?: string }) {
       setParentAssetId(parent?.id || "")
       setSubAssetId(target.id)
       // assetId should point to the actual item we are logging against (child)
-      setForm((f: any) => ({ ...f, assetId: target.id }))
+      setForm((f: MaintenanceLogForm) => ({ ...f, assetId: target.id }))
     } else {
       // target is a parent asset (no parentAssetId)
       setCategory(target.category || "")
       setParentAssetId(target.id)
       setSubAssetId("") // no sub selected
-      setForm((f: any) => ({ ...f, assetId: target.id }))
+      setForm((f: MaintenanceLogForm) => ({ ...f, assetId: target.id }))
     }
   }
 
@@ -89,7 +109,7 @@ export default function LogForm({ id }: { id?: string }) {
     setCategory(value)
     setParentAssetId("")
     setSubAssetId("")
-    setForm((f: any) => ({ ...f, assetId: "" }))
+    setForm((f: MaintenanceLogForm) => ({ ...f, assetId: '' }))
   }
 
   // Always treat a parent as a valid maintenance target.
@@ -97,13 +117,13 @@ export default function LogForm({ id }: { id?: string }) {
   function handleParentChange(value: string) {
     setParentAssetId(value)
     setSubAssetId("")
-    setForm((f: any) => ({ ...f, assetId: value }))
+    setForm((f: MaintenanceLogForm) => ({ ...f, assetId: value }))
   }
 
   // Selecting a sub-asset sets the form.assetId to the child's id.
   function handleSubChange(value: string) {
     setSubAssetId(value)
-    setForm((f: any) => ({ ...f, assetId: value }))
+    setForm((f: MaintenanceLogForm) => ({ ...f, assetId: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,10 +131,21 @@ export default function LogForm({ id }: { id?: string }) {
     setLoading(true)
     try {
       const [y, m, d] = form.date.split("-").map(Number)
-      const payload = {
+      const selectedAsset = assets.find(a => a.id === form.assetId)
+      if (!selectedAsset) {
+        toast({ title: "Invalid asset selected", status: "error" })
+        setLoading(false)
+        return
+      }
+      
+      const payload: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string } = {
         ...form,
         date: new Date(y, m - 1, d),
         createdBy: user?.uid || "system",
+        assetName: selectedAsset.name,
+        category: selectedAsset.category,
+        // Convert string date back to Date if present
+        nextServiceDueDate: form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : undefined,
       }
 
       if (!payload.assetId) {
@@ -124,14 +155,25 @@ export default function LogForm({ id }: { id?: string }) {
       }
 
       // Strip undefined fields before sending to Firebase to prevent update errors
-      const cleanedPayload: any = Object.fromEntries(
+      const cleanedPayload = Object.fromEntries(
         Object.entries(payload).filter(([_, value]) => value !== undefined)
-      )
+      ) as Partial<MaintenanceLog>
 
       if (id) {
         await updateMaintenanceLog(id, cleanedPayload)
       } else {
-        await addMaintenanceLog(cleanedPayload)
+        // Ensure all required fields are present for new logs
+        const requiredPayload: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string } = {
+          assetId: payload.assetId!,
+          assetName: payload.assetName!,
+          category: payload.category!,
+          kind: payload.kind!,
+          date: payload.date!,
+          summary: payload.summary!,
+          createdBy: payload.createdBy!,
+          ...(cleanedPayload as Partial<MaintenanceLog>)
+        }
+        await addMaintenanceLog(requiredPayload)
       }
 
       toast({ title: "Saved", status: "success" })
@@ -205,11 +247,11 @@ export default function LogForm({ id }: { id?: string }) {
                     if (v === parentAssetId) {
                       // user chose to log to the parent
                       setSubAssetId("")
-                      setForm((f: any) => ({ ...f, assetId: parentAssetId }))
+                      setForm((f: MaintenanceLogForm) => ({ ...f, assetId: parentAssetId }))
                     } else {
                       // user chose a child
                       setSubAssetId(v)
-                      setForm((f: any) => ({ ...f, assetId: v }))
+                      setForm((f: MaintenanceLogForm) => ({ ...f, assetId: v }))
                     }
                   }}
                   autoComplete="off"
@@ -276,7 +318,7 @@ export default function LogForm({ id }: { id?: string }) {
             <Input
               type="number"
               value={form.hoursAtService || ""}
-              onChange={(e) => setForm({ ...form, hoursAtService: e.target.value })}
+              onChange={(e) => setForm({ ...form, hoursAtService: e.target.value ? parseFloat(e.target.value) : undefined })}
               autoComplete="off"
             />
           </FormControl>
@@ -286,7 +328,7 @@ export default function LogForm({ id }: { id?: string }) {
             <Input
               type="number"
               value={form.nextServiceDue || ""}
-              onChange={(e) => setForm({ ...form, nextServiceDue: e.target.value })}
+              onChange={(e) => setForm({ ...form, nextServiceDue: e.target.value ? parseFloat(e.target.value) : undefined })}
               autoComplete="off"
             />
           </FormControl>
@@ -297,7 +339,7 @@ export default function LogForm({ id }: { id?: string }) {
               type="number"
               step="0.01"
               value={form.cost || ""}
-              onChange={(e) => setForm({ ...form, cost: e.target.value })}
+              onChange={(e) => setForm({ ...form, cost: e.target.value ? parseFloat(e.target.value) : undefined })}
               autoComplete="off"
             />
           </FormControl>
