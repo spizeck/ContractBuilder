@@ -41,7 +41,8 @@ const CATEGORY_ORDER: Record<AssetCategory, number> = {
   Compressors: 1,
   Vehicles: 2,
   "Scuba Equipment": 3,
-  Other: 4,
+  "Scuba Tanks": 4,
+  Other: 5,
 };
 
 export default function AssetsPage() {
