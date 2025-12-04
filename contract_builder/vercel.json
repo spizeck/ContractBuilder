@@ -3,11 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm ci",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "runtime": "nodejs22.x"
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
