@@ -11,6 +11,19 @@ const nextConfig = {
     config.resolve.alias["@"] = path.resolve(__dirname, "src");
     return config;
   },
+
+  // Vercel optimization
+  compress: true,
+  poweredByHeader: false,
+  // Image optimization
+  images: {
+    domains: ["firebasestorage.googleapis.com"],
+    formats: ["image/webp", "image/avif"],
+  },
+  // Build optimizations
+  experimental: {
+    optimizePackageImports: ["@chakra-ui/react", "framer-motion"],
+  },
 };
 
 export default nextConfig;
