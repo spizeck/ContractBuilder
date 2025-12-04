@@ -12,6 +12,7 @@ const categories = [
   "Compressors",
   "Vehicles",
   "Scuba Equipment",
+  "Scuba Tanks",
   "Other",
 ] as const;
 
@@ -28,14 +29,14 @@ export interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader(props: DashboardHeaderProps) {
-  const technicians = props.technicians ?? []; // guard undefined
-
   const techOptions = useMemo(
-    () =>
-      [{ id: "All", name: "All Technicians" } as any].concat(
+    () => {
+      const technicians = props.technicians ?? []; // guard undefined
+      return [{ id: "All", name: "All Technicians" } as any].concat(
         technicians.map((t) => ({ id: t.id, name: t.name }))
-      ),
-    [technicians]
+      );
+    },
+    [props.technicians]
   );
 
   // Ensure the dashboard header does not obscure global navbar dropdowns.

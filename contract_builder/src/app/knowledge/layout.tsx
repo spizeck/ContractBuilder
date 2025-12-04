@@ -1,7 +1,6 @@
 import { Metadata } from "next";
-import { Container, Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "@chakra-ui/react";
-import { ChevronRightIcon } from "@chakra-ui/icons";
-import Link from "next/link";
+import { Container, Box } from "@chakra-ui/react";
+import KnowledgeBreadcrumb from "./components/KnowledgeBreadcrumb";
 
 export const metadata: Metadata = {
   title: "Knowledge Base | Sea Saba Business App",
@@ -16,20 +15,7 @@ export default function KnowledgeLayout({
   return (
     <Box minH="full">
       <Container maxW="container.xl" py={4}>
-        <Breadcrumb
-          spacing={2}
-          separator={<ChevronRightIcon color="gray.500" />}
-          fontSize="sm"
-        >
-          <BreadcrumbItem>
-            <BreadcrumbLink as={Link} href="/">
-              Home
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>
-            <BreadcrumbLink>Knowledge Base</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
+        <KnowledgeBreadcrumb />
       </Container>
       
       {children}
