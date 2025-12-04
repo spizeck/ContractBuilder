@@ -33,6 +33,7 @@ const ALLOWED_CATEGORIES: AssetCategory[] = [
   "Compressors",
   "Vehicles",
   "Scuba Equipment",
+  "Scuba Tanks",
   "Other",
 ];
 
