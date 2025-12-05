@@ -21,11 +21,14 @@ import {
   formatFocRule
 } from '@/utils/formatters'
 import { getCommissionRate } from '@/utils/contractCalculations'
+import SignedContractUpload from '../../components/SignedContractUpload'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ViewContractPage () {
   const params = useParams()
   const router = useRouter()
   const { id } = params // Firestore contract id
+  const { user } = useAuth()
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
@@ -33,6 +36,28 @@ export default function ViewContractPage () {
 
   const handleGoBack = () => {
     router.back()
+  }
+
+  const handleUploadSuccess = (url: string) => {
+    if (contract && user) {
+      setContract({
+        ...contract,
+        signedContractUrl: url,
+        signedContractUploadedAt: new Date(),
+        signedContractUploadedBy: user.uid
+      })
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    if (contract) {
+      setContract({
+        ...contract,
+        signedContractUrl: undefined,
+        signedContractUploadedAt: undefined,
+        signedContractUploadedBy: undefined
+      })
+    }
   }
 
   const handlePrintToPDF = () => {
@@ -260,6 +285,18 @@ export default function ViewContractPage () {
             <Box flex='1' borderBottom='1px solid #000' />
           </HStack>
         </VStack>
+      </Box>
+
+      {/* Signed Contract Upload */}
+      <Box mt={6} className='no-print'>
+        <SignedContractUpload
+          contractId={id as string}
+          currentUrl={contract?.signedContractUrl}
+          uploadedAt={contract?.signedContractUploadedAt}
+          uploadedBy={contract?.signedContractUploadedBy}
+          onUploadSuccess={handleUploadSuccess}
+          onDeleteSuccess={handleDeleteSuccess}
+        />
       </Box>
     </VStack>
   )

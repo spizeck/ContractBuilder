@@ -100,6 +100,9 @@ export interface GroupContract {
   overall?: Totals;
   customRates?: { [key: string]: number }; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
+  signedContractUrl?: string; // URL to the uploaded signed contract PDF
+  signedContractUploadedAt?: Date; // When the signed contract was uploaded
+  signedContractUploadedBy?: string; // UID of user who uploaded the signed contract
 }
 
 export interface Rate {
