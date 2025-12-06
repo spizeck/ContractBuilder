@@ -1,4 +1,4 @@
-import DivePackagesList from '@/app/dive-packages/DivePackagesList'
+import DivePackagesList from './components/DivePackagesList'
 import ProtectedPage from '@/components/ProtectedPage'
 export default function DivePackagesPage () {
   return (

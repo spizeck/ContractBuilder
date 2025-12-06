@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react'
 import { Site } from '@/types/diveLogTypes'
 import { addSite, deleteSite, getSites, updateSite } from '@/services/sites'
-import AddEditSiteForm from './AddEditSiteForm'
+import AddEditSiteForm from '../components/AddEditSiteForm'
 import ProtectedPage from '@/components/ProtectedPage'
 
 export default function SitesPage () {

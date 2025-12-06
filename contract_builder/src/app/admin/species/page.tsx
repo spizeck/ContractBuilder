@@ -22,7 +22,7 @@ import {
   getSpecies,
   updateSpecies
 } from '@/services/species'
-import AddEditSpeciesForm from './AddEditSpeciesForm'
+import AddEditSpeciesForm from '../components/AddEditSpeciesForm'
 import ProtectedPage from '@/components/ProtectedPage'
 
 export default function SpeciesPage () {

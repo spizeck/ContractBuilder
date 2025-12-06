@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {Box, Button, Heading, HStack, Spinner, Table, Tbody, Td, Th, Thead, Tr, TableContainer, Flex, Text} from '@chakra-ui/react'
 import {deleteTechnician, getTechniciansPaginated, PaginatedTechniciansResult} from "@/services/technicians";
 import {Technician} from "@/types/maintenance";
-import AddEditTechnicianForm from "@/app/maintenance/technicians/AddEditTechnicianForm";
+import AddEditTechnicianForm from "../components/AddEditTechnicianForm";
 import {DocumentSnapshot} from "firebase/firestore";
 
 export default function TechniciansPage() {

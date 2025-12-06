@@ -18,7 +18,7 @@ import {
 import { Boat } from '@/types/diveLogTypes'
 import ProtectedPage from '@/components/ProtectedPage'
 import { addBoat, deleteBoat, getBoats, updateBoat } from '@/services/boats'
-import AddEditBoatForm from './AddEditBoatForm'
+import AddEditBoatForm from '../components/AddEditBoatForm'
 
 export default function BoatsPage () {
   const [boats, setBoats] = useState<Boat[]>([])
