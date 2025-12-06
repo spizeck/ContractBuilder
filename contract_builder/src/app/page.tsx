@@ -68,20 +68,23 @@ export default function Home() {
           transition="all 0.2s"
         >
           <CardBody>
-            <VStack spacing={4}>
-              <Icon as={TbScubaMask} boxSize={12} color="teal.500" />
-              <Stack spacing={2} textAlign="center">
-                <Heading size="md">Dive Log</Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Log your dives
-                </Text>
-              </Stack>
+            <VStack spacing={4} h="full" justify="space-between">
+              <VStack spacing={4}>
+                <Icon as={TbScubaMask} boxSize={12} color="teal.500" />
+                <Stack spacing={2} textAlign="center">
+                  <Heading size="md">Dive Log</Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Log your dives
+                  </Text>
+                </Stack>
+              </VStack>
               <Button
                 as={NextLink}
                 href="/dives/log"
                 colorScheme="teal"
                 variant="solid"
                 w="full"
+                alignSelf="stretch"
               >
                 Log Dive
               </Button>
@@ -97,20 +100,23 @@ export default function Home() {
           transition="all 0.2s"
         >
           <CardBody>
-            <VStack spacing={4}>
-              <Icon as={FiFileText} boxSize={12} color="blue.500" />
-              <Stack spacing={2} textAlign="center">
-                <Heading size="md">Contracts</Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Create and manage group contracts
-                </Text>
-              </Stack>
+            <VStack spacing={4} h="full" justify="space-between">
+              <VStack spacing={4}>
+                <Icon as={FiFileText} boxSize={12} color="blue.500" />
+                <Stack spacing={2} textAlign="center">
+                  <Heading size="md">Contracts</Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Create and manage group contracts
+                  </Text>
+                </Stack>
+              </VStack>
               <Button
                 as={NextLink}
                 href="/contracts"
                 colorScheme="blue"
                 variant="solid"
                 w="full"
+                alignSelf="stretch"
               >
                 Manage Contracts
               </Button>
@@ -126,20 +132,23 @@ export default function Home() {
           transition="all 0.2s"
         >
           <CardBody>
-            <VStack spacing={4}>
-              <Icon as={FiBarChart2} boxSize={12} color="purple.500" />
-              <Stack spacing={2} textAlign="center">
-                <Heading size="md">Analytics</Heading>
-                <Text fontSize="sm" color="gray.600">
-                  View operational insights and reports
-                </Text>
-              </Stack>
+            <VStack spacing={4} h="full" justify="space-between">
+              <VStack spacing={4}>
+                <Icon as={FiBarChart2} boxSize={12} color="purple.500" />
+                <Stack spacing={2} textAlign="center">
+                  <Heading size="md">Analytics</Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    View operational insights and reports
+                  </Text>
+                </Stack>
+              </VStack>
               <Button
                 as={NextLink}
                 href="/dives/dashboard"
                 colorScheme="purple"
                 variant="solid"
                 w="full"
+                alignSelf="stretch"
               >
                 View Dashboard
               </Button>
@@ -155,20 +164,23 @@ export default function Home() {
           transition="all 0.2s"
         >
           <CardBody>
-            <VStack spacing={4}>
-              <Icon as={FiTool} boxSize={12} color="orange.500" />
-              <Stack spacing={2} textAlign="center">
-                <Heading size="md">Maintenance</Heading>
-                <Text fontSize="sm" color="gray.600">
-                  Track equipment service and assets
-                </Text>
-              </Stack>
+            <VStack spacing={4} h="full" justify="space-between">
+              <VStack spacing={4}>
+                <Icon as={FiTool} boxSize={12} color="orange.500" />
+                <Stack spacing={2} textAlign="center">
+                  <Heading size="md">Maintenance</Heading>
+                  <Text fontSize="sm" color="gray.600">
+                    Track equipment service and assets
+                  </Text>
+                </Stack>
+              </VStack>
               <Button
                 as={NextLink}
                 href="/maintenance/dashboard"
                 colorScheme="orange"
                 variant="solid"
                 w="full"
+                alignSelf="stretch"
               >
                 Maintenance Hub
               </Button>
