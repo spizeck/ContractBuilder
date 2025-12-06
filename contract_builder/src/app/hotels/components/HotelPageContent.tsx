@@ -2,9 +2,9 @@
 
 import {useState} from "react";
 import {Button, VStack, Heading, Text} from "@chakra-ui/react";
-import AddHotelForm from "@/app/hotels/AddHotelForm";
-import ViewHotels from "@/app/hotels/ViewHotels";
-import HotelDetails from "@/app/hotels/HotelDetails";
+import AddHotelForm from "./AddHotelForm";
+import ViewHotels from "./ViewHotels";
+import HotelDetails from "./HotelDetails";
 
 import {Hotel} from "@/types/contractTypes";
 
