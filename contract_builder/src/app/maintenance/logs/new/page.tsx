@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import LogForm from "../components/LogForm";
+import LogForm from "../../components/LogForm";
 
 export default function NewLogPage() {
   return (
