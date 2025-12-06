@@ -18,7 +18,7 @@ import {
 import { HamburgerIcon } from '@chakra-ui/icons'
 import NextLink from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import LogoutButton from '@/components/LogoutButton'
+import LogoutButton from './LogoutButton'
 
 export default function NavLinks() {
   const { user, role } = useAuth()
