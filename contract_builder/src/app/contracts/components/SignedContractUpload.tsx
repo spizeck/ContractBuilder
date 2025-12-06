@@ -82,7 +82,9 @@ export default function SignedContractUpload({
     setUploadProgress(0)
 
     try {
-      const url = await uploadSignedContract(contractId, file, user.uid)
+      const url = await uploadSignedContract(contractId, file, user.uid, (progress) => {
+        setUploadProgress(progress);
+      });
       toast({
         title: 'Upload successful',
         description: 'Signed contract has been uploaded successfully.',
