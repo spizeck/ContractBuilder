@@ -144,9 +144,19 @@ export default function SummaryCards({
 
       {/* Boat and Guide Breakdown */}
       <Box mt={6}>
-        <HStack mb={3} spacing={3} align="center">
-          <Heading size="sm">Boats & Guides Statistics</Heading>
-          <ButtonGroup size="sm" isAttached variant="outline">
+        <VStack 
+          mb={3} 
+          spacing={3} 
+          align={"start"}
+        >
+          <Heading size="md">Boats & Guides Statistics</Heading>
+          <ButtonGroup 
+            size="sm" 
+            isAttached 
+            variant="outline"
+            width={isMobile ? 'full' : 'auto'}
+            flex={1}
+          >
             <Button 
               onClick={() => onPeriodChange('allTime')}
               isActive={currentPeriod === 'allTime'}
@@ -154,6 +164,7 @@ export default function SummaryCards({
               color={currentPeriod === 'allTime' ? 'white' : undefined}
               _hover={{ bg: currentPeriod === 'allTime' ? 'blue.600' : undefined }}
               _active={{ bg: 'blue.500' }}
+              flex={1}
             >
               All Time
             </Button>
@@ -164,6 +175,7 @@ export default function SummaryCards({
               color={currentPeriod === 'last30days' ? 'white' : undefined}
               _hover={{ bg: currentPeriod === 'last30days' ? 'blue.600' : undefined }}
               _active={{ bg: 'blue.500' }}
+              flex={1}
             >
               Last 30 Days
             </Button>
@@ -174,11 +186,12 @@ export default function SummaryCards({
               color={currentPeriod === 'currentYear' ? 'white' : undefined}
               _hover={{ bg: currentPeriod === 'currentYear' ? 'blue.600' : undefined }}
               _active={{ bg: 'blue.500' }}
+              flex={isMobile ? "1" : undefined}
             >
               Current Year
             </Button>
           </ButtonGroup>
-        </HStack>
+        </VStack>
         
         <HStack spacing={6} align="start" flexWrap="wrap">
           {/* All Boats */}

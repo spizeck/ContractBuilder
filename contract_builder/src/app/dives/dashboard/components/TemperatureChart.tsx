@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -16,241 +16,237 @@ import {
   Button,
   ButtonGroup,
   useBreakpointValue,
-  Spinner
-} from '@chakra-ui/react'
-import type { TemperatureTrend } from '@/types/dashboard'
-import { formatDiveDate } from '@/utils/dateUtils'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { getTemperatureTrends } from '@/services/diveDashboard'
+  Spinner,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import type { TemperatureTrend } from "@/types/dashboard";
+import { formatDiveDate } from "@/utils/dateUtils";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { getTemperatureTrends } from "@/services/diveDashboard";
+import ChartHeader from "./ChartHeader";
 
 interface TemperatureChartProps {
-  trends: TemperatureTrend[]
+  trends: TemperatureTrend[];
 }
 
-type TimePeriod = '30days' | '12months' | '24months'
+type TimePeriod = "30days" | "12months" | "24months";
 
 export default function TemperatureChart({ trends }: TemperatureChartProps) {
-  const isMobile = useBreakpointValue({ base: true, md: false })
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('30days')
-  const [periodTrends, setPeriodTrends] = useState<TemperatureTrend[]>(trends)
-  const [loading, setLoading] = useState(false)
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("30days");
+  const [periodTrends, setPeriodTrends] = useState<TemperatureTrend[]>(trends);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchPeriodData = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const data = await getTemperatureTrends(selectedPeriod)
-        setPeriodTrends(data)
+        const data = await getTemperatureTrends(selectedPeriod);
+        setPeriodTrends(data);
       } catch (error) {
-        console.error('Failed to fetch temperature trends:', error)
+        console.error("Failed to fetch temperature trends:", error);
         // Fallback to client-side filtering if API fails
-        const filtered = filterDataByPeriod(trends, selectedPeriod)
-        setPeriodTrends(filtered)
+        const filtered = filterDataByPeriod(trends, selectedPeriod);
+        setPeriodTrends(filtered);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchPeriodData()
-  }, [selectedPeriod])
-  
+    fetchPeriodData();
+  }, [selectedPeriod]);
+
   const celsiusToFahrenheit = (celsius: number) => {
-    return Math.round((celsius * 9/5 + 32) * 10) / 10
-  }
+    return Math.round(((celsius * 9) / 5 + 32) * 10) / 10;
+  };
 
   // Outlier detection using IQR method
   const removeOutliers = (data: TemperatureTrend[]): TemperatureTrend[] => {
-    if (data.length < 5) return data // Need minimum data points for outlier detection
-    
-    const temperatures = data.map(d => d.temperature)
-    const sorted = [...temperatures].sort((a, b) => a - b)
-    
-    const q1Index = Math.floor(sorted.length * 0.25)
-    const q3Index = Math.floor(sorted.length * 0.75)
-    const q1 = sorted[q1Index]
-    const q3 = sorted[q3Index]
-    const iqr = q3 - q1
-    
-    const lowerBound = q1 - (1.5 * iqr)
-    const upperBound = q3 + (1.5 * iqr)
-    
-    return data.filter(d => d.temperature >= lowerBound && d.temperature <= upperBound)
-  }
+    if (data.length < 5) return data; // Need minimum data points for outlier detection
+
+    const temperatures = data.map((d) => d.temperature);
+    const sorted = [...temperatures].sort((a, b) => a - b);
+
+    const q1Index = Math.floor(sorted.length * 0.25);
+    const q3Index = Math.floor(sorted.length * 0.75);
+    const q1 = sorted[q1Index];
+    const q3 = sorted[q3Index];
+    const iqr = q3 - q1;
+
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+
+    return data.filter(
+      (d) => d.temperature >= lowerBound && d.temperature <= upperBound
+    );
+  };
 
   // Apply smoothing using moving average
-  const smoothData = (data: TemperatureTrend[], windowSize: number = 3): TemperatureTrend[] => {
-    if (data.length <= windowSize) return data
-    
-    const smoothed: TemperatureTrend[] = []
-    
+  const smoothData = (
+    data: TemperatureTrend[],
+    windowSize: number = 3
+  ): TemperatureTrend[] => {
+    if (data.length <= windowSize) return data;
+
+    const smoothed: TemperatureTrend[] = [];
+
     for (let i = 0; i < data.length; i++) {
-      const start = Math.max(0, i - Math.floor(windowSize / 2))
-      const end = Math.min(data.length, i + Math.floor(windowSize / 2) + 1)
-      const window = data.slice(start, end)
-      
-      const avgTemp = window.reduce((sum, d) => sum + d.temperature, 0) / window.length
-      const totalDives = window.reduce((sum, d) => sum + d.diveCount, 0)
-      
+      const start = Math.max(0, i - Math.floor(windowSize / 2));
+      const end = Math.min(data.length, i + Math.floor(windowSize / 2) + 1);
+      const window = data.slice(start, end);
+
+      const avgTemp =
+        window.reduce((sum, d) => sum + d.temperature, 0) / window.length;
+      const totalDives = window.reduce((sum, d) => sum + d.diveCount, 0);
+
       smoothed.push({
         ...data[i],
         temperature: Math.round(avgTemp * 10) / 10,
-        diveCount: Math.round(totalDives / window.length)
-      })
+        diveCount: Math.round(totalDives / window.length),
+      });
     }
-    
-    return smoothed
-  }
+
+    return smoothed;
+  };
 
   const filterDataByPeriod = (data: TemperatureTrend[], period: TimePeriod) => {
-    const now = new Date()
-    let cutoffDate: Date
-    
+    const now = new Date();
+    let cutoffDate: Date;
+
     switch (period) {
-      case '30days':
-        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        break
-      case '12months':
-        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-        break
-      case '24months':
-        cutoffDate = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate())
-        break
+      case "30days":
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "12months":
+        cutoffDate = new Date(
+          now.getFullYear() - 1,
+          now.getMonth(),
+          now.getDate()
+        );
+        break;
+      case "24months":
+        cutoffDate = new Date(
+          now.getFullYear() - 2,
+          now.getMonth(),
+          now.getDate()
+        );
+        break;
       default:
-        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
-    
-    return data.filter(trend => new Date(trend.date) >= cutoffDate)
-  }
+
+    return data.filter((trend) => new Date(trend.date) >= cutoffDate);
+  };
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <VStack align="start" spacing={1}>
-            <HStack justify="space-between" w="full">
-              <Heading size="md">Temperature Trends</Heading>
-              <ButtonGroup size="sm" isAttached variant="outline">
-                <Button 
-                  onClick={() => setSelectedPeriod('30days')}
-                  bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
-                >
-                  30 Days
-                </Button>
-                <Button 
-                  onClick={() => setSelectedPeriod('12months')}
-                  bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
-                >
-                  12 Months
-                </Button>
-                <Button 
-                  onClick={() => setSelectedPeriod('24months')}
-                  bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
-                >
-                  24 Months
-                </Button>
-              </ButtonGroup>
-            </HStack>
-            <Text fontSize="sm" color="gray.600">
-              Water temperature patterns over time
-            </Text>
-          </VStack>
+          <ChartHeader
+            title="Temperature Trends"
+            description="Water temperature patterns over time"
+            selectedPeriod={selectedPeriod}
+            periods={[
+              { value: "30days", label: "30 Days", color: "orange.500" },
+              { value: "12months", label: "12 Months", color: "orange.500" },
+              { value: "24months", label: "24 Months", color: "orange.500" },
+            ]}
+            onPeriodChange={(period) => setSelectedPeriod(period as TimePeriod)}
+          />
         </CardHeader>
-        <CardBody display="flex" justifyContent="center" alignItems="center" minH="300px">
+        <CardBody
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minH="300px"
+        >
           <VStack spacing={4}>
             <Spinner size="xl" color="orange.500" />
             <Text color="gray.600">Loading temperature data...</Text>
           </VStack>
         </CardBody>
       </Card>
-    )
+    );
   }
 
   if (periodTrends.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <VStack align="start" spacing={1}>
-            <HStack justify="space-between" w="full">
-              <Heading size="md">Temperature Trends</Heading>
-              <ButtonGroup size="sm" isAttached variant="outline">
-                <Button 
-                  onClick={() => setSelectedPeriod('30days')}
-                  bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
-                >
-                  30 Days
-                </Button>
-                <Button 
-                  onClick={() => setSelectedPeriod('12months')}
-                  bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
-                >
-                  12 Months
-                </Button>
-                <Button 
-                  onClick={() => setSelectedPeriod('24months')}
-                  bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
-                  color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
-                  _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
-                >
-                  24 Months
-                </Button>
-              </ButtonGroup>
-            </HStack>
-            <Text fontSize="sm" color="gray.600">
-              Water temperature patterns over time
-            </Text>
-          </VStack>
+          <ChartHeader
+            title="Temperature Trends"
+            description="Water temperature patterns over time"
+            selectedPeriod={selectedPeriod}
+            periods={[
+              { value: "30days", label: "30 Days", color: "orange.500" },
+              { value: "12months", label: "12 Months", color: "orange.500" },
+              { value: "24months", label: "24 Months", color: "orange.500" },
+            ]}
+            onPeriodChange={(period) => setSelectedPeriod(period as TimePeriod)}
+          />
         </CardHeader>
         <CardBody>
-          <Text color="gray.500">No temperature data available for selected period</Text>
+          <Text color="gray.500">
+            No temperature data available for selected period
+          </Text>
         </CardBody>
       </Card>
-    )
+    );
   }
 
-  const sortedTrends = [...periodTrends].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  )
+  const sortedTrends = [...periodTrends].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 
   // Apply outlier removal and smoothing
-  const cleanedTrends = removeOutliers(sortedTrends)
-  const smoothedTrends = smoothData(cleanedTrends)
-  
+  const cleanedTrends = removeOutliers(sortedTrends);
+  const smoothedTrends = smoothData(cleanedTrends);
+
   // Calculate stats from cleaned data
-  const latestTemp = smoothedTrends[smoothedTrends.length - 1]?.temperature || 0
-  const avgTemp = smoothedTrends.reduce((sum, trend) => sum + trend.temperature, 0) / smoothedTrends.length || 0
-  const maxTemp = Math.max(...smoothedTrends.map(t => t.temperature))
-  const minTemp = Math.min(...smoothedTrends.map(t => t.temperature))
+  const latestTemp =
+    smoothedTrends[smoothedTrends.length - 1]?.temperature || 0;
+  const avgTemp =
+    smoothedTrends.reduce((sum, trend) => sum + trend.temperature, 0) /
+      smoothedTrends.length || 0;
+  const maxTemp = Math.max(...smoothedTrends.map((t) => t.temperature));
+  const minTemp = Math.min(...smoothedTrends.map((t) => t.temperature));
 
   // Prepare data for recharts
-  const chartData = smoothedTrends.map(trend => ({
+  const chartData = smoothedTrends.map((trend) => ({
     date: formatDiveDate(new Date(trend.date)),
     temperature: trend.temperature,
     fahrenheit: celsiusToFahrenheit(trend.temperature),
-    diveCount: trend.diveCount
-  }))
+    diveCount: trend.diveCount,
+  }));
 
   // Calculate Y-axis domain with padding
-  const tempRange = maxTemp - minTemp
+  const tempRange = maxTemp - minTemp;
   const yDomain = [
     Math.max(0, minTemp - tempRange * 0.1), // 10% padding below, but not below 0
-    maxTemp + tempRange * 0.1 // 10% padding above
-  ]
+    maxTemp + tempRange * 0.1, // 10% padding above
+  ];
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <Box bg="white" p={2} border="1px solid" borderColor="gray.200" borderRadius="md">
-          <Text fontSize="sm" fontWeight="medium">{payload[0].payload.date}</Text>
+        <Box
+          bg="white"
+          p={2}
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="md"
+        >
+          <Text fontSize="sm" fontWeight="medium">
+            {payload[0].payload.date}
+          </Text>
           <Text fontSize="sm" color="orange.600">
             {payload[0].value}°C / {payload[0].payload.fahrenheit}°F
           </Text>
@@ -258,66 +254,49 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
             {payload[0].payload.diveCount} dives
           </Text>
         </Box>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   return (
     <Card>
       <CardHeader>
-        <VStack align="start" spacing={1}>
-          <HStack justify="space-between" w="full">
-            <Heading size="md">Temperature Trends</Heading>
-            <ButtonGroup size="sm" isAttached variant="outline">
-              <Button 
-                onClick={() => setSelectedPeriod('30days')}
-                bg={selectedPeriod === '30days' ? 'orange.500' : 'white'}
-                color={selectedPeriod === '30days' ? 'white' : 'gray.700'}
-                _hover={{ bg: selectedPeriod === '30days' ? 'orange.600' : 'gray.100' }}
-              >
-                30 Days
-              </Button>
-              <Button 
-                onClick={() => setSelectedPeriod('12months')}
-                bg={selectedPeriod === '12months' ? 'orange.500' : 'white'}
-                color={selectedPeriod === '12months' ? 'white' : 'gray.700'}
-                _hover={{ bg: selectedPeriod === '12months' ? 'orange.600' : 'gray.100' }}
-              >
-                12 Months
-              </Button>
-              <Button 
-                onClick={() => setSelectedPeriod('24months')}
-                bg={selectedPeriod === '24months' ? 'orange.500' : 'white'}
-                color={selectedPeriod === '24months' ? 'white' : 'gray.700'}
-                _hover={{ bg: selectedPeriod === '24months' ? 'orange.600' : 'gray.100' }}
-              >
-                24 Months
-              </Button>
-            </ButtonGroup>
-          </HStack>
-          <Text fontSize="sm" color="gray.600">
-            Water temperature patterns over time
-          </Text>
-        </VStack>
+        <ChartHeader
+          title="Temperature Trends"
+          description="Water temperature patterns over time"
+          selectedPeriod={selectedPeriod}
+          periods={[
+            { value: "30days", label: "30 Days", color: "orange.500" },
+            { value: "12months", label: "12 Months", color: "orange.500" },
+            { value: "24months", label: "24 Months", color: "orange.500" },
+          ]}
+          onPeriodChange={(period) => setSelectedPeriod(period as TimePeriod)}
+        />
       </CardHeader>
       <CardBody>
         {/* Temperature Stats */}
         <HStack spacing={6} mb={6} flexWrap="wrap">
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Current</StatLabel>
+            <StatLabel fontSize="xs" color="gray.600">
+              Current
+            </StatLabel>
             <StatNumber fontSize="lg" color="orange.600">
               {latestTemp}°C / {celsiusToFahrenheit(latestTemp)}°F
             </StatNumber>
           </Stat>
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Average</StatLabel>
+            <StatLabel fontSize="xs" color="gray.600">
+              Average
+            </StatLabel>
             <StatNumber fontSize="lg">
               {avgTemp.toFixed(1)}°C / {celsiusToFahrenheit(avgTemp)}°F
             </StatNumber>
           </Stat>
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Range</StatLabel>
+            <StatLabel fontSize="xs" color="gray.600">
+              Range
+            </StatLabel>
             <StatNumber fontSize="lg">
               {minTemp.toFixed(1)}° - {maxTemp.toFixed(1)}°C
             </StatNumber>
@@ -330,28 +309,36 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
         {/* Line Chart */}
         <Box h="300px" w="full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tick={{ fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
-              <YAxis 
+              <YAxis
                 yAxisId="celsius"
                 tick={{ fontSize: 12 }}
-                label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft', dy: 75 }}
+                label={{
+                  value: "Temperature (°C)",
+                  angle: -90,
+                  position: "insideLeft",
+                  dy: 75,
+                }}
                 domain={yDomain}
                 tickFormatter={(value) => Number(value).toFixed(1)}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Line 
+              <Line
                 yAxisId="celsius"
-                type="monotone" 
-                dataKey="temperature" 
-                stroke="#ed8936" 
+                type="monotone"
+                dataKey="temperature"
+                stroke="#ed8936"
                 strokeWidth={3}
                 dot={false}
                 activeDot={{ r: 6 }}
@@ -361,32 +348,39 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
         </Box>
 
         {/* Temperature Insights */}
-        <Box mt={6} p={4} bg="orange.50" borderRadius="md">
-          <Text fontSize="sm" fontWeight="medium" color="orange.800" mb={2}>
+        <Box mt={6} p={4} bg={useColorModeValue('orange.50', 'orange.900')} borderRadius="md">
+          <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('orange.800', 'orange.200')} mb={2}>
             Temperature Insights
           </Text>
           <VStack align="start" spacing={1}>
-            <Text fontSize="xs" color="orange.700">
+            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
               • Raw data points: {sortedTrends.length} temperature readings
             </Text>
-            <Text fontSize="xs" color="orange.700">
+            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
               • After cleaning: {smoothedTrends.length} data points displayed
             </Text>
-            <Text fontSize="xs" color="orange.700">
+            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
               • Temperature variance: {(maxTemp - minTemp).toFixed(1)}°C
             </Text>
-            <Text fontSize="xs" color="orange.700">
-              • Trending: {avgTemp > latestTemp ? 'Cooling ' : avgTemp < latestTemp ? 'Warming ' : 'Stable '} 
+            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
+              • Trending:{" "}
+              {avgTemp > latestTemp
+                ? "Cooling "
+                : avgTemp < latestTemp
+                ? "Warming "
+                : "Stable "}
               {Math.abs(avgTemp - latestTemp).toFixed(1)}°C from average
             </Text>
             {sortedTrends.length > smoothedTrends.length && (
-              <Text fontSize="xs" color="orange.600" fontStyle="italic">
-                • Outliers removed: {sortedTrends.length - smoothedTrends.length} data points filtered
+              <Text fontSize="xs" color={useColorModeValue('orange.600', 'orange.400')} fontStyle="italic">
+                • Outliers removed:{" "}
+                {sortedTrends.length - smoothedTrends.length} data points
+                filtered
               </Text>
             )}
           </VStack>
         </Box>
       </CardBody>
     </Card>
-  )
+  );
 }

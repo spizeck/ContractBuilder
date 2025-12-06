@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Box,
   Card,
@@ -16,7 +17,11 @@ import {
   StatLabel,
   StatNumber,
   Alert,
-  AlertIcon
+  AlertIcon,
+  useColorModeValue,
+  Select,
+  FormControl,
+  FormLabel
 } from '@chakra-ui/react'
 import type { SeasonalWildlifePattern } from '@/types/dashboard'
 
@@ -26,6 +31,37 @@ interface SeasonalWildlifePatternsProps {
 
 export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifePatternsProps) {
   const isMobile = useBreakpointValue({ base: true, md: false })
+  const [selectedSpecies, setSelectedSpecies] = useState<string>('all')
+
+  // Extract unique species from all patterns
+  const allSpecies = new Map()
+  patterns.forEach(pattern => {
+    pattern.species.forEach(species => {
+      if (!allSpecies.has(species.id)) {
+        allSpecies.set(species.id, { ...species, months: [] })
+      }
+      allSpecies.get(species.id).months.push(pattern.month)
+    })
+  })
+
+  const uniqueSpeciesList = Array.from(allSpecies.values()).sort((a, b) => a.name.localeCompare(b.name))
+
+  // Filter patterns based on selected species
+  const filteredPatterns = patterns.map(pattern => {
+    if (selectedSpecies === 'all') {
+      return pattern
+    }
+    
+    const filteredSpecies = pattern.species.filter(species => species.id === selectedSpecies)
+    
+    // If the species is present in this month, keep the pattern with that species
+    // If not, this pattern will be filtered out later
+    return {
+      ...pattern,
+      species: filteredSpecies,
+      totalSightings: filteredSpecies.length > 0 ? Math.ceil(pattern.totalSightings / pattern.species.length) : 0
+    }
+  }).filter(pattern => selectedSpecies === 'all' || pattern.totalSightings > 0)
 
   if (patterns.length === 0) {
     return (
@@ -40,38 +76,111 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
     )
   }
 
-  // Sort patterns by total sightings (descending)
-  const sortedPatterns = [...patterns].sort((a, b) => b.totalSightings - a.totalSightings)
+  // Sort filtered patterns by total sightings (descending)
+  const sortedPatterns = [...filteredPatterns].sort((a, b) => b.totalSightings - a.totalSightings)
   
-  // Find peak and low seasons
+  // Handle empty filtered data
+  if (filteredPatterns.length === 0 && selectedSpecies !== 'all') {
+    const selectedSpeciesName = uniqueSpeciesList.find(s => s.id === selectedSpecies)?.name || 'Selected species'
+    return (
+      <Card>
+        <CardHeader>
+          <VStack align="start" spacing={3}>
+            <VStack align="start" spacing={1}>
+              <Heading size="md">Seasonal Wildlife Patterns</Heading>
+              <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+                Species sightings by month to plan wildlife-focused dives
+              </Text>
+            </VStack>
+            
+            {/* Species Selection Dropdown */}
+            <FormControl w="full" maxW="300px">
+              <FormLabel fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.700', 'gray.300')}>
+                Filter by Species:
+              </FormLabel>
+              <Select
+                value={selectedSpecies}
+                onChange={(e) => setSelectedSpecies(e.target.value)}
+                bg={useColorModeValue('white', 'gray.700')}
+                borderColor={useColorModeValue('gray.300', 'gray.600')}
+                _focus={{
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 1px blue.500'
+                }}
+                aria-label="Filter by species"
+              >
+                <option value="all">All Species</option>
+                {uniqueSpeciesList.map((species) => (
+                  <option key={species.id} value={species.id}>
+                    {species.name}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          </VStack>
+        </CardHeader>
+        <CardBody>
+          <VStack spacing={4} align="center" py={8}>
+            <Text color="gray.500" textAlign="center">
+              No sightings recorded for <strong>{selectedSpeciesName}</strong> in any month.
+            </Text>
+            <Text fontSize="sm" color="gray.400" textAlign="center">
+              Try selecting "All Species" to see all wildlife patterns.
+            </Text>
+          </VStack>
+        </CardBody>
+      </Card>
+    )
+  }
+  
+  // Find peak and low seasons (safe with empty check above)
   const peakSeason = sortedPatterns[0]
   const lowSeason = sortedPatterns[sortedPatterns.length - 1]
   
-  // Calculate overall stats
-  const totalAnnualSightings = patterns.reduce((sum, pattern) => sum + pattern.totalSightings, 0)
-  const avgMonthlySightings = totalAnnualSightings / patterns.length
+  // Calculate overall stats based on filtered data
+  const totalAnnualSightings = filteredPatterns.reduce((sum, pattern) => sum + pattern.totalSightings, 0)
+  const avgMonthlySightings = filteredPatterns.length > 0 ? totalAnnualSightings / filteredPatterns.length : 0
 
-  // Get unique species across all seasons
-  const allSpecies = new Map()
-  patterns.forEach(pattern => {
-    pattern.species.forEach(species => {
-      if (!allSpecies.has(species.id)) {
-        allSpecies.set(species.id, { ...species, months: [] })
-      }
-      allSpecies.get(species.id).months.push(pattern.month)
-    })
-  })
-
-  const uniqueSpeciesCount = allSpecies.size
+  // Get unique species count based on filtered data
+  const uniqueSpeciesCount = selectedSpecies === 'all' 
+    ? allSpecies.size 
+    : filteredPatterns.some(p => p.totalSightings > 0) ? 1 : 0
 
   return (
     <Card>
       <CardHeader>
-        <VStack align="start" spacing={1}>
-          <Heading size="md">Seasonal Wildlife Patterns</Heading>
-          <Text fontSize="sm" color="gray.600">
-            Species sightings by month to plan wildlife-focused dives
-          </Text>
+        <VStack align="start" spacing={3}>
+          <VStack align="start" spacing={1}>
+            <Heading size="md">Seasonal Wildlife Patterns</Heading>
+            <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+              Species sightings by month to plan wildlife-focused dives
+            </Text>
+          </VStack>
+          
+          {/* Species Selection Dropdown */}
+          <FormControl w="full" maxW="300px">
+            <FormLabel fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.700', 'gray.300')}>
+              Filter by Species:
+            </FormLabel>
+            <Select
+              value={selectedSpecies}
+              onChange={(e) => setSelectedSpecies(e.target.value)}
+              bg={useColorModeValue('white', 'gray.700')}
+              borderColor={useColorModeValue('gray.300', 'gray.600')}
+              _focus={{
+                borderColor: 'blue.500',
+                boxShadow: '0 0 0 1px blue.500'
+              }}
+              aria-label="Filter by species"
+            >
+              <option value="all">All Species</option>
+              {uniqueSpeciesList.map((species) => (
+                <option key={species.id} value={species.id}>
+                  {species.name}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
         </VStack>
       </CardHeader>
       <CardBody>
@@ -122,7 +231,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
                 p={4}
                 borderWidth="1px"
                 borderRadius="md"
-                bg={isPeakSeason ? 'green.50' : isLowSeason ? 'orange.50' : 'white'}
+                bg={isPeakSeason ? useColorModeValue('green.50', 'green.900') : isLowSeason ? useColorModeValue('orange.50', 'orange.900') : useColorModeValue('white', 'gray.800')}
                 borderColor={isPeakSeason ? 'green.200' : isLowSeason ? 'orange.200' : 'gray.200'}
               >
                 <HStack justify="space-between" align="start" mb={3}>
@@ -137,17 +246,17 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
                       >
                         {isPeakSeason ? 'Peak' : isLowSeason ? 'Low' : 'Moderate'}
                       </Badge>
-                      <Text fontSize="xs" color="gray.600">
+                      <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
                         {pattern.diveCount} dives
                       </Text>
                     </HStack>
                   </VStack>
                   
                   <VStack align="end" spacing={1}>
-                    <Text fontSize="lg" fontWeight="bold" color="blue.600">
+                    <Text fontSize="lg" fontWeight="bold" color={useColorModeValue('blue.600', 'blue.400')}>
                       {pattern.totalSightings}
                     </Text>
-                    <Text fontSize="xs" color="gray.600">
+                    <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
                       total sightings
                     </Text>
                   </VStack>
@@ -155,7 +264,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
 
                 {/* Top Species */}
                 <VStack align="start" spacing={2}>
-                  <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                  <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.700', 'gray.300')}>
                     Top Species:
                   </Text>
                   <HStack flexWrap="wrap" spacing={1}>
@@ -203,7 +312,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
               <Text fontSize="sm" fontWeight="medium">
                 Best Wildlife Viewing: {peakSeason.month}
               </Text>
-              <Text fontSize="xs" color="gray.600">
+              <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
                 {peakSeason.totalSightings} sightings across {peakSeason.species.length} species
               </Text>
             </Box>
@@ -211,17 +320,17 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
 
           {/* Year-round Species */}
           {uniqueSpeciesCount > 0 && (
-            <Box p={3} bg="blue.50" borderRadius="md">
-              <Text fontSize="sm" fontWeight="medium" color="blue.800" mb={2}>
+            <Box p={3} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
+              <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('blue.800', 'blue.200')} mb={2}>
                 Species Diversity:
               </Text>
-              <Text fontSize="xs" color="blue.700">
+              <Text fontSize="xs" color={useColorModeValue('blue.700', 'blue.300')}>
                 {uniqueSpeciesCount} different species documented throughout the year
               </Text>
               
               {/* Most common species across all seasons */}
               <Box mt={2}>
-                <Text fontSize="xs" color="blue.700" fontWeight="medium">
+                <Text fontSize="xs" color={useColorModeValue('blue.700', 'blue.300')} fontWeight="medium">
                   Most Common Species:
                 </Text>
                 <HStack flexWrap="wrap" spacing={1} mt={1}>
