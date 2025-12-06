@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button, Heading, Text, VStack, TableContainer } from '@chakra-ui/react'
 import GroupContractWizard from './components/GroupContractWizard'
 import GroupContractsList from './components/GroupContractsList'
-import ProtectedPage from "@/components/ProtectedPage";
+import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
 
 export default function ContractPage () {
   const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('home')

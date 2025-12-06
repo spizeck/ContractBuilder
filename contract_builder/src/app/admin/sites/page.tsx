@@ -18,7 +18,7 @@ import {
 import { Site } from '@/types/diveLogTypes'
 import { addSite, deleteSite, getSites, updateSite } from '@/services/sites'
 import AddEditSiteForm from '../components/AddEditSiteForm'
-import ProtectedPage from '@/components/ProtectedPage'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
 export default function SitesPage () {
   const [sites, setSites] = useState<Site[]>([])

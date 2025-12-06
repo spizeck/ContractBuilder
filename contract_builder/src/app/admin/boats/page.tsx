@@ -16,7 +16,7 @@ import {
   TableContainer
 } from '@chakra-ui/react'
 import { Boat } from '@/types/diveLogTypes'
-import ProtectedPage from '@/components/ProtectedPage'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 import { addBoat, deleteBoat, getBoats, updateBoat } from '@/services/boats'
 import AddEditBoatForm from '../components/AddEditBoatForm'
 

@@ -3,7 +3,7 @@
 import {useRouter} from "next/navigation";
 import DiveForm from "@/components/diveForm/DiveForm";
 import {addDive} from "@/services/dives";
-import ProtectedPage from "@/components/ProtectedPage";
+import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
 
 export default function LogDivePage() {
   const router = useRouter();

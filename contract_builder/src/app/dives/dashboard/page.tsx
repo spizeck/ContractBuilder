@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { getDiveDashboardData } from '@/services/diveDashboard'
 import type { DiveDashboardData } from '@/types/dashboard'
-import ProtectedPage from '@/components/ProtectedPage'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 import SummaryCards from '@/app/dives/dashboard/components/SummaryCards'
 import SiteMatrix from '@/app/dives/dashboard/components/SiteMatrix'
 import TemperatureChart from '@/app/dives/dashboard/components/TemperatureChart'
