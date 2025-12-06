@@ -17,8 +17,8 @@ import {
 } from '@chakra-ui/react'
 import { Site } from '@/types/diveLogTypes'
 import { addSite, deleteSite, getSites, updateSite } from '@/services/sites'
-import AddEditSiteForm from './AddEditSiteForm'
-import ProtectedPage from '@/components/ProtectedPage'
+import AddEditSiteForm from '../components/AddEditSiteForm'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
 export default function SitesPage () {
   const [sites, setSites] = useState<Site[]>([])

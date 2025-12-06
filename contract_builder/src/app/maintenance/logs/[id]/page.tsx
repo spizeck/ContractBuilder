@@ -1,4 +1,4 @@
-import LogForm from "@/components/maintenance/LogForm";
+import LogForm from "../../components/LogForm";
 
 export default async function EditLogPage({
   params,

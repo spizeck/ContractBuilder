@@ -1,4 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -6,27 +6,49 @@ import { db } from '@/lib/firebase';
 export async function uploadSignedContract(
   contractId: string,
   file: File,
-  userId: string
+  userId: string,
+  onProgress?: (progress: number) => void
 ): Promise<string> {
   try {
     // Create a reference to the file location in Firebase Storage
     const storageRef = ref(storage, `signed-contracts/${contractId}/${file.name}`);
     
-    // Upload the file
-    await uploadBytes(storageRef, file);
+    // Upload the file with progress tracking
+    const uploadTask = uploadBytesResumable(storageRef, file);
     
-    // Get the download URL
-    const downloadUrl = await getDownloadURL(storageRef);
-    
-    // Update the contract document with the signed contract info
-    const contractRef = doc(db, 'groupContracts', contractId);
-    await updateDoc(contractRef, {
-      signedContractUrl: downloadUrl,
-      signedContractUploadedAt: new Date(),
-      signedContractUploadedBy: userId
+    // Return a promise that resolves when upload is complete
+    return new Promise((resolve, reject) => {
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          // Calculate progress percentage
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress?.(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          reject(new Error('Failed to upload signed contract'));
+        },
+        async () => {
+          try {
+            // Get the download URL
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // Update the contract document with the signed contract info
+            const contractRef = doc(db, 'groupContracts', contractId);
+            await updateDoc(contractRef, {
+              signedContractUrl: downloadUrl,
+              signedContractUploadedAt: new Date(),
+              signedContractUploadedBy: userId
+            });
+            
+            resolve(downloadUrl);
+          } catch (error) {
+            console.error('Error getting download URL or updating document:', error);
+            reject(new Error('Failed to complete upload process'));
+          }
+        }
+      );
     });
-    
-    return downloadUrl;
   } catch (error) {
     console.error('Error uploading signed contract:', error);
     throw new Error('Failed to upload signed contract');

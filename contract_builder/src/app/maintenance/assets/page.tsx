@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset, AssetCategory } from "@/types/maintenance";
-import AddEditAssetForm from "./AddEditAssetForm";
+import AddEditAssetForm from "../components/AddEditAssetForm";
 import {
   getTrackingLabel,
   getCurrentReading,

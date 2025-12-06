@@ -22,8 +22,8 @@ import {
   getSpecies,
   updateSpecies
 } from '@/services/species'
-import AddEditSpeciesForm from './AddEditSpeciesForm'
-import ProtectedPage from '@/components/ProtectedPage'
+import AddEditSpeciesForm from '../components/AddEditSpeciesForm'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
 export default function SpeciesPage () {
   const [speciesList, setSpeciesList] = useState<Species[]>([])

@@ -11,7 +11,7 @@ import NextLink from 'next/link'
 import React from 'react'
 import theme from '@/theme'
 import { AuthProvider } from '@/context/AuthContext'
-import NavLinks from '@/components/NavLinks'
+import NavLinks from '@/components/shared/LayoutComponents/NavLinks'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

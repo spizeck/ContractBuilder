@@ -21,6 +21,7 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
+  useColorModeValue,
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { uploadSignedContract, deleteSignedContract, validateContractFile } from '@/services/fileUpload'
@@ -51,6 +52,15 @@ export default function SignedContractUpload({
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
+  // Theme-aware colors
+  const bgCard = useColorModeValue('gray.50', 'gray.800')
+  const successColor = useColorModeValue('green.600', 'green.400')
+  const infoBg = useColorModeValue('blue.50', 'blue.900')
+  const infoTitleColor = useColorModeValue('blue.800', 'blue.100')
+  const infoTextColor = useColorModeValue('blue.700', 'blue.200')
+  const linkColor = useColorModeValue('blue.500', 'blue.300')
+  const mutedTextColor = useColorModeValue('gray.600', 'gray.400')
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !user) return
@@ -72,7 +82,9 @@ export default function SignedContractUpload({
     setUploadProgress(0)
 
     try {
-      const url = await uploadSignedContract(contractId, file, user.uid)
+      const url = await uploadSignedContract(contractId, file, user.uid, (progress) => {
+        setUploadProgress(progress);
+      });
       toast({
         title: 'Upload successful',
         description: 'Signed contract has been uploaded successfully.',
@@ -126,7 +138,7 @@ export default function SignedContractUpload({
   }
 
   return (
-    <Box borderWidth={1} borderRadius="lg" p={4} bg="gray.50">
+    <Box borderWidth={1} borderRadius="lg" p={4} bg={bgCard}>
       <VStack spacing={4} align="stretch">
         <Text fontWeight="bold" fontSize="lg">
           Signed Contract
@@ -139,23 +151,23 @@ export default function SignedContractUpload({
 
         {currentUrl ? (
           <VStack spacing={3} align="stretch">
-            <Text color="green.600" fontWeight="medium">
+            <Text color={successColor} fontWeight="medium">
               ✓ Signed contract uploaded
             </Text>
             
             {/* Upload Metadata */}
             {(uploadedAt || uploadedBy) && (
-              <Box bg="blue.50" p={3} borderRadius="md">
-                <Text fontSize="sm" fontWeight="medium" color="blue.800">
+              <Box bg={infoBg} p={3} borderRadius="md">
+                <Text fontSize="sm" fontWeight="medium" color={infoTitleColor}>
                   Upload Information:
                 </Text>
                 {uploadedAt && (
-                  <Text fontSize="sm" color="blue.700">
+                  <Text fontSize="sm" color={infoTextColor}>
                     Uploaded: {uploadedAt.toLocaleDateString()} at {uploadedAt.toLocaleTimeString()}
                   </Text>
                 )}
                 {uploadedBy && (
-                  <Text fontSize="sm" color="blue.700">
+                  <Text fontSize="sm" color={infoTextColor}>
                     Uploaded by: {uploadedBy}
                   </Text>
                 )}
@@ -166,7 +178,7 @@ export default function SignedContractUpload({
               <Link
                 href={currentUrl}
                 isExternal
-                color="blue.500"
+                color={linkColor}
                 textDecoration="underline"
               >
                 View Signed Contract
@@ -221,7 +233,7 @@ export default function SignedContractUpload({
                 disabled={isUploading}
                 display="none"
               />
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color={mutedTextColor}>
                 Click to select a PDF file or drag and drop
               </Text>
             </Box>
@@ -229,7 +241,7 @@ export default function SignedContractUpload({
             {isUploading && (
               <Box>
                 <Progress value={uploadProgress} size="sm" colorScheme="blue" />
-                <Text fontSize="sm" color="gray.600" mt={1}>
+                <Text fontSize="sm" color={mutedTextColor} mt={1}>
                   Uploading...
                 </Text>
               </Box>

@@ -8,7 +8,7 @@ import { useDiveFormData } from './hooks/useDiveFormData'
 import { StepDiveInfo } from './steps/StepDiveInfo'
 import { StepSightings } from './steps/StepSightings'
 import { StepConfirm } from './steps/StepConfirm'
-import FormActions from '@/components/diveForm/FormActions'
+import FormActions from './FormActions'
 
 import {
   celsiusToFahrenheit,

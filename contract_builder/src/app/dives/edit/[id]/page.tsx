@@ -3,10 +3,10 @@
 import {useEffect, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import {Spinner} from "@chakra-ui/react";
-import DiveForm from "@/components/diveForm/DiveForm";
+import DiveForm from "../../components/diveForm/DiveForm";
 import {deleteDive, getDive, updateDive} from "@/services/dives";
 import {Dive} from "@/types/diveLogTypes";
-import ProtectedPage from "@/components/ProtectedPage";
+import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
 
 export default function EditDivePage() {
   const {id} = useParams<{ id: string }>();

@@ -26,7 +26,7 @@ import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
-import ProtectedPage from '@/components/ProtectedPage'
+import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
 const defaultPrefs: UserPreferences = {
   units: {
