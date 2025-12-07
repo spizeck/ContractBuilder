@@ -26,12 +26,13 @@ import {
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { uploadSignedContract, deleteSignedContract, validateContractFile } from '@/services/fileUpload'
 import { useAuth } from '@/context/AuthContext'
+import { formatDateTime } from '@/utils/dateHelpers'
 
 interface SignedContractUploadProps {
   contractId: string
   currentUrl?: string | null
   uploadedAt?: Date | null
-  uploadedBy?: string | null
+  uploadedByName?: string | null
   onUploadSuccess?: (url: string) => void
   onDeleteSuccess?: () => void
 }
@@ -40,7 +41,7 @@ export default function SignedContractUpload({
   contractId,
   currentUrl,
   uploadedAt,
-  uploadedBy,
+  uploadedByName,
   onUploadSuccess,
   onDeleteSuccess,
 }: SignedContractUploadProps) {
@@ -82,7 +83,7 @@ export default function SignedContractUpload({
     setUploadProgress(0)
 
     try {
-      const url = await uploadSignedContract(contractId, file, user.uid, (progress) => {
+      const url = await uploadSignedContract(contractId, file, user.uid, user.displayName || user.email || undefined, (progress) => {
         setUploadProgress(progress);
       });
       toast({
@@ -156,19 +157,19 @@ export default function SignedContractUpload({
             </Text>
             
             {/* Upload Metadata */}
-            {(uploadedAt || uploadedBy) && (
+            {(uploadedAt || uploadedByName) && (
               <Box bg={infoBg} p={3} borderRadius="md">
                 <Text fontSize="sm" fontWeight="medium" color={infoTitleColor}>
                   Upload Information:
                 </Text>
                 {uploadedAt && (
                   <Text fontSize="sm" color={infoTextColor}>
-                    Uploaded: {uploadedAt.toLocaleDateString()} at {uploadedAt.toLocaleTimeString()}
+                    Uploaded: {formatDateTime(uploadedAt)}
                   </Text>
                 )}
-                {uploadedBy && (
+                {uploadedByName && (
                   <Text fontSize="sm" color={infoTextColor}>
-                    Uploaded by: {uploadedBy}
+                    Uploaded by: {uploadedByName}
                   </Text>
                 )}
               </Box>

@@ -103,6 +103,17 @@ export interface GroupContract {
   signedContractUrl?: string; // URL to the uploaded signed contract PDF
   signedContractUploadedAt?: Date; // When the signed contract was uploaded
   signedContractUploadedBy?: string; // UID of user who uploaded the signed contract
+  signedContractUploadedByName?: string; // Display name of user who uploaded the signed contract
+  // Payment tracking fields
+  depositRequired?: number; // Deposit amount required
+  depositPaid?: boolean; // Whether deposit has been paid
+  depositPaidAt?: Date; // When deposit was paid
+  depositPaidBy?: string; // Who paid the deposit
+  totalPaid?: number; // Total amount paid so far
+  paidInFull?: boolean; // Whether contract is paid in full
+  paidInFullAt?: Date; // When contract was paid in full
+  paidInFullBy?: string; // Who marked as paid in full
+  paymentStatus?: 'unpaid' | 'deposit-paid' | 'partial-payment' | 'paid-in-full'; // Overall payment status
 }
 
 export interface Rate {

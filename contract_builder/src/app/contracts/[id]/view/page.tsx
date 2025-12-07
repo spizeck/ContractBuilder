@@ -44,7 +44,8 @@ export default function ViewContractPage () {
         ...contract,
         signedContractUrl: url,
         signedContractUploadedAt: new Date(),
-        signedContractUploadedBy: user.uid
+        signedContractUploadedBy: user.uid,
+        signedContractUploadedByName: user.displayName || user.email || undefined
       })
     }
   }
@@ -55,7 +56,8 @@ export default function ViewContractPage () {
         ...contract,
         signedContractUrl: undefined,
         signedContractUploadedAt: undefined,
-        signedContractUploadedBy: undefined
+        signedContractUploadedBy: undefined,
+        signedContractUploadedByName: undefined
       })
     }
   }
@@ -293,7 +295,7 @@ export default function ViewContractPage () {
           contractId={id as string}
           currentUrl={contract?.signedContractUrl}
           uploadedAt={contract?.signedContractUploadedAt}
-          uploadedBy={contract?.signedContractUploadedBy}
+          uploadedByName={contract?.signedContractUploadedByName}
           onUploadSuccess={handleUploadSuccess}
           onDeleteSuccess={handleDeleteSuccess}
         />

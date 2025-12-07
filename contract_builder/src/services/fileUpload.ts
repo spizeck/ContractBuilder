@@ -7,6 +7,7 @@ export async function uploadSignedContract(
   contractId: string,
   file: File,
   userId: string,
+  userName?: string,
   onProgress?: (progress: number) => void
 ): Promise<string> {
   try {
@@ -38,7 +39,8 @@ export async function uploadSignedContract(
             await updateDoc(contractRef, {
               signedContractUrl: downloadUrl,
               signedContractUploadedAt: new Date(),
-              signedContractUploadedBy: userId
+              signedContractUploadedBy: userId,
+              signedContractUploadedByName: userName || userId
             });
             
             resolve(downloadUrl);
@@ -77,7 +79,8 @@ export async function deleteSignedContract(
     await updateDoc(contractRef, {
       signedContractUrl: null,
       signedContractUploadedAt: null,
-      signedContractUploadedBy: null
+      signedContractUploadedBy: null,
+      signedContractUploadedByName: null
     });
   } catch (error) {
     console.error('Error deleting signed contract:', error);
@@ -88,9 +91,21 @@ export async function deleteSignedContract(
 function extractFilePathFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url);
-    const pathMatch = urlObj.pathname.match(/\/o\/(.+)\?/);
+    
+    // Handle both firebasestorage.app and firebasestorage.googleapis.com formats
+    // Format 1: https://firebasestorage.googleapis.com/v0/b/.../o/file.pdf?token=...
+    // Format 2: https://firebasestorage.app/v0/b/.../o/file.pdf?alt=media&token=...
+    let pathMatch = urlObj.pathname.match(/\/o\/(.+?)(?:\?|$)/);
+    
+    if (pathMatch) {
+      return decodeURIComponent(pathMatch[1]);
+    }
+    
+    // Fallback: try to extract from the full path if no query params
+    pathMatch = urlObj.pathname.match(/\/o\/(.+)$/);
     return pathMatch ? decodeURIComponent(pathMatch[1]) : null;
-  } catch {
+  } catch (error) {
+    console.error('Error parsing URL:', url, error);
     return null;
   }
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import NextLink from 'next/link'
-import { Timestamp } from 'firebase/firestore'
 import {
   Box,
   Button,
@@ -22,6 +21,8 @@ import {
 } from '@/services/groupContracts'
 import { getHotels } from '@/services/hotels'
 import { GroupContract, Hotel } from '@/types/contractTypes'
+import PaymentStatusBadge from '@/components/PaymentStatusBadge'
+import { parseDate } from '@/utils/dateHelpers'
 
 export default function GroupContractsList ({
   onBack,
@@ -117,29 +118,6 @@ export default function GroupContractsList ({
     setFilteredContracts(sortedFiltered)
   }
 
-  function parseCreatedAt (dateVal: any): Date {
-    if (!dateVal) return new Date(NaN)
-
-    if (dateVal instanceof Timestamp) {
-      return dateVal.toDate()
-    }
-
-    if (dateVal instanceof Date) {
-      return dateVal
-    }
-
-    if (
-      typeof dateVal === 'object' &&
-      typeof dateVal.seconds === 'number' &&
-      typeof dateVal.nanoseconds === 'number'
-    ) {
-      return new Date(dateVal.seconds * 1000)
-    }
-
-    const parsed = new Date(dateVal)
-    return isNaN(parsed.getTime()) ? new Date(NaN) : parsed
-  }
-
   const handleArchiveContract = async (contractId: string) => {
     if (confirm('Are you sure you want to archive this contract?')) {
       await archiveGroupContract(contractId)
@@ -214,8 +192,17 @@ export default function GroupContractsList ({
             </Text>
             <Text fontSize='xs' color='gray.400'>
               {formatBookingType(contract.bookingType)} ·{' '}
-              {parseCreatedAt(contract.createdAt).toLocaleString()}
+              {parseDate(contract.createdAt).toLocaleString()}
             </Text>
+
+            <HStack mt={2} spacing={2}>
+              <PaymentStatusBadge contract={contract} size="sm" />
+              {contract.totalCost && (
+                <Text fontSize='sm' fontWeight='medium' color='gray.600'>
+                  ${contract.totalCost.toLocaleString()}
+                </Text>
+              )}
+            </HStack>
 
             <HStack mt={2} spacing={2}>
               <Button
