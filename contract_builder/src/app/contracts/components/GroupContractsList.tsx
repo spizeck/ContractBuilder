@@ -23,6 +23,7 @@ import { getHotels } from '@/services/hotels'
 import { GroupContract, Hotel } from '@/types/contractTypes'
 import PaymentStatusBadge from '@/components/PaymentStatusBadge'
 import { parseDate } from '@/utils/dateHelpers'
+import PaymentDashboard from './PaymentDashboard'
 
 export default function GroupContractsList ({
   onBack,
@@ -42,10 +43,12 @@ export default function GroupContractsList ({
     groupName: string
     hotelId: string
     startDate: string
+    paymentStatus: string
   }>({
     groupName: '',
     hotelId: '',
-    startDate: ''
+    startDate: '',
+    paymentStatus: ''
   })
 
   const isMobile = useBreakpointValue({ base: true, md: false })
@@ -107,6 +110,20 @@ export default function GroupContractsList ({
           new Date(contract.endDate) >= selectedDate
       )
     }
+    if (updatedFilters.paymentStatus) {
+      filtered = filtered.filter(contract => {
+        if (updatedFilters.paymentStatus === 'unpaid') {
+          return !contract.depositPaid && !contract.paidInFull
+        } else if (updatedFilters.paymentStatus === 'deposit-paid') {
+          return contract.depositPaid && !contract.paidInFull && (!contract.totalPaid || contract.totalPaid === 0)
+        } else if (updatedFilters.paymentStatus === 'partial-payment') {
+          return contract.depositPaid && contract.totalPaid && contract.totalPaid > 0 && !contract.paidInFull
+        } else if (updatedFilters.paymentStatus === 'paid-in-full') {
+          return contract.paidInFull
+        }
+        return true
+      })
+    }
 
     // Maintain sorting by start date even after filtering
     const sortedFiltered = filtered.sort((a, b) => {
@@ -130,8 +147,20 @@ export default function GroupContractsList ({
     return hotel ? hotel.name : 'Unknown'
   }
 
+  const handleFilterByStatus = (status: string) => {
+    const updatedFilters = { ...filters, paymentStatus: status }
+    setFilters(updatedFilters)
+    applyFilters(updatedFilters)
+  }
+
   return (
-    <VStack spacing={4} align='stretch'>
+    <VStack spacing={6} align='stretch'>
+      {/* Payment Dashboard */}
+      <PaymentDashboard 
+        contracts={filteredContracts} 
+        onFilterByStatus={handleFilterByStatus}
+      />
+
       {/* Action buttons */}
       <Flex gap={3} justify='flex-start'>
         <Button onClick={onBack} colorScheme='gray' flex={1}>

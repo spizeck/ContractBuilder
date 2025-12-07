@@ -11,6 +11,8 @@ import {
   Spinner,
   Text,
   VStack,
+  Collapse,
+  useDisclosure
 } from '@chakra-ui/react'
 import { getGroupContractById } from '@/services/groupContracts'
 import { getHotelById } from '@/services/hotels'
@@ -23,6 +25,11 @@ import {
 import { getCommissionRate } from '@/utils/contractCalculations'
 import SignedContractUpload from '../../components/SignedContractUpload'
 import { useAuth } from '@/context/AuthContext'
+import PaymentModal from '@/components/PaymentModal'
+import ContractNotes from '../../components/ContractNotes'
+import { Payment } from '@/types/contractTypes'
+import { getPayments } from '@/services/payments'
+import PaymentHistory from '@/components/PaymentHistory'
 
 export default function ViewContractPage () {
   const params = useParams()
@@ -33,6 +40,16 @@ export default function ViewContractPage () {
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Payment modal state
+  const { 
+    isOpen: isPaymentModalOpen, 
+    onOpen: onPaymentModalOpen, 
+    onClose: onPaymentModalClose 
+  } = useDisclosure()
+
+  // Refresh key to trigger PaymentHistory re-fetch
+  const [paymentRefreshKey, setPaymentRefreshKey] = useState(0)
 
   const handleGoBack = () => {
     router.back()
@@ -59,6 +76,38 @@ export default function ViewContractPage () {
         signedContractUploadedBy: undefined,
         signedContractUploadedByName: undefined
       })
+    }
+  }
+
+  const handlePaymentAdded = (payment: Payment) => {
+    // Refresh contract data to get updated payment summary
+    fetchData()
+    // Increment refresh key to trigger PaymentHistory re-fetch
+    setPaymentRefreshKey(prev => prev + 1)
+  }
+
+  const handlePaymentDeleted = () => {
+    // Refresh contract data to get updated payment summary
+    fetchData()
+    // Increment refresh key to trigger PaymentHistory re-fetch
+    setPaymentRefreshKey(prev => prev + 1)
+  }
+
+  const fetchData = async () => {
+    try {
+      const contractData = await getGroupContractById(id as string)
+      if (contractData) {
+        setContract(contractData)
+
+        if (contractData?.hotelId) {
+          const hotelData = await getHotelById(contractData.hotelId)
+          setHotel(hotelData)
+        }
+      } else {
+        console.error('Contract not found')
+      }
+    } catch (err) {
+      console.error('Error fetching contract:', err)
     }
   }
 
@@ -266,7 +315,7 @@ export default function ViewContractPage () {
       </Box>
 
       {/* Signature */}
-      <Box mt={6} className='signature-section'>
+      <VStack mt={6} className='print-only signature-section'>
         <Heading size='md' mb={2} py={4}>
           Customer Acceptance
         </Heading>
@@ -287,6 +336,36 @@ export default function ViewContractPage () {
             <Box flex='1' borderBottom='1px solid #000' />
           </HStack>
         </VStack>
+      </VStack>
+
+      {/* Payment Section */}
+      <Box mt={6} className='no-print'>
+        <VStack spacing={4} align="stretch">
+          <HStack justify="space-between" align="center">
+            <Heading size="md">Payment Tracking</Heading>
+            <Button 
+              colorScheme="blue" 
+              onClick={onPaymentModalOpen}
+              isDisabled={!contract}
+            >
+              Add Payment
+            </Button>
+          </HStack>
+          
+          {contract && (
+            <PaymentHistory
+              contractId={id as string}
+              contractTotalCost={contract.totalCost}
+              onPaymentDeleted={handlePaymentDeleted}
+              refreshKey={paymentRefreshKey}
+            />
+          )}
+        </VStack>
+      </Box>
+
+      {/* Notes Section */}
+      <Box mt={6} className='no-print'>
+        <ContractNotes contractId={id as string} />
       </Box>
 
       {/* Signed Contract Upload */}
@@ -300,6 +379,17 @@ export default function ViewContractPage () {
           onDeleteSuccess={handleDeleteSuccess}
         />
       </Box>
+
+      {/* Payment Modal */}
+      {contract && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={onPaymentModalClose}
+          contractId={id as string}
+          contractTotalCost={contract?.totalCost || 0}
+          onPaymentAdded={handlePaymentAdded}
+        />
+      )}
     </VStack>
   )
 }
@@ -308,6 +398,11 @@ export default function ViewContractPage () {
 if (typeof window !== 'undefined') {
   const style = document.createElement('style')
   style.textContent = `
+    /* Hide print-only content by default */
+    .print-only {
+      display: none !important;
+    }
+    
     @media print {
       @page {
         margin: 0.5in;
@@ -323,6 +418,11 @@ if (typeof window !== 'undefined') {
       
       .no-print {
         display: none !important;
+      }
+      
+      /* Show print-only content during printing */
+      .print-only {
+        display: block !important;
       }
       
       /* Reduce top margin for first page */

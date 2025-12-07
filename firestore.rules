@@ -15,6 +15,18 @@ service cloud.firestore {
     match /groupContracts/{contractId} {
       allow read: if true;
       allow write: if isManagerOrAbove();
+      
+      // Contract notes subcollection
+      match /notes/{noteId} {
+        allow read: if true;
+        allow write: if isManagerOrAbove();
+      }
+    }
+
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow write: if isManagerOrAbove();
     }
 
     match /hotels/{hotelId} {

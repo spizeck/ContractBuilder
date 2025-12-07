@@ -1,0 +1,285 @@
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  getDocs, 
+  getDoc,
+  query, 
+  where, 
+  orderBy, 
+  updateDoc, 
+  deleteDoc,
+  Timestamp 
+} from 'firebase/firestore'
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
+import { db, storage } from '@/lib/firebase'
+import { Payment, ContractNote } from '@/types/contractTypes'
+
+// Payment CRUD operations
+export async function addPayment(
+  contractId: string,
+  paymentData: Omit<Payment, 'id' | 'contractId' | 'createdAt'>,
+  paymentFile?: File,
+  onProgress?: (progress: number) => void
+): Promise<Payment> {
+  try {
+    let paymentDocumentUrl: string | undefined
+    let paymentDocumentType: string | undefined
+
+    // Upload payment document if provided
+    if (paymentFile) {
+      const paymentId = doc(collection(db, 'payments')).id
+      const storageRef = ref(storage, `payment-receipts/${contractId}/${paymentId}/${paymentFile.name}`)
+      
+      const uploadTask = uploadBytesResumable(storageRef, paymentFile)
+      
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            onProgress?.(progress)
+          },
+          (error) => {
+            reject(error)
+          },
+          async () => {
+            try {
+              paymentDocumentUrl = await getDownloadURL(uploadTask.snapshot.ref)
+              paymentDocumentType = getDocumentType(paymentFile.name, paymentData.paymentMethod)
+              resolve()
+            } catch (error) {
+              reject(error)
+            }
+          }
+        )
+      })
+    }
+
+    // Create payment document
+    const paymentDoc = {
+      ...paymentData,
+      contractId,
+      createdAt: Timestamp.now(),
+      ...(paymentDocumentUrl && { paymentDocumentUrl }),
+      ...(paymentDocumentType && { paymentDocumentType })
+    }
+
+    const docRef = await addDoc(collection(db, 'payments'), paymentDoc)
+    
+    // Convert Timestamp to Date for the return type
+    const newPayment = { 
+      id: docRef.id, 
+      ...paymentDoc,
+      createdAt: paymentDoc.createdAt.toDate()
+    } as Payment
+
+    // Update contract payment summary
+    await updateContractPaymentSummary(contractId)
+
+    return newPayment
+  } catch (error) {
+    console.error('Error adding payment:', error)
+    throw new Error('Failed to add payment')
+  }
+}
+
+export async function getPayments(contractId: string): Promise<Payment[]> {
+  try {
+    const paymentsQuery = query(
+      collection(db, 'payments'),
+      where('contractId', '==', contractId),
+      orderBy('paymentDate', 'desc'),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(paymentsQuery)
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        paymentDate: data.paymentDate instanceof Timestamp ? data.paymentDate.toDate() : new Date(data.paymentDate),
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt)
+      } as Payment
+    })
+  } catch (error) {
+    console.error('Error fetching payments:', error)
+    throw new Error('Failed to fetch payments')
+  }
+}
+
+export async function updatePayment(paymentId: string, updates: Partial<Payment>): Promise<void> {
+  try {
+    const paymentRef = doc(db, 'payments', paymentId)
+    const updateData = {
+      ...updates,
+      // Convert dates back to Timestamps for Firestore
+      ...(updates.paymentDate && { paymentDate: Timestamp.fromDate(updates.paymentDate) })
+    }
+    
+    await updateDoc(paymentRef, updateData)
+    
+    // Update contract payment summary if this payment belongs to a contract
+    if (updates.contractId) {
+      await updateContractPaymentSummary(updates.contractId)
+    }
+  } catch (error) {
+    console.error('Error updating payment:', error)
+    throw new Error('Failed to update payment')
+  }
+}
+
+export async function deletePayment(paymentId: string, contractId: string, documentUrl?: string): Promise<void> {
+  try {
+    // Delete payment document from storage if it exists
+    if (documentUrl) {
+      const filePath = extractFilePathFromUrl(documentUrl)
+      if (filePath) {
+        const storageRef = ref(storage, filePath)
+        await deleteObject(storageRef)
+      }
+    }
+
+    // Delete payment record
+    await deleteDoc(doc(db, 'payments', paymentId))
+    
+    // Update contract payment summary
+    await updateContractPaymentSummary(contractId)
+  } catch (error) {
+    console.error('Error deleting payment:', error)
+    throw new Error('Failed to delete payment')
+  }
+}
+
+// Contract Notes operations
+export async function addContractNote(
+  contractId: string,
+  noteText: string,
+  userId: string,
+  userName?: string
+): Promise<ContractNote> {
+  try {
+    const noteDoc = {
+      text: noteText,
+      createdAt: Timestamp.now(),
+      createdBy: userId,
+      createdByName: userName
+    }
+
+    const docRef = await addDoc(collection(db, 'groupContracts', contractId, 'notes'), noteDoc)
+    
+    // Convert Timestamp to Date for the return type
+    const newNote = { 
+      id: docRef.id, 
+      ...noteDoc,
+      createdAt: noteDoc.createdAt.toDate()
+    } as ContractNote
+
+    return newNote
+  } catch (error) {
+    console.error('Error adding contract note:', error)
+    throw new Error('Failed to add contract note')
+  }
+}
+
+export async function getContractNotes(contractId: string): Promise<ContractNote[]> {
+  try {
+    const notesQuery = query(
+      collection(db, 'groupContracts', contractId, 'notes'),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(notesQuery)
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt)
+      } as ContractNote
+    })
+  } catch (error) {
+    console.error('Error fetching contract notes:', error)
+    throw new Error('Failed to fetch contract notes')
+  }
+}
+
+export async function deleteContractNote(contractId: string, noteId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, 'groupContracts', contractId, 'notes', noteId))
+  } catch (error) {
+    console.error('Error deleting contract note:', error)
+    throw new Error('Failed to delete contract note')
+  }
+}
+
+// Helper functions
+async function updateContractPaymentSummary(contractId: string): Promise<void> {
+  try {
+    const payments = await getPayments(contractId)
+    const contractRef = doc(db, 'groupContracts', contractId)
+    
+    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0)
+    const depositPaid = payments.some(p => p.paymentType === 'deposit' && p.status === 'confirmed')
+    const paidInFull = totalPaid >= (await getContractTotalCost(contractId))
+    
+    // Determine payment status
+    let paymentStatus: 'unpaid' | 'deposit-paid' | 'partial-payment' | 'paid-in-full' = 'unpaid'
+    if (paidInFull) {
+      paymentStatus = 'paid-in-full'
+    } else if (totalPaid > 0 && depositPaid) {
+      paymentStatus = 'partial-payment'
+    } else if (depositPaid) {
+      paymentStatus = 'deposit-paid'
+    }
+
+    await updateDoc(contractRef, {
+      totalPaid,
+      depositPaid,
+      paidInFull,
+      paymentStatus,
+      depositPaidAt: depositPaid ? payments.find(p => p.paymentType === 'deposit')?.paymentDate : null,
+      paidInFullAt: paidInFull ? new Date() : null
+    })
+  } catch (error) {
+    console.error('Error updating contract payment summary:', error)
+    // Don't throw here as this is a background operation
+  }
+}
+
+async function getContractTotalCost(contractId: string): Promise<number> {
+  try {
+    const contractDoc = await getDoc(doc(db, 'groupContracts', contractId))
+    if (contractDoc.exists()) {
+      return contractDoc.data().totalCost || 0
+    }
+    return 0
+  } catch (error) {
+    console.error('Error getting contract total cost:', error)
+    return 0
+  }
+}
+
+function getDocumentType(fileName: string, paymentMethod: string): string {
+  const extension = fileName.toLowerCase().split('.').pop()
+  
+  if (paymentMethod === 'check') {
+    return 'check'
+  } else if (paymentMethod === 'wire') {
+    return 'wire-confirmation'
+  } else if (extension === 'pdf' && fileName.toLowerCase().includes('receipt')) {
+    return 'receipt'
+  }
+  
+  return 'other'
+}
+
+function extractFilePathFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    const pathMatch = urlObj.pathname.match(/\/payment-receipts\/(.+)$/)
+    return pathMatch ? pathMatch[1] : null
+  } catch {
+    return null
+  }
+}

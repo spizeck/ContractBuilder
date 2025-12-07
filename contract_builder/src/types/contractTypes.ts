@@ -145,3 +145,27 @@ export interface RoomType {
   isFocBase: boolean;
   archived?: boolean;
 }
+
+export interface Payment {
+  id: string;
+  contractId: string;
+  amount: number;
+  paymentDate: Date;
+  paymentMethod: 'check' | 'wire' | 'card' | 'cash';
+  paymentType: 'deposit' | 'partial' | 'full' | 'other';
+  status: 'pending' | 'confirmed' | 'failed';
+  notes?: string;
+  paymentDocumentUrl?: string;
+  paymentDocumentType?: 'check' | 'wire-confirmation' | 'receipt' | 'other';
+  createdAt: Date;
+  createdBy: string;
+  createdByName?: string;
+}
+
+export interface ContractNote {
+  id: string;
+  text: string;
+  createdAt: Date;
+  createdBy: string;
+  createdByName?: string;
+}
