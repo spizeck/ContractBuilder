@@ -1,8 +1,8 @@
 [
   {
-    "origin": ["http://localhost:3000", "https://localhost:3000"],
-    "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+    "origin": ["http://localhost:3000", "https://localhost:3000", "https://seasaba.app", "https://seasaba.appsea-saba-self.vercel.app"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
     "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type"]
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "X-Requested-With", "Origin"]
   }
 ]
