@@ -33,7 +33,7 @@ export default function SummaryCards({
   onPeriodChange, 
   currentPeriod 
 }: SummaryCardsProps) {
-  const isMobile = useBreakpointValue({ base: true, md: false })
+  const isMobile = useBreakpointValue({ base: true, xl: false })
 
   const getPeriodStats = () => {
     switch (currentPeriod) {

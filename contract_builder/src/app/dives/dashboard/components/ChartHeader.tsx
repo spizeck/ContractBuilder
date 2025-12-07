@@ -17,7 +17,7 @@ export default function ChartHeader({
   periods,
   onPeriodChange,
 }: ChartHeaderProps) {
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const isMobile = useBreakpointValue({ base: true, xl: false });
 
   return (
     <VStack

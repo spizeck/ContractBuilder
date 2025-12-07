@@ -25,7 +25,7 @@ export default function DiveDashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPeriod, setCurrentPeriod] = useState<'allTime' | 'last30days' | 'currentYear'>('allTime')
 
-  const isMobile = useBreakpointValue({ base: true, md: false })
+  const isMobile = useBreakpointValue({ base: true, xl: false })
 
   useEffect(() => {
     const loadDashboardData = async () => {
