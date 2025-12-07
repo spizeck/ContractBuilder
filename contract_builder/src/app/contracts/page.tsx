@@ -7,7 +7,7 @@ import GroupContractsList from './components/GroupContractsList'
 import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
 
 export default function ContractPage () {
-  const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('home')
+  const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('list')
   const [editingContract, setEditingContract] = useState<any>(null)
 
   const handleAddContract = () => {
@@ -37,19 +37,11 @@ export default function ContractPage () {
       </Heading>
 
       {view === 'home' && (
-        <VStack spacing={4} p={5} align='stretch'>
-          <Text fontSize='lg'>What would you like to do?</Text>
-          <Button colorScheme='teal' size='lg' onClick={handleAddContract}>
-            Create New Contract
-          </Button>
-          <Button
-            colorScheme='blue'
-            size='lg'
-            onClick={handleViewEditContracts}
-          >
-            View/Edit Existing Contracts
-          </Button>
-        </VStack>
+        <GroupContractsList
+          onBack={handleBackToHome}
+          onCreateNew={handleAddContract}
+          onEditContract={handleEditContract}
+        />
       )}
 
       {view === 'add' && <GroupContractWizard onCancel={handleBackToHome} />}

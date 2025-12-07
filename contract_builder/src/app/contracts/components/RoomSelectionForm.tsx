@@ -3,6 +3,7 @@ import {
   Button,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   HStack,
   Input,
   Menu,
@@ -11,7 +12,12 @@ import {
   MenuList,
   Stack,
   Text,
-  VStack
+  VStack,
+  Box,
+  Heading,
+  useToast,
+  useColorModeValue,
+  IconButton
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { getRoomCategories } from '@/services/roomCategories'
@@ -44,6 +50,7 @@ export default function RoomSelectionForm ({
   onCancel: () => void
   initialRooms?: RoomSelection[]
 }) {
+  const toast = useToast()
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
   const [rates, setRates] = useState<Rate[]>([])
   const [seasons, setSeasons] = useState<Season[]>([])
@@ -52,6 +59,11 @@ export default function RoomSelectionForm ({
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null)
   const [seasonCheckDone, setSeasonCheckDone] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Theme-sensitive colors
+  const cardBg = useColorModeValue('white', 'gray.800')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,7 +171,13 @@ export default function RoomSelectionForm ({
     )
 
     if (hasInvalidSelection) {
-      alert('Please complete all room selections before proceeding.')
+      toast({
+        title: 'Validation Error',
+        description: 'Please complete all room selections before proceeding.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
       return
     }
 
@@ -170,9 +188,13 @@ export default function RoomSelectionForm ({
           rt.categoryId === categoryId && rt.name === occupancyType
       )
       if (matched && roomTypeQuantities[key] > matched.quantity) {
-        alert(
-          `You requested ${roomTypeQuantities[key]} rooms for ${occupancyType}, but only ${matched.quantity} are available.`
-        )
+        toast({
+          title: 'Availability Error',
+          description: `You requested ${roomTypeQuantities[key]} rooms for ${occupancyType}, but only ${matched.quantity} are available.`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        })
         return
       }
     }
@@ -184,22 +206,29 @@ export default function RoomSelectionForm ({
   }
 
   return (
-    <VStack spacing={4} align='stretch'>
-      <HStack justifyContent='space-between'>
-        <Text fontSize='xl' fontWeight='bold'>
-          Select Rooms
-        </Text>
-        <Button
-          colorScheme='red'
-          onClick={() => {
-            if (
-              window.confirm('All progress will be discarded. Are you sure?')
-            ) {
-              onCancel()
-            }
-          }}
-        >
-          Cancel
+    <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+      <VStack spacing={6} align='stretch'>
+        <Box>
+          <Heading size="md" mb={2}>Room Selection</Heading>
+          <Text color="gray.600" fontSize="sm">Select room categories and quantities for the contract</Text>
+        </Box>
+
+        <VStack spacing={4} align='stretch'>
+          <HStack justifyContent='space-between'>
+            <Text fontSize='lg' fontWeight='bold'>
+              Select Rooms
+            </Text>
+            <Button
+              colorScheme='red'
+              onClick={() => {
+                if (
+                  window.confirm('All progress will be discarded. Are you sure?')
+                ) {
+                  onCancel()
+                }
+              }}
+            >
+              Cancel
         </Button>
       </HStack>
       {roomSelections.map((selection, index) => (
@@ -316,14 +345,28 @@ export default function RoomSelectionForm ({
         Add Another Room
       </Button>
 
-      <HStack spacing={2} w='100%'>
-        <Button onClick={onBack} flex={1}>
+      <HStack 
+        spacing={3} 
+        w='100%'
+        direction={{ base: 'column', md: 'row' }}
+      >
+        <Button 
+          onClick={onBack} 
+          flex={1}
+          variant="outline"
+        >
           Back
         </Button>
-        <Button colorScheme='teal' onClick={handleSubmit} flex={1}>
+        <Button 
+          onClick={handleSubmit} 
+          colorScheme='teal' 
+          flex={1}
+        >
           Next
         </Button>
       </HStack>
     </VStack>
-  )
+  </VStack>
+</Box>
+)
 }

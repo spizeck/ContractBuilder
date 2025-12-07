@@ -12,7 +12,8 @@ import {
   Stack,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
+  Heading
 } from '@chakra-ui/react'
 import {
   archiveGroupContract,
@@ -154,25 +155,39 @@ export default function GroupContractsList ({
   }
 
   return (
-    <VStack spacing={6} align='stretch'>
-      {/* Payment Dashboard */}
-      <PaymentDashboard 
-        contracts={filteredContracts} 
-        onFilterByStatus={handleFilterByStatus}
-      />
+    <VStack spacing={8} align='stretch'>
+      {/* Page Header */}
+      <Box>
+        <Heading size="lg" mb={2}>Contracts Overview</Heading>
+        <Text color="gray.600">Track payment status and manage all your contracts</Text>
+      </Box>
 
-      {/* Action buttons */}
-      <Flex gap={3} justify='flex-start'>
-        <Button onClick={onBack} colorScheme='gray' flex={1}>
-          Back
-        </Button>
-        <Button onClick={onCreateNew} colorScheme='teal' flex={1}>
-          New Contract
-        </Button>
-      </Flex>
+      {/* Payment Dashboard - Main Entry Point */}
+      <Box>
+        <PaymentDashboard 
+          contracts={filteredContracts} 
+          onFilterByStatus={handleFilterByStatus}
+        />
+      </Box>
 
-      {/* Filters */}
-      <Flex gap={2} direction={{ base: 'column', md: 'row' }} align='stretch'>
+      {/* Contract Management Section */}
+      <Box>
+        <Heading size="md" mb={4}>Contract Management</Heading>
+        <VStack spacing={4} align='stretch'>
+          {/* Action buttons */}
+          <Flex gap={3} justify='flex-start'>
+            <Button onClick={onBack} colorScheme='gray' flex={1}>
+              Back
+            </Button>
+            <Button onClick={onCreateNew} colorScheme='teal' flex={1}>
+              New Contract
+            </Button>
+          </Flex>
+
+          {/* Filters */}
+          <Box>
+            <Text fontSize="sm" fontWeight="medium" mb={2}>Filter Contracts</Text>
+            <Flex gap={2} direction={{ base: 'column', md: 'row' }} align='stretch'>
         <Input
           placeholder='Filter by Group Name'
           name='groupName'
@@ -198,10 +213,11 @@ export default function GroupContractsList ({
           value={filters.startDate}
           onChange={handleFilterChange}
         />
-      </Flex>
+        </Flex>
+          </Box>
 
-      {/* Contracts List */}
-      <Stack spacing={4}>
+          {/* Contracts List */}
+          <Stack spacing={4}>
         {filteredContracts.map(contract => (
           <Box
             key={contract.id}
@@ -268,6 +284,8 @@ export default function GroupContractsList ({
           </Text>
         )}
       </Stack>
+        </VStack>
+      </Box>
     </VStack>
   )
 }

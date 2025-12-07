@@ -92,16 +92,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
 
   return (
     <VStack spacing={6} align="stretch">
-      {/* Header */}
-      <Box>
-        <Text fontSize="2xl" fontWeight="bold" mb={2}>
-          Payment Dashboard
-        </Text>
-        <Text color="gray.600">
-          Overview of contract payments and revenue status
-        </Text>
-      </Box>
-
+      
       {/* Summary Cards */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
         <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
