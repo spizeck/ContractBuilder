@@ -163,7 +163,7 @@ export interface Payment {
   amount: number;
   paymentDate: Date;
   paymentMethod: 'check' | 'wire' | 'card' | 'cash';
-  paymentType: 'deposit' | 'partial' | 'full' | 'other';
+  paymentType: 'deposit' | 'full' | 'other';
   status: 'pending' | 'confirmed' | 'failed';
   notes?: string;
   paymentDocumentUrl?: string;

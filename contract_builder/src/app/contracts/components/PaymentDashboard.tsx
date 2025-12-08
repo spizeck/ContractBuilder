@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   SimpleGrid,
@@ -13,6 +13,7 @@ import {
   VStack,
   HStack,
   Button,
+  ButtonGroup,
   Divider,
   Alert,
   AlertIcon
@@ -44,6 +45,20 @@ interface PaymentMetrics {
 }
 
 export default function PaymentDashboard({ contracts, onFilterByStatus }: PaymentDashboardProps) {
+  const [viewMode, setViewMode] = useState<'upcoming' | 'past'>('upcoming')
+
+  // Filter contracts based on view mode
+  const filteredContracts = useMemo(() => {
+    const today = new Date()
+    return contracts.filter(contract => {
+      const endDate = new Date(contract.endDate)
+      if (viewMode === 'upcoming') {
+        return endDate >= today
+      } else {
+        return endDate < today
+      }
+    })
+  }, [contracts, viewMode])
 
   const metrics = useMemo((): PaymentMetrics => {
     const initial: PaymentMetrics = {
@@ -64,7 +79,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
       paidInFullRevenue: 0
     }
 
-    return contracts.reduce((acc, contract) => {
+    return filteredContracts.reduce((acc, contract) => {
       const cost = contract.totalCost || 0
       const paid = contract.totalPaid || 0
       acc.totalRevenue += cost
@@ -95,7 +110,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
 
       return acc
     }, initial)
-  }, [contracts])
+  }, [filteredContracts])
 
   // Color values now come from semantic tokens in theme
 
@@ -109,11 +124,32 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
   return (
     <VStack spacing={6} align="stretch">
       
+      {/* View Mode Toggle */}
+      <Box>
+        <ButtonGroup isAttached variant="outline" size="sm">
+          <Button 
+            isActive={viewMode === 'upcoming'} 
+            onClick={() => setViewMode('upcoming')}
+            colorScheme={viewMode === 'upcoming' ? 'blue' : 'gray'}
+          >
+            Upcoming Contracts
+          </Button>
+          <Button 
+            isActive={viewMode === 'past'} 
+            onClick={() => setViewMode('past')}
+            colorScheme={viewMode === 'past' ? 'blue' : 'gray'}
+          >
+            Past Contracts
+          </Button>
+        </ButtonGroup>
+      </Box>
+
       {/* Informational Alert */}
       <Alert status="info" borderRadius="md">
         <AlertIcon />
         <Text fontSize="sm">
-          This dashboard shows <strong>upcoming contracts only</strong> and does not include past contracts.
+          This dashboard shows <strong>{viewMode === 'upcoming' ? 'upcoming' : 'past'} contracts only</strong> 
+          {viewMode === 'upcoming' ? ' and does not include past contracts.' : ' and does not include upcoming contracts.'}
         </Text>
       </Alert>
       
