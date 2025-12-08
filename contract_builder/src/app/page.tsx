@@ -5,8 +5,6 @@ import {
   Button,
   Container,
   Divider,
-  Flex,
-  Grid,
   Heading,
   Link,
   List,
@@ -25,11 +23,7 @@ import {
   FiFileText,
   FiBarChart2,
   FiTool,
-  FiUsers,
-  FiHome,
   FiActivity,
-  FiCalendar,
-  FiDollarSign,
 } from "react-icons/fi";
 import { TbScubaMask } from "react-icons/tb";
 
@@ -41,7 +35,7 @@ export default function Home() {
         <Heading as="h1" size="2xl" fontWeight="bold">
           Sea Saba Business App
         </Heading>
-        <Text fontSize="xl" color="gray.600" maxW="3xl">
+        <Text fontSize="xl" color="textPrimary" maxW="3xl">
           Your comprehensive platform for managing dive operations, contracts,
           maintenance, and business analytics. Streamline daily operations and
           enhance customer experiences with our integrated management system.
@@ -63,7 +57,7 @@ export default function Home() {
                 <Icon as={TbScubaMask} boxSize={12} color="teal.500" />
                 <Stack spacing={2} textAlign="center">
                   <Heading size="md">Dive Log</Heading>
-                  <Text fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color="textMuted">
                     Log your dives
                   </Text>
                 </Stack>
@@ -95,7 +89,7 @@ export default function Home() {
                 <Icon as={FiFileText} boxSize={12} color="blue.500" />
                 <Stack spacing={2} textAlign="center">
                   <Heading size="md">Contracts</Heading>
-                  <Text fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color="textMuted">
                     Create and manage group contracts
                   </Text>
                 </Stack>
@@ -127,7 +121,7 @@ export default function Home() {
                 <Icon as={FiBarChart2} boxSize={12} color="purple.500" />
                 <Stack spacing={2} textAlign="center">
                   <Heading size="md">Analytics</Heading>
-                  <Text fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color="textMuted">
                     View operational insights and reports
                   </Text>
                 </Stack>
@@ -159,7 +153,7 @@ export default function Home() {
                 <Icon as={FiTool} boxSize={12} color="orange.500" />
                 <Stack spacing={2} textAlign="center">
                   <Heading size="md">Maintenance</Heading>
-                  <Text fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color="textMuted">
                     Track equipment service and assets
                   </Text>
                 </Stack>
@@ -408,10 +402,10 @@ export default function Home() {
 
       {/* Footer */}
       <Box mt={8} textAlign="center">
-        <Text fontSize="sm" color="gray.500">
+        <Text fontSize="sm" color="textMuted">
           © 2025 Sea Saba NV - Business Management Platform
         </Text>
-        <Text fontSize="xs" color="gray.400" mt={2}>
+        <Text fontSize="xs" color="textMuted" mt={2}>
           This application is continuously evolving. Features may be updated
           based on operational needs.
         </Text>
