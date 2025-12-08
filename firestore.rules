@@ -110,6 +110,84 @@ service cloud.firestore {
       allow write: if isManagerOrAbove();
     }
 
+    // MANIFEST SYSTEM COLLECTIONS
+    
+    // Customers collection
+    match /customers/{customerId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isStaffOrAbove() && 
+                       request.resource.data.bookingReference != '' &&
+                       request.resource.data.fullName != '' &&
+                       request.resource.data.bookingReference.size() < 50 &&
+                       request.resource.data.fullName.size() < 100;
+      allow update: if isStaffOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Dive slots collection
+    match /diveSlots/{slotId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isManagerOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Dive assignments collection
+    match /diveAssignments/{assignmentId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isStaffOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isStaffOrAbove();
+    }
+
+    // Taxi assignments collection
+    match /taxiAssignments/{assignmentId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isStaffOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isStaffOrAbove();
+    }
+
+    // Taxis collection
+    match /taxis/{taxiId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isManagerOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Daily manifests collection
+    match /dailyManifests/{manifestId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isStaffOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Daily taxi lists collection
+    match /dailyTaxiLists/{taxiListId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isStaffOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Crew collection
+    match /crew/{crewId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isManagerOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
+    // Import jobs collection
+    match /importJobs/{jobId} {
+      allow read: if isStaffOrAbove();
+      allow create: if isManagerOrAbove();
+      allow update: if isManagerOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+
     // Helpers
     function isAdmin() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";

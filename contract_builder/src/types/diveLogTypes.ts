@@ -43,6 +43,14 @@ export interface Boat {
   name: string;
   active: boolean;
   createdAt?: any
+  capacity?: number;
+  maxDiveSlots?: 1 | 2 | 3 | 4;
+  defaultDiveTimes?: {
+    slot1: string;
+    slot2: string;
+    slot3: string;
+    slot4: string;
+  };
 }
 
 export interface FormattedDive extends Dive {

@@ -41,7 +41,6 @@ export default function NavLinks() {
         <>
           <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
           <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
-          <MenuItem as={NextLink} href="/admin/boats">Manage Boats</MenuItem>
           <MenuItem as={NextLink} href="/admin/species">Manage Species</MenuItem>
         </>
       )}
@@ -54,6 +53,19 @@ export default function NavLinks() {
       <MenuItem as={NextLink} href="/maintenance/technicians">Technicians</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>
+    </>
+  )
+
+  const manifestLinks = (
+    <>
+      <MenuItem as={NextLink} href="/manifests">Manifests & Taxis</MenuItem>
+      {(role === 'admin' || role === 'manager') && (
+        <>
+          <MenuItem as={NextLink} href="/operations/manage-crew">Manage Crew</MenuItem>
+          <MenuItem as={NextLink} href="/operations/manage-boats">Manage Boats</MenuItem>
+          <MenuItem as={NextLink} href="/operations/manage-taxis">Manage Taxis</MenuItem>
+        </>
+      )}
     </>
   )
 
@@ -94,6 +106,13 @@ export default function NavLinks() {
                 <MenuList color="teal">{maintenanceLinks}</MenuList>
               </Menu>
             )}
+
+            <Menu>
+              <MenuButton as={Button} variant="link" color="white">
+                Operations
+              </MenuButton>
+              <MenuList color="teal">{manifestLinks}</MenuList>
+            </Menu>
 
             <Link as={NextLink} href="/profile" _hover={{ textDecoration: 'underline' }}>
               Profile
@@ -156,6 +175,14 @@ export default function NavLinks() {
                 <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
               </AccordionItem>
             )}
+
+            {/* Operations Section */}
+            <AccordionItem>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">Operations</Box>
+              </AccordionButton>
+              <AccordionPanel pb={2}>{manifestLinks}</AccordionPanel>
+            </AccordionItem>
           </Accordion>
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
