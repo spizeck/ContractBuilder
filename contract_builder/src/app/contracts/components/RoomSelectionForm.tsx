@@ -3,7 +3,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   HStack,
   Input,
   Menu,
@@ -16,7 +15,6 @@ import {
   Box,
   Heading,
   useToast,
-  IconButton
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { getRoomCategories } from '@/services/roomCategories'
@@ -207,7 +205,7 @@ export default function RoomSelectionForm ({
       <VStack spacing={6} align='stretch'>
         <Box>
           <Heading size="md" mb={2}>Room Selection</Heading>
-          <Text color="gray.600" fontSize="sm">Select room categories and quantities for the contract</Text>
+          <Text color="textPrimary" fontSize="sm">Select room categories and quantities for the contract</Text>
         </Box>
 
         <VStack spacing={4} align='stretch'>

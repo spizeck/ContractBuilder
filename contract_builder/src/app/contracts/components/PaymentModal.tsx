@@ -177,13 +177,13 @@ export default function PaymentModal({
             <VStack spacing={4}>
               {/* Payment Summary */}
               <Box w="full">
-                <Text fontSize="sm" color="gray.600" mb={2}>
+                <Text fontSize="sm" color="textPrimary" mb={2}>
                   Contract Total: ${contractTotalCost.toLocaleString()}
                 </Text>
-                <Text fontSize="sm" color="gray.600" mb={2}>
+                <Text fontSize="sm" color="textPrimary" mb={2}>
                   Already Paid: ${totalPaid.toLocaleString()}
                 </Text>
-                <Text fontSize="sm" color="gray.600" mb={2}>
+                <Text fontSize="sm" color="textPrimary" mb={2}>
                   Remaining Balance: ${remainingBalance.toLocaleString()}
                 </Text>
                 <Progress 
@@ -260,7 +260,7 @@ export default function PaymentModal({
                   onChange={handleFileUpload}
                 />
                 {payment.receiptUrl && (
-                  <Text fontSize="sm" color="green.600" mt={2}>
+                  <Text fontSize="sm" color="success" mt={2}>
                     Receipt attached: {payment.receiptUrl}
                   </Text>
                 )}
@@ -269,7 +269,7 @@ export default function PaymentModal({
               {/* Upload Progress */}
               {isSubmitting && uploadProgress > 0 && (
                 <Box w="full">
-                  <Text fontSize="sm" color="gray.600" mb={2}>
+                  <Text fontSize="sm" color="textMuted" mb={2}>
                     Uploading receipt: {uploadProgress}%
                   </Text>
                   <Progress value={uploadProgress} colorScheme="blue" size="sm" />

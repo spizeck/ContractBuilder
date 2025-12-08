@@ -10,9 +10,7 @@ import {
   CardBody,
   Flex,
   Input,
-  IconButton,
 } from "@chakra-ui/react";
-import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   ContractData,
   DivePackage,
@@ -110,7 +108,10 @@ export default function TotalCostCalculation({
   const handleRateChange = (idx: number, value: string) => {
     // Allow empty value or valid number input
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      setTempRates((prev) => ({ ...prev, [idx]: value === "" ? 0 : parseFloat(value) || 0 }));
+      setTempRates((prev) => ({
+        ...prev,
+        [idx]: value === "" ? 0 : parseFloat(value) || 0,
+      }));
     }
   };
 
@@ -210,23 +211,28 @@ export default function TotalCostCalculation({
 
       // Simple FOC calculation - use override if selected, otherwise use original FOC
       let focDeduction = results.roomTotals?.foc || 0;
-      
+
       if (focOverrideIndex !== null && rates[focOverrideIndex] !== undefined) {
         // Calculate FOC using the selected override rate
         const focRule = parseFocRule(hotel.focRule || "0+0");
-        const totalGuests = contractData.rooms?.reduce((sum, room) => {
-          if (room.numRooms > 0 && room.occupancyType) {
-            const occNum = getOccupancyNumber(room.occupancyType);
-            return sum + occNum * room.numRooms;
-          }
-          return sum;
-        }, 0) || 0;
-        
+        const totalGuests =
+          contractData.rooms?.reduce((sum, room) => {
+            if (room.numRooms > 0 && room.occupancyType) {
+              const occNum = getOccupancyNumber(room.occupancyType);
+              return sum + occNum * room.numRooms;
+            }
+            return sum;
+          }, 0) || 0;
+
         const overrideRate = rates[focOverrideIndex];
         const perGuestPerNight = overrideRate / 2; // assume double occupancy
-        const nights = calculateNumberOfNights(contractData.startDate!, contractData.endDate!);
+        const nights = calculateNumberOfNights(
+          contractData.startDate!,
+          contractData.endDate!
+        );
         const freeGuests =
-          Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free;
+          Math.floor(totalGuests / (focRule.paid + focRule.free)) *
+          focRule.free;
         focDeduction = freeGuests * perGuestPerNight * nights;
       }
 
@@ -309,7 +315,8 @@ export default function TotalCostCalculation({
         }),
         totalCost: results?.overall.net || 0,
         createdAt: new Date(),
-        customRates: Object.keys(customRates).length > 0 ? customRates : undefined,
+        customRates:
+          Object.keys(customRates).length > 0 ? customRates : undefined,
         hasCustomRates: Object.keys(customRates).length > 0,
         // Add addon arrays to contract data
         hotelAddons: contractData.hotelAddons || [],
@@ -386,7 +393,11 @@ export default function TotalCostCalculation({
         );
 
         // Apply custom rates if they exist
-        if (contractData.customRates && contractData.hasCustomRates && calc.roomCosts) {
+        if (
+          contractData.customRates &&
+          contractData.hasCustomRates &&
+          calc.roomCosts
+        ) {
           const updatedRoomCosts = calc.roomCosts.map((rc, idx) => {
             if (contractData.customRates![idx] !== undefined) {
               const nightsMatch = rc.description.match(/for (\d+) nights/);
@@ -395,15 +406,17 @@ export default function TotalCostCalculation({
               const numRooms = roomsMatch ? parseInt(roomsMatch[1]) : 1;
               const newRate = contractData.customRates![idx];
               const gross = numRooms * nights * newRate;
-              const commissionRate = getCommissionRate(contractData.bookingType || "");
+              const commissionRate = getCommissionRate(
+                contractData.bookingType || ""
+              );
               const commission = gross * commissionRate;
               const net = gross - commission;
-              
+
               const newDescription = rc.description.replace(
                 /@ \$\d+\.\d+\/night/,
                 `@ $${newRate.toFixed(2)}/night`
               );
-              
+
               return {
                 ...rc,
                 description: newDescription,
@@ -429,12 +442,12 @@ export default function TotalCostCalculation({
           // FOC calculation with custom rates - follow the same pattern as original calculation
           const focRule = parseFocRule(hotelData.focRule || "0+0");
           let focDeduction = 0;
-          
+
           // Find the FOC base room type from hotel settings (same as original)
           const focRoomType = roomTypesData.find(
             (rt: RoomType) => rt.hotelId === hotelData.id && rt.isFocBase
           );
-          
+
           if (focRoomType && contractData.rooms) {
             // Calculate total guests from room selections (same as original)
             const totalGuests = contractData.rooms.reduce((sum, room) => {
@@ -446,28 +459,35 @@ export default function TotalCostCalculation({
             }, 0);
 
             // Find the room cost that matches the FOC base room type to get custom rate
-            const focRoomCost = updatedRoomCosts.find(rc => {
+            const focRoomCost = updatedRoomCosts.find((rc) => {
               // Extract category and occupancy from description
-              const match = rc.description.match(/(\d+) x (\w+) rooms in category (\w+)/);
+              const match = rc.description.match(
+                /(\d+) x (\w+) rooms in category (\w+)/
+              );
               if (!match) return false;
-              
+
               const [, , occupancyType, categoryName] = match;
-              
+
               // Find the category that matches the FOC base room type's categoryId
-              const focBaseCategory = categories.find((rc: RoomCategory) => rc.id === focRoomType.categoryId);
-              
+              const focBaseCategory = categories.find(
+                (rc: RoomCategory) => rc.id === focRoomType.categoryId
+              );
+
               // Check if this matches the FOC base room type's category and double occupancy
               return (
-                focBaseCategory?.name.toLowerCase() === categoryName.toLowerCase() &&
-                occupancyType.toLowerCase() === 'double' // FOC is always based on double occupancy
+                focBaseCategory?.name.toLowerCase() ===
+                  categoryName.toLowerCase() &&
+                occupancyType.toLowerCase() === "double" // FOC is always based on double occupancy
               );
             });
-            
+
             // Use custom rate if available, otherwise fall back to original logic
             let baseRate;
             if (focRoomCost) {
               // Extract the custom rate from the room cost description
-              const rateMatch = focRoomCost.description.match(/@ \$(\d+\.\d+)\/night/);
+              const rateMatch = focRoomCost.description.match(
+                /@ \$(\d+\.\d+)\/night/
+              );
               if (rateMatch) {
                 baseRate = { price: parseFloat(rateMatch[1]) };
               }
@@ -476,13 +496,13 @@ export default function TotalCostCalculation({
             // Fallback to original rate if no custom rate found
             if (!baseRate) {
               baseRate = ratesData.find(
-                r => 
-                  r.categoryId === focRoomType.categoryId && 
-                  r.seasonId === seasonResult.id && 
-                  r.occupancyType.toLowerCase() === 'double'
+                (r) =>
+                  r.categoryId === focRoomType.categoryId &&
+                  r.seasonId === seasonResult.id &&
+                  r.occupancyType.toLowerCase() === "double"
               );
             }
-            
+
             if (baseRate) {
               const perGuestPerNight = baseRate.price / 2;
               const nights = calculateNumberOfNights(
@@ -497,7 +517,9 @@ export default function TotalCostCalculation({
           }
 
           const adjustedGross = newRoomTotals.gross - focDeduction;
-          const commissionRate = getCommissionRate(contractData.bookingType || "");
+          const commissionRate = getCommissionRate(
+            contractData.bookingType || ""
+          );
           const finalRoomTotals = {
             gross: newRoomTotals.gross,
             foc: focDeduction,
@@ -632,11 +654,7 @@ export default function TotalCostCalculation({
                 {isEditingRates ? "Cancel" : "Edit Rates"}
               </Button>
               {isEditingRates && (
-                <Button
-                  size="sm"
-                  onClick={handleSaveRates}
-                  colorScheme="green"
-                >
+                <Button size="sm" onClick={handleSaveRates} colorScheme="green">
                   Save All Rates
                 </Button>
               )}
@@ -645,7 +663,7 @@ export default function TotalCostCalculation({
         </CardHeader>
         <CardBody>
           {isEditingRates && (
-            <Text fontSize="sm" color="gray.600" mb={2}>
+            <Text fontSize="sm" color="textPrimary" mb={2}>
               Check the box next to a room rate to use it as the FOC base rate
             </Text>
           )}
@@ -691,7 +709,7 @@ export default function TotalCostCalculation({
               </VStack>
             );
           })}
-          
+
           {/* Hotel Addons */}
           {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
             <>
@@ -704,7 +722,7 @@ export default function TotalCostCalculation({
               ))}
             </>
           )}
-          
+
           <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
           <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
@@ -727,11 +745,10 @@ export default function TotalCostCalculation({
           </CardHeader>
           <CardBody>
             <Text>
-              Dive Package: {divePackage.name} for{" "}
-              {contractData.numDivers || 0}{" "}
+              Dive Package: {divePackage.name} for {contractData.numDivers || 0}{" "}
               divers
             </Text>
-            
+
             {/* Dive Addons */}
             {contractData.diveAddons && contractData.diveAddons.length > 0 && (
               <>
@@ -744,7 +761,7 @@ export default function TotalCostCalculation({
                 ))}
               </>
             )}
-            
+
             <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
             <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
             <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
@@ -768,7 +785,7 @@ export default function TotalCostCalculation({
           </CardHeader>
           <CardBody>
             <Text>Meal Package: {mealPackage.name}</Text>
-            
+
             {/* Meal Addons */}
             {contractData.mealAddons && contractData.mealAddons.length > 0 && (
               <>
@@ -781,7 +798,7 @@ export default function TotalCostCalculation({
                 ))}
               </>
             )}
-            
+
             <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
             <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
             <Text>Net: ${formatCurrency(mealTotals.net)}</Text>

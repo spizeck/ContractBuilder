@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
+import { useState, useRef } from "react";
 import {
   Box,
   Button,
@@ -21,19 +21,23 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
-} from '@chakra-ui/react'
-import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
-import { uploadSignedContract, deleteSignedContract, validateContractFile } from '@/services/fileUpload'
-import { useAuth } from '@/context/AuthContext'
-import { formatDateTime } from '@/utils/dateHelpers'
+} from "@chakra-ui/react";
+import { ExternalLinkIcon, DeleteIcon } from "@chakra-ui/icons";
+import {
+  uploadSignedContract,
+  deleteSignedContract,
+  validateContractFile,
+} from "@/services/fileUpload";
+import { useAuth } from "@/context/AuthContext";
+import { formatDateTime } from "@/utils/dateHelpers";
 
 interface SignedContractUploadProps {
-  contractId: string
-  currentUrl?: string | null
-  uploadedAt?: Date | null
-  uploadedByName?: string | null
-  onUploadSuccess?: (url: string) => void
-  onDeleteSuccess?: () => void
+  contractId: string;
+  currentUrl?: string | null;
+  uploadedAt?: Date | null;
+  uploadedByName?: string | null;
+  onUploadSuccess?: (url: string) => void;
+  onDeleteSuccess?: () => void;
 }
 
 export default function SignedContractUpload({
@@ -44,91 +48,99 @@ export default function SignedContractUpload({
   onUploadSuccess,
   onDeleteSuccess,
 }: SignedContractUploadProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { user } = useAuth()
-  const toast = useToast()
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef<HTMLButtonElement>(null)
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   // Color values now come from semantic tokens in theme
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || !user) return
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
 
     // Validate file
-    const validation = validateContractFile(file)
+    const validation = validateContractFile(file);
     if (!validation.isValid) {
       toast({
-        title: 'Invalid file',
+        title: "Invalid file",
         description: validation.error,
-        status: 'error',
+        status: "error",
         duration: 5000,
         isClosable: true,
-      })
-      return
+      });
+      return;
     }
 
-    setIsUploading(true)
-    setUploadProgress(0)
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const url = await uploadSignedContract(contractId, file, user.uid, user.displayName || user.email || undefined, (progress) => {
-        setUploadProgress(progress);
-      });
+      const url = await uploadSignedContract(
+        contractId,
+        file,
+        user.uid,
+        user.displayName || user.email || undefined,
+        (progress) => {
+          setUploadProgress(progress);
+        }
+      );
       toast({
-        title: 'Upload successful',
-        description: 'Signed contract has been uploaded successfully.',
-        status: 'success',
+        title: "Upload successful",
+        description: "Signed contract has been uploaded successfully.",
+        status: "success",
         duration: 5000,
         isClosable: true,
-      })
-      onUploadSuccess?.(url)
-      
+      });
+      onUploadSuccess?.(url);
+
       // Clear the file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = "";
       }
     } catch (error) {
       toast({
-        title: 'Upload failed',
-        description: 'There was an error uploading the signed contract.',
-        status: 'error',
+        title: "Upload failed",
+        description: "There was an error uploading the signed contract.",
+        status: "error",
         duration: 5000,
         isClosable: true,
-      })
+      });
     } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
+      setIsUploading(false);
+      setUploadProgress(0);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!currentUrl) return
+    if (!currentUrl) return;
 
     try {
-      await deleteSignedContract(contractId, currentUrl)
+      await deleteSignedContract(contractId, currentUrl);
       toast({
-        title: 'File deleted',
-        description: 'Signed contract has been removed successfully.',
-        status: 'success',
+        title: "File deleted",
+        description: "Signed contract has been removed successfully.",
+        status: "success",
         duration: 5000,
         isClosable: true,
-      })
-      onDeleteSuccess?.()
-      onClose()
+      });
+      onDeleteSuccess?.();
+      onClose();
     } catch (error) {
       toast({
-        title: 'Delete failed',
-        description: 'There was an error deleting the signed contract.',
-        status: 'error',
+        title: "Delete failed",
+        description: "There was an error deleting the signed contract.",
+        status: "error",
         duration: 5000,
         isClosable: true,
-      })
+      });
     }
-  }
+  };
 
   return (
     <Box borderWidth={1} borderRadius="lg" p={4} bg="cardBgAlt">
@@ -136,7 +148,7 @@ export default function SignedContractUpload({
         <Text fontWeight="bold" fontSize="lg">
           Signed Contract
         </Text>
-        
+
         <Alert status="info">
           <AlertIcon />
           Upload the signed contract PDF (max 10MB)
@@ -147,7 +159,7 @@ export default function SignedContractUpload({
             <Text color="success" fontWeight="medium">
               ✓ Signed contract uploaded
             </Text>
-            
+
             {/* Upload Metadata */}
             {(uploadedAt || uploadedByName) && (
               <Box bg="infoBg" p={3} borderRadius="md">
@@ -166,7 +178,7 @@ export default function SignedContractUpload({
                 )}
               </Box>
             )}
-            
+
             <HStack>
               <Link
                 href={currentUrl}
@@ -229,11 +241,11 @@ export default function SignedContractUpload({
                 disabled={isUploading}
                 display="none"
               />
-                <Text fontSize="sm" color="textMuted">
+              <Text fontSize="sm" color="textMuted">
                 Click to select a PDF file or drag and drop
               </Text>
             </Box>
-            
+
             {isUploading && (
               <Box>
                 <Progress value={uploadProgress} size="sm" colorScheme="blue" />
@@ -259,7 +271,8 @@ export default function SignedContractUpload({
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to delete the signed contract? This action cannot be undone.
+              Are you sure you want to delete the signed contract? This action
+              cannot be undone.
             </AlertDialogBody>
 
             <AlertDialogFooter>
@@ -274,5 +287,5 @@ export default function SignedContractUpload({
         </AlertDialogOverlay>
       </AlertDialog>
     </Box>
-  )
+  );
 }

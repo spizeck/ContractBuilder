@@ -7,7 +7,6 @@ import {
   Text,
   Box,
   Badge,
-  Button,
   Divider,
   useToast,
   IconButton,
@@ -19,7 +18,6 @@ import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { Payment } from '@/types/contractTypes'
 import { getPayments, deletePayment } from '@/services/payments'
 import { formatDateTime } from '@/utils/dateHelpers'
-import PaymentStatusBadge from './PaymentStatusBadge'
 
 interface PaymentHistoryProps {
   contractId: string
