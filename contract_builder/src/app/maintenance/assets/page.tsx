@@ -15,7 +15,6 @@ import {
   Select,
   HStack,
   Input,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset, AssetCategory } from "@/types/maintenance";
@@ -46,7 +45,7 @@ const CATEGORY_ORDER: Record<AssetCategory, number> = {
 };
 
 export default function AssetsPage() {
-  const thBg = useColorModeValue("gray.50", "gray.800");
+  // Color values now come from semantic tokens in theme
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
@@ -159,25 +158,25 @@ export default function AssetsPage() {
             <Table variant="simple" minW="900px" width="100%">
               <Thead>
                 <Tr>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Asset Name
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Category
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Active
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Tracking
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Current
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Next Due
                   </Th>
-                  <Th position="sticky" top={0} bg={thBg}>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Actions
                   </Th>
                 </Tr>

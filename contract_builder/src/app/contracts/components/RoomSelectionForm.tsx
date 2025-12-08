@@ -16,7 +16,6 @@ import {
   Box,
   Heading,
   useToast,
-  useColorModeValue,
   IconButton
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
@@ -61,9 +60,7 @@ export default function RoomSelectionForm ({
   const [seasonCheckDone, setSeasonCheckDone] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Theme-sensitive colors
-  const cardBg = useColorModeValue('white', 'gray.800')
-  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  // Color values now come from semantic tokens in theme
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,7 +203,7 @@ export default function RoomSelectionForm ({
   }
 
   return (
-    <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+    <Box bg="cardBg" p={4} borderWidth="1px" borderColor="border">
       <VStack spacing={6} align='stretch'>
         <Box>
           <Heading size="md" mb={2}>Room Selection</Heading>

@@ -17,7 +17,6 @@ import {
   ButtonGroup,
   useBreakpointValue,
   Spinner,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import type { TemperatureTrend } from "@/types/dashboard";
 import { formatDiveDate } from "@/utils/dateUtils";
@@ -348,21 +347,21 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
         </Box>
 
         {/* Temperature Insights */}
-        <Box mt={6} p={4} bg={useColorModeValue('orange.50', 'orange.900')} borderRadius="md">
-          <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('orange.800', 'orange.200')} mb={2}>
+        <Box mt={6} p={4} bg="temperatureInsights" borderRadius="md">
+          <Text fontSize="sm" fontWeight="medium" color="textPrimary" mb={2}>
             Temperature Insights
           </Text>
           <VStack align="start" spacing={1}>
-            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
+            <Text fontSize="xs" color="textSecondary">
               • Raw data points: {sortedTrends.length} temperature readings
             </Text>
-            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
+            <Text fontSize="xs" color="textSecondary">
               • After cleaning: {smoothedTrends.length} data points displayed
             </Text>
-            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
+            <Text fontSize="xs" color="textSecondary">
               • Temperature variance: {(maxTemp - minTemp).toFixed(1)}°C
             </Text>
-            <Text fontSize="xs" color={useColorModeValue('orange.700', 'orange.300')}>
+            <Text fontSize="xs" color="textSecondary">
               • Trending:{" "}
               {avgTemp > latestTemp
                 ? "Cooling "
@@ -372,7 +371,7 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
               {Math.abs(avgTemp - latestTemp).toFixed(1)}°C from average
             </Text>
             {sortedTrends.length > smoothedTrends.length && (
-              <Text fontSize="xs" color={useColorModeValue('orange.600', 'orange.400')} fontStyle="italic">
+              <Text fontSize="xs" color="textSecondary" fontStyle="italic">
                 • Outliers removed:{" "}
                 {sortedTrends.length - smoothedTrends.length} data points
                 filtered

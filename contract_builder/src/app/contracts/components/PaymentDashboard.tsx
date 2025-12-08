@@ -13,7 +13,6 @@ import {
   VStack,
   HStack,
   Button,
-  useColorModeValue,
   Divider
 } from '@chakra-ui/react'
 import { GroupContract } from '@/types/contractTypes'
@@ -75,13 +74,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
     }, initial)
   }, [contracts])
 
-  const cardBg = useColorModeValue('white', 'gray.700')
-  const borderColor = useColorModeValue('gray.200', 'gray.600')
-  const unpaidColor = useColorModeValue('red.500', 'red.400')
-  const depositColor = useColorModeValue('yellow.600', 'yellow.400')
-  const partialColor = useColorModeValue('orange.500', 'orange.400')
-  const paidColor = useColorModeValue('green.500', 'green.400')
-  const labelColor = useColorModeValue('gray.600', 'gray.300')
+  // Color values now come from semantic tokens in theme
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -95,7 +88,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
       
       {/* Summary Cards */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={4}>
-        <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+        <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="borderAlt">
           <Stat>
             <StatLabel fontSize="sm" color="gray.600">Total Contracts</StatLabel>
             <StatNumber fontSize="3xl">{metrics.totalContracts}</StatNumber>
@@ -105,10 +98,10 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
           </Stat>
         </Box>
 
-        <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+        <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="borderAlt">
           <Stat>
-            <StatLabel fontSize="sm" color={labelColor}>Unpaid</StatLabel>
-            <StatNumber fontSize="3xl" color={unpaidColor}>{metrics.unpaidCount}</StatNumber>
+            <StatLabel fontSize="sm" color="textMuted">Unpaid</StatLabel>
+            <StatNumber fontSize="3xl" color="unpaid">{metrics.unpaidCount}</StatNumber>
             <StatHelpText>
               {formatCurrency(metrics.unpaidRevenue)} outstanding
             </StatHelpText>
@@ -126,10 +119,10 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
           )}
         </Box>
 
-        <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+        <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="borderAlt">
           <Stat>
-            <StatLabel fontSize="sm" color={labelColor}>Deposit Paid</StatLabel>
-            <StatNumber fontSize="3xl" color={depositColor}>{metrics.depositPaidCount}</StatNumber>
+            <StatLabel fontSize="sm" color="textMuted">Deposit Paid</StatLabel>
+            <StatNumber fontSize="3xl" color="deposit">{metrics.depositPaidCount}</StatNumber>
             <StatHelpText>
               {formatCurrency(metrics.depositPaidRevenue)} in deposits
             </StatHelpText>
@@ -147,10 +140,10 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
           )}
         </Box>
 
-        <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+        <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="borderAlt">
           <Stat>
-            <StatLabel fontSize="sm" color={labelColor}>Paid in Full</StatLabel>
-            <StatNumber fontSize="3xl" color={paidColor}>{metrics.paidInFullCount}</StatNumber>
+            <StatLabel fontSize="sm" color="textMuted">Paid in Full</StatLabel>
+            <StatNumber fontSize="3xl" color="paid">{metrics.paidInFullCount}</StatNumber>
             <StatHelpText>
               {formatCurrency(metrics.paidInFullRevenue)} collected
             </StatHelpText>
@@ -170,7 +163,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
       </SimpleGrid>
 
       {/* Revenue Breakdown */}
-      <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+      <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="borderAlt">
         <Text fontSize="lg" fontWeight="bold" mb={4}>Revenue by Payment Status</Text>
         <VStack spacing={3} align="stretch">
           <HStack justify="space-between">
@@ -178,7 +171,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
               <PaymentStatusBadge contract={{ paymentStatus: 'unpaid' } as GroupContract} />
               <Text fontWeight="medium">{metrics.unpaidCount} contracts</Text>
             </HStack>
-            <Text fontWeight="bold" color={unpaidColor}>
+            <Text fontWeight="bold" color="unpaid">
               {formatCurrency(metrics.unpaidRevenue)}
             </Text>
           </HStack>
@@ -188,7 +181,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
               <PaymentStatusBadge contract={{ paymentStatus: 'deposit-paid' } as GroupContract} />
               <Text fontWeight="medium">{metrics.depositPaidCount} contracts</Text>
             </HStack>
-            <Text fontWeight="bold" color={depositColor}>
+            <Text fontWeight="bold" color="deposit">
               {formatCurrency(metrics.depositPaidRevenue)}
             </Text>
           </HStack>
@@ -198,7 +191,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
               <PaymentStatusBadge contract={{ paymentStatus: 'partial-payment' } as GroupContract} />
               <Text fontWeight="medium">{metrics.partialPaymentCount} contracts</Text>
             </HStack>
-            <Text fontWeight="bold" color={partialColor}>
+            <Text fontWeight="bold" color="partial">
               {formatCurrency(metrics.partialPaymentRevenue)}
             </Text>
           </HStack>
@@ -208,7 +201,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
               <PaymentStatusBadge contract={{ paymentStatus: 'paid-in-full' } as GroupContract} />
               <Text fontWeight="medium">{metrics.paidInFullCount} contracts</Text>
             </HStack>
-            <Text fontWeight="bold" color={paidColor}>
+            <Text fontWeight="bold" color="paid">
               {formatCurrency(metrics.paidInFullRevenue)}
             </Text>
           </HStack>

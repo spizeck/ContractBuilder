@@ -21,7 +21,6 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   useDisclosure,
-  useColorModeValue,
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { uploadSignedContract, deleteSignedContract, validateContractFile } from '@/services/fileUpload'
@@ -53,14 +52,7 @@ export default function SignedContractUpload({
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
-  // Theme-aware colors
-  const bgCard = useColorModeValue('gray.50', 'gray.800')
-  const successColor = useColorModeValue('green.600', 'green.400')
-  const infoBg = useColorModeValue('blue.50', 'blue.900')
-  const infoTitleColor = useColorModeValue('blue.800', 'blue.100')
-  const infoTextColor = useColorModeValue('blue.700', 'blue.200')
-  const linkColor = useColorModeValue('blue.500', 'blue.300')
-  const mutedTextColor = useColorModeValue('gray.600', 'gray.400')
+  // Color values now come from semantic tokens in theme
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -139,7 +131,7 @@ export default function SignedContractUpload({
   }
 
   return (
-    <Box borderWidth={1} borderRadius="lg" p={4} bg={bgCard}>
+    <Box borderWidth={1} borderRadius="lg" p={4} bg="cardBgAlt">
       <VStack spacing={4} align="stretch">
         <Text fontWeight="bold" fontSize="lg">
           Signed Contract
@@ -152,23 +144,23 @@ export default function SignedContractUpload({
 
         {currentUrl ? (
           <VStack spacing={3} align="stretch">
-            <Text color={successColor} fontWeight="medium">
+            <Text color="success" fontWeight="medium">
               ✓ Signed contract uploaded
             </Text>
             
             {/* Upload Metadata */}
             {(uploadedAt || uploadedByName) && (
-              <Box bg={infoBg} p={3} borderRadius="md">
-                <Text fontSize="sm" fontWeight="medium" color={infoTitleColor}>
+              <Box bg="infoBg" p={3} borderRadius="md">
+                <Text fontSize="sm" fontWeight="medium" color="infoTitle">
                   Upload Information:
                 </Text>
                 {uploadedAt && (
-                  <Text fontSize="sm" color={infoTextColor}>
+                  <Text fontSize="sm" color="infoText">
                     Uploaded: {formatDateTime(uploadedAt)}
                   </Text>
                 )}
                 {uploadedByName && (
-                  <Text fontSize="sm" color={infoTextColor}>
+                  <Text fontSize="sm" color="infoText">
                     Uploaded by: {uploadedByName}
                   </Text>
                 )}
@@ -179,7 +171,10 @@ export default function SignedContractUpload({
               <Link
                 href={currentUrl}
                 isExternal
-                color={linkColor}
+                bg="cardBgAlt"
+                borderWidth="1px"
+                borderColor="borderLine"
+                color="info"
                 textDecoration="underline"
               >
                 View Signed Contract
@@ -234,7 +229,7 @@ export default function SignedContractUpload({
                 disabled={isUploading}
                 display="none"
               />
-              <Text fontSize="sm" color={mutedTextColor}>
+                <Text fontSize="sm" color="textMuted">
                 Click to select a PDF file or drag and drop
               </Text>
             </Box>
@@ -242,7 +237,7 @@ export default function SignedContractUpload({
             {isUploading && (
               <Box>
                 <Progress value={uploadProgress} size="sm" colorScheme="blue" />
-                <Text fontSize="sm" color={mutedTextColor} mt={1}>
+                <Text fontSize="sm" color="textMuted" mt={1}>
                   Uploading...
                 </Text>
               </Box>

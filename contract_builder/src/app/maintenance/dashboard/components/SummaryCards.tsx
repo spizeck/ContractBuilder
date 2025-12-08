@@ -5,8 +5,7 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  Box,
-  useColorModeValue,
+  Box
 } from "@chakra-ui/react";
 import type { DashboardFilterResult, DashboardFilter } from "@/types/dashboard";
 

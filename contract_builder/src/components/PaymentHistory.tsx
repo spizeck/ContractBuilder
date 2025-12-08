@@ -14,7 +14,6 @@ import {
   Link,
   Alert,
   AlertIcon,
-  useColorModeValue
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { Payment } from '@/types/contractTypes'
@@ -91,11 +90,7 @@ export default function PaymentHistory({
   const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0)
   const remaining = contractTotalCost - totalPaid
 
-  // Theme-sensitive colors
-  const cardBg = useColorModeValue('gray.50', 'gray.700')
-  const paidColor = useColorModeValue('green.600', 'green.400')
-  const unpaidColor = useColorModeValue('red.600', 'red.400')
-  const borderColor = useColorModeValue('gray.200', 'gray.600')
+  // Theme-sensitive colors using semantic tokens
 
   const getPaymentMethodBadge = (method: string) => {
     const colors: Record<string, string> = {
@@ -133,11 +128,11 @@ export default function PaymentHistory({
     <Box>
       <VStack spacing={4} align="stretch">
         {/* Payment Summary */}
-        <Box p={4} borderWidth="1px" borderRadius="md" bg={cardBg} borderColor={borderColor}>
+        <Box p={4} borderWidth="1px" borderRadius="md" borderColor="borderAlt">
           <VStack spacing={2} align="stretch">
             <HStack justify="space-between">
               <Text fontWeight="bold">Total Paid:</Text>
-              <Text fontWeight="bold" color={paidColor}>
+              <Text fontWeight="bold" color="paid">
                 ${totalPaid.toLocaleString()}
               </Text>
             </HStack>
@@ -149,7 +144,7 @@ export default function PaymentHistory({
               <Text fontWeight="bold">Remaining:</Text>
               <Text 
                 fontWeight="bold" 
-                color={remaining > 0 ? unpaidColor : paidColor}
+                color={remaining > 0 ? "unpaid" : "paid"}
               >
                 ${remaining.toLocaleString()}
               </Text>
@@ -197,11 +192,11 @@ export default function PaymentHistory({
                       <Link
                         href={payment.paymentDocumentUrl}
                         isExternal
-                        color="blue.600"
+                        color="info"
                         fontSize="sm"
                         display="inline-flex"
                         alignItems="center"
-                        gap={1}
+                        bg="cardBgAlt"
                       >
                         <ExternalLinkIcon boxSize={3} />
                         View {payment.paymentDocumentType || 'document'}

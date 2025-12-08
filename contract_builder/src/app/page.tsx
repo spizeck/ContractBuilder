@@ -15,7 +15,6 @@ import {
   VStack,
   HStack,
   Icon,
-  useColorModeValue,
   SimpleGrid,
   Card,
   CardBody,
@@ -35,15 +34,6 @@ import {
 import { TbScubaMask } from "react-icons/tb";
 
 export default function Home() {
-  const cardBg = useColorModeValue("white", "gray.800");
-  const cardBorder = useColorModeValue("gray.200", "gray.700");
-  const staffBoxBg = useColorModeValue("green.50", "green.900");
-  const staffBoxBorder = useColorModeValue("green.200", "green.700");
-  const staffHeadingColor = useColorModeValue("green.700", "green.200");
-  const adminBoxBg = useColorModeValue("blue.50", "blue.900");
-  const adminBoxBorder = useColorModeValue("blue.200", "blue.700");
-  const adminHeadingColor = useColorModeValue("blue.700", "blue.200");
-
   return (
     <Container maxW="7xl" py={8}>
       {/* Header Section */}
@@ -61,9 +51,9 @@ export default function Home() {
       {/* Quick Actions */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={12}>
         <Card
-          bg={cardBg}
+          bg="cardBg"
           border="1px"
-          borderColor={cardBorder}
+          borderColor="border"
           _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
           transition="all 0.2s"
         >
@@ -93,9 +83,9 @@ export default function Home() {
         </Card>
 
         <Card
-          bg={cardBg}
+          bg="cardBg"
           border="1px"
-          borderColor={cardBorder}
+          borderColor="border"
           _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
           transition="all 0.2s"
         >
@@ -125,9 +115,9 @@ export default function Home() {
         </Card>
 
         <Card
-          bg={cardBg}
+          bg="cardBg"
           border="1px"
-          borderColor={cardBorder}
+          borderColor="border"
           _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
           transition="all 0.2s"
         >
@@ -157,9 +147,9 @@ export default function Home() {
         </Card>
 
         <Card
-          bg={cardBg}
+          bg="cardBg"
           border="1px"
-          borderColor={cardBorder}
+          borderColor="border"
           _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
           transition="all 0.2s"
         >
@@ -389,37 +379,25 @@ export default function Home() {
       {/* Access Information */}
       <VStack spacing={6} mb={8}>
         <Heading as="h3" size="lg">
-          Access & Permissions
+          Access Information
         </Heading>
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} w="full">
-          <Box
-            p={4}
-            bg={staffBoxBg}
-            border="1px"
-            borderColor={staffBoxBorder}
-            borderRadius="md"
-          >
-            <Heading size="md" color={staffHeadingColor} mb={2}>
-              Available to All Staff
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+          <Box>
+            <Heading as="h4" size="md" mb={3}>
+              Staff Access
             </Heading>
             <List spacing={2}>
-              <ListItem>• View and enter maintenance logs</ListItem>
-              <ListItem>• Access dive history and viewing</ListItem>
-              <ListItem>• View assets and technician information</ListItem>
+              <ListItem>• Daily dive logging and management</ListItem>
+              <ListItem>• Customer information and contract viewing</ListItem>
+              <ListItem>• Maintenance log creation</ListItem>
+              <ListItem>• Dashboard access for operational insights</ListItem>
             </List>
           </Box>
-          <Box
-            p={4}
-            bg={adminBoxBg}
-            border="1px"
-            borderColor={adminBoxBorder}
-            borderRadius="md"
-          >
-            <Heading size="md" color={adminHeadingColor} mb={2}>
-              Managers & Admins Only
+          <Box>
+            <Heading as="h4" size="md" mb={3}>
+              Admin Access
             </Heading>
             <List spacing={2}>
-              <ListItem>• Contract creation and management</ListItem>
               <ListItem>• Hotel and dive package configuration</ListItem>
               <ListItem>• Asset and technician editing</ListItem>
               <ListItem>• Administrative functions</ListItem>

@@ -16,7 +16,6 @@ import {
   VStack,
   HStack,
   Button,
-  useColorModeValue,
   Spinner,
   Alert,
   AlertIcon,
@@ -40,8 +39,7 @@ export default function KnowledgePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const bgColor = useColorModeValue("white", "gray.800");
-  const cardBg = useColorModeValue("gray.50", "gray.700");
+  // Color values now come from semantic tokens in theme
 
   useEffect(() => {
     loadKnowledgeBase();
@@ -129,7 +127,7 @@ export default function KnowledgePage() {
             <Heading size="lg" mb={4}>Featured Articles</Heading>
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
               {featuredArticles.map((article) => (
-                <Card key={article.id} bg={cardBg} variant="outline">
+                <Card key={article.id} bg="cardBgAlt" variant="outline">
                   <CardHeader>
                     <HStack justify="space-between" align="start">
                       <Heading size="sm" noOfLines={2}>
@@ -166,7 +164,7 @@ export default function KnowledgePage() {
             <Heading size="lg" mb={4}>Categories</Heading>
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
               {categories.map((category) => (
-                <Card key={category.name} bg={cardBg} variant="outline">
+                <Card key={category.name} bg="cardBgAlt" variant="outline">
                   <CardHeader>
                     <Heading size="sm">{category.name}</Heading>
                     <Text fontSize="xs" color="gray.500">
@@ -217,7 +215,7 @@ export default function KnowledgePage() {
           ) : (
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
               {filteredArticles.map((article) => (
-                <Card key={article.id} bg={cardBg} variant="outline">
+                <Card key={article.id} bg="cardBgAlt" variant="outline">
                   <CardHeader>
                     <Heading size="sm" noOfLines={2}>
                       {article.title}

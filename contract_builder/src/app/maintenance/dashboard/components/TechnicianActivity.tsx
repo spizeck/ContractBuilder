@@ -10,7 +10,6 @@ import {
   Th,
   Td,
   Tooltip,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import type { TechnicianActivity } from "@/types/dashboard";
 import { useMemo, useState } from "react";
@@ -24,9 +23,7 @@ export default function TechnicianActivity({
 }) {
   const [sortDesc, setSortDesc] = useState(true);
 
-  const tooltipBg = useColorModeValue("white", "gray.700");
-  const tooltipColor = useColorModeValue("gray.800", "white");
-  const headerBg = useColorModeValue("gray.100", "gray.900");
+  // Color values now come from semantic tokens in theme
 
   // Sort activities by count
   const sortedActivities = useMemo(() => {
@@ -77,7 +74,7 @@ export default function TechnicianActivity({
                       activity.count === 1 ? "" : "s"
                     }`}
                     bg={tooltipBg}
-                    color={tooltipColor}
+                    color="tooltipText"
                     hasArrow
                   >
                     <Box as="span">{activity.technician.name}</Box>

@@ -18,7 +18,6 @@ import {
   NumberInputField,
   NumberInputStepper,
   useToast,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import type { Asset } from "@/types/maintenance";
@@ -41,9 +40,7 @@ export default function UpdateTrackingModal({
   const [currentKilometers, setCurrentKilometers] = useState<string>("");
   const toast = useToast();
 
-  // Dynamic colors for light/dark modes
-  const cardBg = useColorModeValue("white", "gray.800");
-  const cardText = useColorModeValue("gray.900", "gray.100");
+  // Color values now come from semantic tokens in theme
 
   // Reset form when asset changes
   useState(() => {
@@ -128,7 +125,7 @@ export default function UpdateTrackingModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <ModalOverlay />
-      <ModalContent bg={cardBg} color={cardText}>
+      <ModalContent bg="cardBg" color="textPrimary">
         <ModalHeader>
           Update {isHours ? "Hours" : "Kilometers"} — {asset.name}
         </ModalHeader>

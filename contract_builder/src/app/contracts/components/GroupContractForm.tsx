@@ -12,7 +12,6 @@ import {
   Heading,
   Text,
   useToast,
-  useColorModeValue
 } from '@chakra-ui/react'
 import { getHotels } from '@/services/hotels'
 import { Hotel } from '@/types/contractTypes'
@@ -44,9 +43,7 @@ export default function GroupContractForm ({
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Theme-sensitive colors
-  const cardBg = useColorModeValue('white', 'gray.800')
-  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  // Color values now come from semantic tokens in theme
 
   useEffect(() => {
     fetchHotels()
@@ -107,7 +104,7 @@ export default function GroupContractForm ({
   }
 
   return (
-    <Box bg={cardBg} p={6} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+    <Box bg="cardBg" p={6} borderRadius="lg" borderWidth="1px" borderColor="border">
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align='stretch'>
           <Box>

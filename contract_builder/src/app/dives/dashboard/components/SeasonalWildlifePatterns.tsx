@@ -18,7 +18,6 @@ import {
   StatNumber,
   Alert,
   AlertIcon,
-  useColorModeValue
 } from '@chakra-ui/react'
 import type { SeasonalWildlifePattern } from '@/types/dashboard'
 
@@ -72,7 +71,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
       <CardHeader>
         <VStack align="start" spacing={1}>
           <Heading size="md">Seasonal Wildlife Patterns</Heading>
-          <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')}>
+          <Text fontSize="sm" color="textMuted">
             Species sightings by month to plan wildlife-focused dives
           </Text>
         </VStack>
@@ -134,8 +133,8 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
                 p={4}
                 borderWidth="1px"
                 borderRadius="md"
-                bg={isPeakSeason ? useColorModeValue('green.50', 'green.900') : isLowSeason ? useColorModeValue('orange.50', 'orange.900') : useColorModeValue('white', 'gray.800')}
-                borderColor={isPeakSeason ? 'green.200' : isLowSeason ? 'orange.200' : 'gray.200'}
+                bg={isPeakSeason ? "wildlifePeak" : isLowSeason ? "wildlifeLow" : "cardBg"}
+                borderColor={isPeakSeason ? 'green.200' : isLowSeason ? 'orange.200' : 'border'}
               >
                 <HStack justify="space-between" align="start" mb={3}>
                   <VStack align="start" spacing={1}>
@@ -149,17 +148,17 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
                       >
                         {isPeakSeason ? 'Peak' : isLowSeason ? 'Low' : 'Moderate'}
                       </Badge>
-                      <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
+                      <Text fontSize="xs" color="textMuted">
                         {pattern.diveCount} dives
                       </Text>
                     </HStack>
                   </VStack>
                   
                   <VStack align="end" spacing={1}>
-                    <Text fontSize="lg" fontWeight="bold" color={useColorModeValue('blue.600', 'blue.400')}>
+                    <Text fontSize="lg" fontWeight="bold" color="info">
                       {pattern.totalSightings}
                     </Text>
-                    <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
+                    <Text fontSize="xs" color="textMuted">
                       total sightings
                     </Text>
                   </VStack>
@@ -167,7 +166,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
 
                 {/* Top Species */}
                 <VStack align="start" spacing={2}>
-                  <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.700', 'gray.300')}>
+                  <Text fontSize="sm" fontWeight="medium" color="textSecondary">
                     Top Species:
                   </Text>
                   <HStack flexWrap="wrap" spacing={1}>
@@ -215,7 +214,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
               <Text fontSize="sm" fontWeight="medium">
                 Best Wildlife Viewing: {peakSeason.month}
               </Text>
-              <Text fontSize="xs" color={useColorModeValue('gray.600', 'gray.400')}>
+              <Text fontSize="xs" color="textMuted">
                 {peakSeason.totalSightings} sightings across {peakSeason.species.length} species
               </Text>
             </Box>
@@ -223,11 +222,11 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
 
           {/* Year-round Species */}
           {uniqueSpeciesCount > 0 && (
-            <Box p={3} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
-              <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('blue.800', 'blue.200')} mb={2}>
+            <Box p={3} bg="speciesDiversity" borderRadius="md">
+              <Text fontSize="sm" fontWeight="medium" color="infoTitle" mb={2}>
                 Species Diversity:
               </Text>
-              <Text fontSize="xs" color={useColorModeValue('blue.700', 'blue.300')}>
+              <Text fontSize="xs" color="infoText">
                 {uniqueSpeciesCount} different species documented throughout the year
               </Text>
             </Box>

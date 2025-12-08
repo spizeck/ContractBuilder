@@ -15,7 +15,6 @@ import {
   Box,
   HStack,
   Badge,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { useEffect, useState, useMemo } from "react";
 import type { Asset, MaintenanceLog, Technician } from "@/types/maintenance";
@@ -49,15 +48,7 @@ export default function LogsModal({
   const router = useRouter();
   const { user, role } = useAuth();
 
-  // Dynamic colors for light/dark modes
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const detailsColor = useColorModeValue("gray.700", "gray.300");
-  const noLogsColor = useColorModeValue("gray.500", "gray.400");
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
-  const cardText = useColorModeValue("gray.900", "gray.100");
-  const mutedText = useColorModeValue("gray.600", "gray.400");
-  const badgeColorScheme = useColorModeValue("gray", "gray");
+  // Color values now come from semantic tokens in theme
 
   useEffect(() => {
     if (!asset) return;
@@ -184,7 +175,7 @@ export default function LogsModal({
             {!logs ? (
               <Spinner mx="auto" display="block" />
             ) : filteredLogs.length === 0 ? (
-              <Text textAlign="center" color={noLogsColor}>
+              <Text textAlign="center" color="textMuted">
                 {searchKeyword?.trim() ? "No logs match your search." : "No logs found."}
               </Text>
             ) : (
@@ -200,18 +191,18 @@ export default function LogsModal({
                     <Box
                       key={l.id}
                       borderWidth="1px"
-                      borderColor={borderColor}
+                      borderColor="border"
                       borderRadius="md"
                       p={3}
-                      bg={cardBg}
-                      color={cardText}
-                      _hover={{ bg: hoverBg }}
+                      bg="cardBg"
+                      color="textPrimary"
+                      _hover={{ bg: "bgHover" }}
                       transition="background-color 0.2s"
                     >
                       <HStack justify="space-between" mb={1}>
-                        <Text fontWeight="bold" color={cardText}>{formatDate(l.date)}</Text>
+                        <Text fontWeight="bold" color="textPrimary">{formatDate(l.date)}</Text>
                         <HStack spacing={2}>
-                          <Badge colorScheme={badgeColorScheme}>
+                          <Badge colorScheme="gray">
                             {l.technicianName ||
                               technicians.find((t) => t.id === l.technicianId)?.name ||
                               ""}
@@ -225,12 +216,12 @@ export default function LogsModal({
                           </Button>
                         </HStack>
                       </HStack>
-                      <Text fontWeight="semibold" color={cardText}>{l.summary}</Text>
+                      <Text fontWeight="semibold" color="textPrimary">{l.summary}</Text>
                       {!isCollapsed && l.details && (
                         <Box
                           whiteSpace="pre-wrap"
                           fontSize="sm"
-                          color={detailsColor}
+                          color="textPrimary"
                           mt={2}
                         >
                           {l.details}
@@ -329,15 +320,15 @@ export default function LogsModal({
           size="md"
         >
           <ModalOverlay />
-          <ModalContent bg={cardBg} color={cardText}>
+          <ModalContent bg="cardBg" color="textPrimary">
             <ModalHeader>View Log</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <VStack align="stretch" spacing={3}>
-                <Text fontWeight="bold" color={cardText}>
+                <Text fontWeight="bold" color="textPrimary">
                   {formatDate(selectedLog.date)} — {selectedLog.summary}
                 </Text>
-                <Text color={mutedText}>
+                <Text color="textMuted">
                   Technician: {selectedLog.technicianName ||
                     technicians.find((t) => t.id === selectedLog.technicianId)?.name ||
                     "-"}
@@ -347,10 +338,10 @@ export default function LogsModal({
                     whiteSpace="pre-wrap"
                     p={2}
                     borderWidth={1}
-                    borderColor={borderColor}
+                    borderColor="border"
                     borderRadius="md"
-                    bg={cardBg}
-                    color={detailsColor}
+                    bg="cardBg"
+                    color="textMuted"
                   >
                     {selectedLog.details}
                   </Box>

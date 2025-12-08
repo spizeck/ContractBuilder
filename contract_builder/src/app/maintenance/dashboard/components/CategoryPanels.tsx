@@ -10,7 +10,6 @@ import {
   Th,
   Td,
   Tag,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import type { Asset, AssetCategory } from "@/types/maintenance";
 import {
@@ -41,8 +40,6 @@ export default function CategoryPanels({
   assets,
   onViewLogs,
 }: CategoryPanelsProps) {
-  const thBg = useColorModeValue("gray.50", "gray.800");
-  const rowHoverBg = useColorModeValue("gray.50", "gray.700");
 
   // Group by parentAssetId for hierarchy
   const grouped = useMemo(() => {
@@ -74,22 +71,22 @@ export default function CategoryPanels({
       <Table size="sm" variant="simple">
         <Thead>
           <Tr>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Name
             </Th>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Category
             </Th>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Tracking
             </Th>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Current
             </Th>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Next Due
             </Th>
-            <Th position="sticky" top={0} bg={thBg}>
+            <Th position="sticky" top={0} bg="tableHeader">
               Status
             </Th>
           </Tr>
@@ -103,7 +100,6 @@ export default function CategoryPanels({
               onViewLogs={onViewLogs}
               level={0}
               inheritedCategory={undefined}
-              rowHoverBg={rowHoverBg}
             />
           ))}
         </Tbody>
@@ -118,14 +114,12 @@ function AssetRow({
   onViewLogs,
   level,
   inheritedCategory,
-  rowHoverBg,
 }: {
   asset: Asset;
   grouped: Record<string, Asset[]>;
   onViewLogs: (asset: Asset) => void;
   level: number;
   inheritedCategory?: AssetCategory;
-  rowHoverBg: string;
 }) {
   const displayCategory = inheritedCategory ?? asset.category;
   const status = getAssetStatus(asset);
@@ -135,7 +129,7 @@ function AssetRow({
       <Tr
         cursor="pointer"
         onClick={() => onViewLogs(asset)}
-        _hover={{ bg: rowHoverBg }}
+        _hover={{ bg: "bgHover" }}
       >
         <Td style={{ paddingLeft: `${level * 20}px` }}>
           {level > 0 && "↳ "}
@@ -158,7 +152,6 @@ function AssetRow({
           onViewLogs={onViewLogs}
           level={level + 1}
           inheritedCategory={displayCategory}
-          rowHoverBg={rowHoverBg}
         />
       ))}
     </>
