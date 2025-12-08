@@ -311,6 +311,10 @@ export default function TotalCostCalculation({
         createdAt: new Date(),
         customRates: Object.keys(customRates).length > 0 ? customRates : undefined,
         hasCustomRates: Object.keys(customRates).length > 0,
+        // Add addon arrays to contract data
+        hotelAddons: contractData.hotelAddons || [],
+        diveAddons: contractData.diveAddons || [],
+        mealAddons: contractData.mealAddons || [],
       };
 
       await addGroupContract(groupContract);
@@ -687,6 +691,20 @@ export default function TotalCostCalculation({
               </VStack>
             );
           })}
+          
+          {/* Hotel Addons */}
+          {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
+            <>
+              {contractData.hotelAddons.map((addon, idx) => (
+                <VStack key={idx} align="stretch" spacing={1}>
+                  <Text>
+                    {addon.description}: ${formatCurrency(addon.amount)}
+                  </Text>
+                </VStack>
+              ))}
+            </>
+          )}
+          
           <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
           <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
@@ -710,9 +728,23 @@ export default function TotalCostCalculation({
           <CardBody>
             <Text>
               Dive Package: {divePackage.name} for{" "}
-              {diveTotals.gross > 0 ? diveTotals.gross / divePackage.price : 0}{" "}
+              {contractData.numDivers || 0}{" "}
               divers
             </Text>
+            
+            {/* Dive Addons */}
+            {contractData.diveAddons && contractData.diveAddons.length > 0 && (
+              <>
+                {contractData.diveAddons.map((addon, idx) => (
+                  <VStack key={idx} align="stretch" spacing={1}>
+                    <Text>
+                      {addon.description}: ${formatCurrency(addon.amount)}
+                    </Text>
+                  </VStack>
+                ))}
+              </>
+            )}
+            
             <Text>Gross: ${formatCurrency(diveTotals.gross)}</Text>
             <Text>FOC Value: $({formatCurrency(diveTotals.foc)})</Text>
             <Text>Commission: $({formatCurrency(diveTotals.commission)})</Text>
@@ -736,6 +768,20 @@ export default function TotalCostCalculation({
           </CardHeader>
           <CardBody>
             <Text>Meal Package: {mealPackage.name}</Text>
+            
+            {/* Meal Addons */}
+            {contractData.mealAddons && contractData.mealAddons.length > 0 && (
+              <>
+                {contractData.mealAddons.map((addon, idx) => (
+                  <VStack key={idx} align="stretch" spacing={1}>
+                    <Text>
+                      {addon.description}: ${formatCurrency(addon.amount)}
+                    </Text>
+                  </VStack>
+                ))}
+              </>
+            )}
+            
             <Text>Gross: ${formatCurrency(mealTotals.gross)}</Text>
             <Text>Commission: $({formatCurrency(mealTotals.commission)})</Text>
             <Text>Net: ${formatCurrency(mealTotals.net)}</Text>

@@ -1,14 +1,47 @@
 'use client'
 
-import { useState } from 'react'
-import { Button, Heading, Text, VStack, TableContainer } from '@chakra-ui/react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { VStack } from '@chakra-ui/react'
 import GroupContractWizard from './components/GroupContractWizard'
 import GroupContractsList from './components/GroupContractsList'
 import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
+import { getGroupContractById } from '@/services/groupContracts'
 
 export default function ContractPage () {
+  const searchParams = useSearchParams()
   const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('list')
   const [editingContract, setEditingContract] = useState<any>(null)
+
+  // Check for edit parameter on component mount
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId) {
+      // Load the contract for editing
+      const loadContractForEdit = async () => {
+        try {
+          const contract = await getGroupContractById(editId)
+          if (contract) {
+            // Ensure addon arrays are properly initialized for old contracts
+            const contractWithAddons = {
+              ...contract,
+              hotelAddons: contract.hotelAddons || [],
+              diveAddons: contract.diveAddons || [],
+              mealAddons: contract.mealAddons || []
+            }
+            setEditingContract(contractWithAddons)
+            setView('edit')
+          }
+        } catch (error) {
+          console.error('Error loading contract for edit:', error)
+          // Fall back to list view if contract not found
+          setView('list')
+        }
+      }
+      
+      loadContractForEdit()
+    }
+  }, [searchParams])
 
   const handleAddContract = () => {
     setEditingContract(null)
@@ -32,9 +65,6 @@ export default function ContractPage () {
   return (
      <ProtectedPage allowedRoles={["admin", "manager"]}>
     <VStack spacing={4} p={5}>
-      <Heading as='h1' size='xl' textAlign='center'>
-        Group Contracts
-      </Heading>
 
       {view === 'home' && (
         <GroupContractsList

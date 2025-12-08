@@ -174,9 +174,13 @@ export function calculateTotalCost (
     }
   }
 
-  const adjustedGross = grossRoomCost - focDeduction
+  // Add hotel addons to room gross before commission calculation
+  const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
+  const grossRoomCostWithAddons = grossRoomCost + hotelAddonTotal
+  
+  const adjustedGross = grossRoomCostWithAddons - focDeduction
   const roomTotals: Totals = {
-    gross: grossRoomCost,
+    gross: grossRoomCostWithAddons,
     foc: focDeduction,
     commission: adjustedGross * commissionRate,
     net: adjustedGross * (1 - commissionRate)
@@ -185,7 +189,9 @@ export function calculateTotalCost (
   // ---- Dives ----
   let diveTotals: Totals = { gross: 0, foc: 0, commission: 0, net: 0 }
   if (divePackage && numDivers) {
-    const gross = divePackage.price * numDivers
+    const divePackageGross = divePackage.price * numDivers
+    const diveAddonTotal = (contractData.diveAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
+    const gross = divePackageGross + diveAddonTotal
     const foc = Math.floor(numDivers / 8) * divePackage.price
     const adjustedGross = gross - foc
     const commission = adjustedGross * commissionRate
@@ -195,7 +201,9 @@ export function calculateTotalCost (
   // ---- Meals ----
   let mealTotals: Omit<Totals, 'foc'> = { gross: 0, commission: 0, net: 0 }
   if (mealPackage && totalGuests) {
-    const gross = mealPackage.price * totalGuests
+    const mealPackageGross = mealPackage.price * totalGuests
+    const mealAddonTotal = (contractData.mealAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
+    const gross = mealPackageGross + mealAddonTotal
     const commission = gross * (mealPackage.commissionRate ?? 0)
     mealTotals = { gross, commission, net: gross - commission }
   }

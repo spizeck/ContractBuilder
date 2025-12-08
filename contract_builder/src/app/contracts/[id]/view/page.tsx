@@ -55,6 +55,13 @@ export default function ViewContractPage () {
     router.back()
   }
 
+  const handleEditContract = () => {
+    if (contract) {
+      // Navigate to the contracts page with edit mode
+      router.push(`/contracts?edit=${contract.id}`)
+    }
+  }
+
   const handleUploadSuccess = (url: string) => {
     if (contract && user) {
       setContract({
@@ -112,7 +119,19 @@ export default function ViewContractPage () {
   }
 
   const handlePrintToPDF = () => {
+    // Store original document title
+    const originalTitle = document.title
+    
+    // Set custom filename for PDF
+    if (contract) {
+      document.title = `Group Contract ${contract.groupName}`
+    }
+    
+    // Print with improved margins
     window.print()
+    
+    // Restore original title
+    document.title = originalTitle
   }
 
   useEffect(() => {
@@ -157,10 +176,17 @@ export default function ViewContractPage () {
   }
 
   return (
-    <VStack p={10} spacing={6} align='stretch'>
+    <VStack p={10} spacing={6} align='stretch' className="print-container">
       <HStack justify='space-between' align='center'>
         <Heading size='lg'>Group Contract</Heading>
         <HStack spacing={3} className='no-print'>
+          <Button 
+            onClick={handleEditContract}
+            colorScheme='teal'
+            variant='outline'
+          >
+            Edit Contract
+          </Button>
           <Button 
             onClick={handlePrintToPDF}
             colorScheme='blue'
@@ -240,6 +266,18 @@ export default function ViewContractPage () {
               {rc.description}: ${formatCurrency(rc.cost)}
             </Text>
           ))}
+          
+          {/* Hotel Addons */}
+          {contract.hotelAddons && contract.hotelAddons.length > 0 && (
+            <>
+              {contract.hotelAddons.map((addon, idx) => (
+                <Text key={idx}>
+                  {addon.description}: ${formatCurrency(addon.amount)}
+                </Text>
+              ))}
+            </>
+          )}
+          
           <Text>Gross: ${formatCurrency(contract.roomTotals?.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(contract.roomTotals?.foc)})</Text>
           <Text>
@@ -260,6 +298,18 @@ export default function ViewContractPage () {
           <Text>
             {contract.numDivers} Divers with {contract.divePackageName}
           </Text>
+          
+          {/* Dive Addons */}
+          {contract.diveAddons && contract.diveAddons.length > 0 && (
+            <>
+              {contract.diveAddons.map((addon, idx) => (
+                <Text key={idx}>
+                  {addon.description}: ${formatCurrency(addon.amount)}
+                </Text>
+              ))}
+            </>
+          )}
+          
           <Text>Gross: ${formatCurrency(contract.diveTotals?.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(contract.diveTotals?.foc)})</Text>
           <Text>
@@ -280,6 +330,18 @@ export default function ViewContractPage () {
           <Text>
             {contract.totalGuests} Guests with {contract.mealPackageName}
           </Text>
+          
+          {/* Meal Addons */}
+          {contract.mealAddons && contract.mealAddons.length > 0 && (
+            <>
+              {contract.mealAddons.map((addon, idx) => (
+                <Text key={idx}>
+                  {addon.description}: ${formatCurrency(addon.amount)}
+                </Text>
+              ))}
+            </>
+          )}
+          
           <Text>Gross: ${formatCurrency(contract.mealTotals?.gross)}</Text>
           <Text>
             Commission: $({formatCurrency(contract.mealTotals?.commission)})
@@ -290,6 +352,7 @@ export default function ViewContractPage () {
         </Box>
       )}
 
+      
       {/* Hotel Details */}
       <Box>
         <Heading size='md' mb={2}>
@@ -405,8 +468,8 @@ if (typeof window !== 'undefined') {
     
     @media print {
       @page {
-        margin: 0.5in;
-        size: A4;
+        margin: 0.25in;
+        size: Letter;
       }
       
       body {
@@ -430,8 +493,14 @@ if (typeof window !== 'undefined') {
         padding: 1rem 2rem !important;
       }
       
-      /* Reduce padding on the contract container */
-      .chakra-vstack {
+      /* Target the main print container specifically */
+      .print-container {
+        padding: 0.5rem !important;
+        padding-top: 0.25rem !important;
+      }
+      
+      /* Reduce padding on other vstacks */
+      .chakra-vstack:not(.print-container) {
         padding: 1rem !important;
       }
       

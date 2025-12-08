@@ -3,6 +3,7 @@ import GroupContractForm from './GroupContractForm'
 import RoomSelectionForm from './RoomSelectionForm'
 import DivePackageSelectionForm from './DivePackageSelectionForm'
 import MealPackageSelectionForm from './MealPackageSelectionForm'
+import AddonSelectionForm from './AddonSelectionForm'
 import TotalCostCalculation from './TotalCostCalculation'
 
 export default function GroupContractWizard ({
@@ -67,6 +68,19 @@ export default function GroupContractWizard ({
         />
       )
     case 5:
+      return (
+        <AddonSelectionForm
+          initialAddons={{
+            hotelAddons: contractData.hotelAddons,
+            diveAddons: contractData.diveAddons,
+            mealAddons: contractData.mealAddons,
+          }}
+          onNext={nextStep}
+          onBack={prevStep}
+          onCancel={onCancel}
+        />
+      )
+    case 6:
       return (
         <TotalCostCalculation
           contractData={contractData}

@@ -1,3 +1,8 @@
+export interface Addon {
+  description: string;
+  amount: number;
+}
+
 export interface ContractData {
   id?: string;
   groupName?: string;
@@ -9,6 +14,9 @@ export interface ContractData {
   divePackageId?: string;
   numDivers?: number;
   mealPackageId?: string;
+  hotelAddons?: Addon[];
+  diveAddons?: Addon[];
+  mealAddons?: Addon[];
   createdAt?: Date;
   customRates?: { [key: string]: number }; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
@@ -91,6 +99,9 @@ export interface GroupContract {
   mealPackageName?: string | null;
   mealPackageCost?: number | null;
   mealCommissionRate?: number; // Commission rate for meal packages
+  hotelAddons?: Addon[];
+  diveAddons?: Addon[];
+  mealAddons?: Addon[];
   totalCost: number;
   createdAt: Date;
   archived?: boolean;
