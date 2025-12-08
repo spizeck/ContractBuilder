@@ -154,9 +154,9 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
             description="Water temperature patterns over time"
             selectedPeriod={selectedPeriod}
             periods={[
-              { value: "30days", label: "30 Days", color: "orange.500" },
-              { value: "12months", label: "12 Months", color: "orange.500" },
-              { value: "24months", label: "24 Months", color: "orange.500" },
+              { value: "30days", label: "30 Days", color: "warning" },
+              { value: "12months", label: "12 Months", color: "warning" },
+              { value: "24months", label: "24 Months", color: "warning" },
             ]}
             onPeriodChange={(period) => setSelectedPeriod(period as TimePeriod)}
           />
@@ -168,8 +168,8 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
           minH="300px"
         >
           <VStack spacing={4}>
-            <Spinner size="xl" color="orange.500" />
-            <Text color="gray.600">Loading temperature data...</Text>
+            <Spinner size="xl" color="warning" />
+            <Text color="textMuted">Loading temperature data...</Text>
           </VStack>
         </CardBody>
       </Card>
@@ -185,15 +185,15 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
             description="Water temperature patterns over time"
             selectedPeriod={selectedPeriod}
             periods={[
-              { value: "30days", label: "30 Days", color: "orange.500" },
-              { value: "12months", label: "12 Months", color: "orange.500" },
-              { value: "24months", label: "24 Months", color: "orange.500" },
+              { value: "30days", label: "30 Days", color: "warning" },
+              { value: "12months", label: "12 Months", color: "warning" },
+              { value: "24months", label: "24 Months", color: "warning" },
             ]}
             onPeriodChange={(period) => setSelectedPeriod(period as TimePeriod)}
           />
         </CardHeader>
         <CardBody>
-          <Text color="gray.500">
+          <Text color="textMuted">
             No temperature data available for selected period
           </Text>
         </CardBody>

@@ -91,8 +91,8 @@ export default function SiteVisitationChart({
           minH="300px"
         >
           <VStack spacing={4}>
-            <Spinner size="xl" color="blue.500" />
-            <Text color="gray.600">Loading site visitation data...</Text>
+            <Spinner size="xl" color="infoLink" />
+            <Text color="textMuted">Loading site visitation data...</Text>
           </VStack>
         </CardBody>
       </Card>
@@ -116,7 +116,7 @@ export default function SiteVisitationChart({
           />
         </CardHeader>
         <CardBody>
-          <Text color="gray.500">
+          <Text color="textMuted">
             No site visitation data available for selected period
           </Text>
         </CardBody>

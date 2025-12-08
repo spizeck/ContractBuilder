@@ -60,7 +60,7 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
           <Heading size="md">Seasonal Wildlife Patterns</Heading>
         </CardHeader>
         <CardBody>
-          <Text color="gray.500">No wildlife pattern data available</Text>
+          <Text color="textMuted">No wildlife pattern data available</Text>
         </CardBody>
       </Card>
     )
@@ -80,42 +80,42 @@ export default function SeasonalWildlifePatterns({ patterns }: SeasonalWildlifeP
         {/* Season Overview Stats */}
         <SimpleGrid columns={isMobile ? 2 : 4} spacing={4} mb={6}>
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Peak Season</StatLabel>
-            <StatNumber fontSize="lg" color="green.600">
+            <StatLabel fontSize="xs" color="textMuted">Peak Season</StatLabel>
+            <StatNumber fontSize="lg" color="success">
               {peakSeason.month}
             </StatNumber>
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="textMuted">
               {peakSeason.totalSightings} sightings
             </Text>
-            <Text fontSize="xs" color="gray.400">
+            <Text fontSize="xs" color="textMuted">
               {peakSeason.diveCount > 0 ? (peakSeason.totalSightings / peakSeason.diveCount).toFixed(2) : '0.00'} per dive
             </Text>
           </Stat>
           
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Low Season</StatLabel>
-            <StatNumber fontSize="lg" color="orange.600">
+            <StatLabel fontSize="xs" color="textMuted">Low Season</StatLabel>
+            <StatNumber fontSize="lg" color="warning">
               {lowSeason.month}
             </StatNumber>
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="textMuted">
               {lowSeason.totalSightings} sightings
             </Text>
-            <Text fontSize="xs" color="gray.400">
+            <Text fontSize="xs" color="textMuted">
               {lowSeason.diveCount > 0 ? (lowSeason.totalSightings / lowSeason.diveCount).toFixed(2) : '0.00'} per dive
             </Text>
           </Stat>
           
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Unique Species</StatLabel>
+            <StatLabel fontSize="xs" color="textMuted">Unique Species</StatLabel>
             <StatNumber fontSize="lg">{uniqueSpeciesCount}</StatNumber>
           </Stat>
           
           <Stat>
-            <StatLabel fontSize="xs" color="gray.600">Monthly Average</StatLabel>
+            <StatLabel fontSize="xs" color="textMuted">Monthly Average</StatLabel>
             <StatNumber fontSize="lg">
               {avgMonthlySightings.toFixed(0)}
             </StatNumber>
-            <Text fontSize="xs" color="gray.400">
+            <Text fontSize="xs" color="textMuted">
               {avgMonthlySightingsPerDive.toFixed(2)} per dive
             </Text>
           </Stat>

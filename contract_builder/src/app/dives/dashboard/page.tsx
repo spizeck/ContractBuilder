@@ -55,7 +55,7 @@ export default function DiveDashboardPage() {
   if (error || !dashboardData) {
     return (
       <Box p={6}>
-        <Text color="red.500">{error || 'No data available'}</Text>
+        <Text color="error">{error || 'No data available'}</Text>
       </Box>
     )
   }
@@ -69,7 +69,7 @@ export default function DiveDashboardPage() {
             <Heading size="lg" mb={2}>
               Dive Log Dashboard
             </Heading>
-            <Text color="gray.600">
+            <Text color="textMuted">
               Overview of dive activities, site utilization, and other patterns
             </Text>
           </Box>

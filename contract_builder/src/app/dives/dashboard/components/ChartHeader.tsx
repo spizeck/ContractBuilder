@@ -36,13 +36,13 @@ export default function ChartHeader({
           <Button
             key={period.value}
             onClick={() => onPeriodChange(period.value)}
-            bg={selectedPeriod === period.value ? (period.color || "blue.500") : undefined}
+            bg={selectedPeriod === period.value ? (period.color || "infoLink") : undefined}
             color={selectedPeriod === period.value ? "white" : undefined}
             _hover={{
               bg: selectedPeriod === period.value
                 ? period.color
-                  ? `${period.color}.600`
-                  : "blue.600"
+                  ? `${period.color}.700`
+                  : "infoLink"
                 : undefined,
             }}
             flex={1}
@@ -51,7 +51,7 @@ export default function ChartHeader({
           </Button>
         ))}
       </ButtonGroup>
-      <Text fontSize="sm" color="gray.600">
+      <Text fontSize="sm" color="textMuted">
         {description}
       </Text>
     </VStack>

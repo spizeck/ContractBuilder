@@ -78,7 +78,7 @@ export default function SummaryCards({
           <CardBody>
             <Stat>
               <StatLabel fontSize="sm">Last 7 Days</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color="blue.600">
+              <StatNumber fontSize="2xl" fontWeight="bold" color="infoLink">
                 {stats.divesLast7Days}
               </StatNumber>
             </Stat>
@@ -90,7 +90,7 @@ export default function SummaryCards({
           <CardBody>
             <Stat>
               <StatLabel fontSize="sm">Avg Temperature (Last 14 Days)</StatLabel>
-              <StatNumber fontSize="2xl" fontWeight="bold" color="orange.600">
+              <StatNumber fontSize="2xl" fontWeight="bold" color="warning">
                 {stats.averageTemperature}°C / {celsiusToFahrenheit(stats.averageTemperature)}°F
               </StatNumber>
             </Stat>
@@ -104,7 +104,7 @@ export default function SummaryCards({
               <VStack align="start" spacing={2}>
                 <Text fontSize="sm">Top Boat (Last 30 Days)</Text>
                 <Heading size="md">{statsLast30Days.divesByBoat[0].boat.name}</Heading>
-                <Text fontSize="sm" color="gray.500">
+                <Text fontSize="sm" color="textMuted">
                   {statsLast30Days.divesByBoat[0].diveCount} dives ({statsLast30Days.divesByBoat[0].percentage.toFixed(1)}%)
                 </Text>
                 <Progress
@@ -126,7 +126,7 @@ export default function SummaryCards({
               <VStack align="start" spacing={2}>
                 <Text fontSize="sm">Top Guide (Last 30 Days)</Text>
                 <Heading size="md">{statsLast30Days.divesByGuide[0].guide.name}</Heading>
-                <Text fontSize="sm" color="gray.500">
+                <Text fontSize="sm" color="textMuted">
                   {statsLast30Days.divesByGuide[0].diveCount} dives ({statsLast30Days.divesByGuide[0].percentage.toFixed(1)}%)
                 </Text>
                 <Progress
