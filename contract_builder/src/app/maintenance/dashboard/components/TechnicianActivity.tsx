@@ -39,7 +39,7 @@ export default function TechnicianActivity({
         <Thead
           position="sticky"
           top={0}
-          bg={headerBg}
+          bg="tableHeader"
           zIndex={1}
           boxShadow="sm"
         >
@@ -73,7 +73,7 @@ export default function TechnicianActivity({
                     label={`${activity.technician.name} — ${activity.count} log${
                       activity.count === 1 ? "" : "s"
                     }`}
-                    bg={tooltipBg}
+                    bg="tooltipBg"
                     color="tooltipText"
                     hasArrow
                   >
