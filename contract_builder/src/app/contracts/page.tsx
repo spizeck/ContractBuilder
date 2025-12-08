@@ -1,99 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { VStack } from '@chakra-ui/react'
-import GroupContractWizard from './components/GroupContractWizard'
-import GroupContractsList from './components/GroupContractsList'
-import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
-import { getGroupContractById } from '@/services/groupContracts'
+import { Suspense } from 'react'
+import { VStack, Spinner } from '@chakra-ui/react'
+import ContractPageContent from './components/ContractPageContent'
 
-export default function ContractPage () {
-  const searchParams = useSearchParams()
-  const [view, setView] = useState<'home' | 'add' | 'list' | 'edit'>('list')
-  const [editingContract, setEditingContract] = useState<any>(null)
-
-  // Check for edit parameter on component mount
-  useEffect(() => {
-    const editId = searchParams.get('edit')
-    if (editId) {
-      // Load the contract for editing
-      const loadContractForEdit = async () => {
-        try {
-          const contract = await getGroupContractById(editId)
-          if (contract) {
-            // Ensure addon arrays are properly initialized for old contracts
-            const contractWithAddons = {
-              ...contract,
-              hotelAddons: contract.hotelAddons || [],
-              diveAddons: contract.diveAddons || [],
-              mealAddons: contract.mealAddons || []
-            }
-            setEditingContract(contractWithAddons)
-            setView('edit')
-          }
-        } catch (error) {
-          console.error('Error loading contract for edit:', error)
-          // Fall back to list view if contract not found
-          setView('list')
-        }
-      }
-      
-      loadContractForEdit()
-    }
-  }, [searchParams])
-
-  const handleAddContract = () => {
-    setEditingContract(null)
-    setView('add')
-  }
-
-  const handleViewEditContracts = () => {
-    setView('list')
-  }
-
-  const handleBackToHome = () => {
-    setView('home')
-    setEditingContract(null)
-  }
-
-  const handleEditContract = (contract: any) => {
-    setEditingContract(contract)
-    setView('edit')
-  }
-
+export default function ContractPage() {
   return (
-     <ProtectedPage allowedRoles={["admin", "manager"]}>
-    <VStack spacing={4} p={5}>
-
-      {view === 'home' && (
-        <GroupContractsList
-          onBack={handleBackToHome}
-          onCreateNew={handleAddContract}
-          onEditContract={handleEditContract}
-        />
-      )}
-
-      {view === 'add' && <GroupContractWizard onCancel={handleBackToHome} />}
-
-      {view === 'edit' && editingContract && (
-        <GroupContractWizard
-          onCancel={handleBackToHome}
-          initialData={editingContract}
-          
-        />
-      )}
-
-      {view === 'list' && (
-        
-        <GroupContractsList
-          onBack={handleBackToHome}
-          onCreateNew={handleAddContract}
-          onEditContract={handleEditContract}
-        />
-        
-      )}
-    </VStack>
-    </ProtectedPage>
+    <Suspense fallback={
+      <VStack spacing={4} p={5} justify="center" align="center" minH="200px">
+        <Spinner size="lg" />
+        <div>Loading contracts...</div>
+      </VStack>
+    }>
+      <ContractPageContent />
+    </Suspense>
   )
 }
