@@ -26,12 +26,17 @@ interface PaymentDashboardProps {
 interface PaymentMetrics {
   totalContracts: number
   totalRevenue: number
-  unpaidRevenue: number
+  // Summary card amounts (actual payment amounts)
+  unpaidAmount: number
   unpaidCount: number
-  depositPaidRevenue: number
+  depositAmount: number
   depositPaidCount: number
-  paidInFullRevenue: number
+  paidInFullAmount: number
   paidInFullCount: number
+  // Revenue by Payment Status amounts (total contract values)
+  unpaidRevenue: number
+  depositPaidRevenue: number
+  paidInFullRevenue: number
 }
 
 export default function PaymentDashboard({ contracts, onFilterByStatus }: PaymentDashboardProps) {
@@ -40,28 +45,43 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
     const initial: PaymentMetrics = {
       totalContracts: 0,
       totalRevenue: 0,
+      // Summary card amounts (actual payment amounts)
+      unpaidAmount: 0,
+      unpaidCount: 0,
+      depositAmount: 0,
+      depositPaidCount: 0,
+      paidInFullAmount: 0,
+      paidInFullCount: 0,
+      // Revenue by Payment Status amounts (total contract values)
       unpaidRevenue: 0,
       depositPaidRevenue: 0,
-      paidInFullRevenue: 0,
-      unpaidCount: 0,
-      depositPaidCount: 0,
-      paidInFullCount: 0
+      paidInFullRevenue: 0
     }
 
     return contracts.reduce((acc, contract) => {
       const cost = contract.totalCost || 0
+      const paid = contract.totalPaid || 0
       acc.totalContracts++
       acc.totalRevenue += cost
 
       if (contract.paidInFull) {
-        acc.paidInFullRevenue += cost
+        // Summary cards: actual payment amounts
+        acc.paidInFullAmount += paid
         acc.paidInFullCount++
+        // Revenue by Payment Status: total contract values
+        acc.paidInFullRevenue += cost
       } else if (contract.depositPaid) {
-        acc.depositPaidRevenue += cost
+        // Summary cards: actual payment amounts
+        acc.depositAmount += paid
         acc.depositPaidCount++
+        // Revenue by Payment Status: total contract values
+        acc.depositPaidRevenue += cost
       } else {
-        acc.unpaidRevenue += cost
+        // Summary cards: actual unpaid amounts
+        acc.unpaidAmount += cost
         acc.unpaidCount++
+        // Revenue by Payment Status: total contract values
+        acc.unpaidRevenue += cost
       }
 
       return acc
@@ -97,7 +117,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
             <StatLabel fontSize="sm" color="textMuted">Unpaid</StatLabel>
             <StatNumber fontSize="3xl" color="unpaid">{metrics.unpaidCount}</StatNumber>
             <StatHelpText>
-              {formatCurrency(metrics.unpaidRevenue)} outstanding
+              {formatCurrency(metrics.unpaidAmount)} outstanding
             </StatHelpText>
           </Stat>
           {onFilterByStatus && (
@@ -118,7 +138,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
             <StatLabel fontSize="sm" color="textMuted">Deposit Paid</StatLabel>
             <StatNumber fontSize="3xl" color="deposit">{metrics.depositPaidCount}</StatNumber>
             <StatHelpText>
-              {formatCurrency(metrics.depositPaidRevenue)} in deposits
+              {formatCurrency(metrics.depositAmount)} in deposits
             </StatHelpText>
           </Stat>
           {onFilterByStatus && (
@@ -139,7 +159,7 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
             <StatLabel fontSize="sm" color="textMuted">Paid in Full</StatLabel>
             <StatNumber fontSize="3xl" color="paid">{metrics.paidInFullCount}</StatNumber>
             <StatHelpText>
-              {formatCurrency(metrics.paidInFullRevenue)} collected
+              {formatCurrency(metrics.paidInFullAmount)} collected
             </StatHelpText>
           </Stat>
           {onFilterByStatus && (

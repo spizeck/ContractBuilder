@@ -119,7 +119,7 @@ export default function PaymentHistory({
             p={4}
             borderWidth="1px"
             borderRadius="md"
-            bg="white"
+            bg="cardBg"
           >
             <HStack justify="space-between" align="start">
               <VStack align="start" spacing={2} flex={1}>
@@ -135,11 +135,11 @@ export default function PaymentHistory({
                   </Badge>
                 </HStack>
                 
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="textMuted">
                   {payment.paymentMethod} • {formatDateTime(payment.paymentDate)}
                 </Text>
                 
-                <Text fontSize="sm" color="gray.500">
+                <Text fontSize="sm" color="textSecondary">
                   Status: {payment.status}
                 </Text>
                 
@@ -147,7 +147,7 @@ export default function PaymentHistory({
                   <Link
                     href={payment.paymentDocumentUrl}
                     isExternal
-                    color="blue.500"
+                    color="infoLink"
                     fontSize="sm"
                   >
                     View Document <ExternalLinkIcon mx="2px" />
@@ -174,10 +174,10 @@ export default function PaymentHistory({
         <Text fontSize="md" fontWeight="bold">
           Total Paid: ${payments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
         </Text>
-        <Text fontSize="sm" color="gray.600">
+        <Text fontSize="sm" color="textMuted">
           Contract Total: ${contractTotalCost.toLocaleString()}
         </Text>
-        <Text fontSize="sm" color="gray.600">
+        <Text fontSize="sm" color="textMuted">
           Remaining: ${Math.max(0, contractTotalCost - payments.reduce((sum, p) => sum + p.amount, 0)).toLocaleString()}
         </Text>
       </Box>
