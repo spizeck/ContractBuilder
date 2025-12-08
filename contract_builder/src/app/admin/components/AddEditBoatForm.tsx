@@ -17,8 +17,6 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
   // Manifest configuration fields
   const [capacity, setCapacity] = useState(12);
   const [maxDiveSlots, setMaxDiveSlots] = useState<1 | 2 | 3 | 4>(4);
-  const [airTanks, setAirTanks] = useState(20);
-  const [nitroxTanks, setNitroxTanks] = useState(10);
   const [slot1Time, setSlot1Time] = useState("08:00");
   const [slot2Time, setSlot2Time] = useState("11:00");
   const [slot3Time, setSlot3Time] = useState("14:00");
@@ -30,8 +28,6 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
       setActive(boat.active);
       setCapacity(boat.capacity || 12);
       setMaxDiveSlots(boat.maxDiveSlots || 4);
-      setAirTanks(boat.equipment?.airTanks || 20);
-      setNitroxTanks(boat.equipment?.nitroxTanks || 10);
       setSlot1Time(boat.defaultDiveTimes?.slot1 || "08:00");
       setSlot2Time(boat.defaultDiveTimes?.slot2 || "11:00");
       setSlot3Time(boat.defaultDiveTimes?.slot3 || "14:00");
@@ -46,10 +42,6 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
       active,
       capacity,
       maxDiveSlots,
-      equipment: {
-        airTanks,
-        nitroxTanks,
-      },
       defaultDiveTimes: {
         slot1: slot1Time,
         slot2: slot2Time,
@@ -124,41 +116,6 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
                       </NumberInputStepper>
                     </NumberInput>
                   </FormControl>
-
-                  <Text fontWeight="bold" mt={2}>Equipment Inventory</Text>
-                  <HStack spacing={4}>
-                    <FormControl>
-                      <FormLabel>Air Tanks</FormLabel>
-                      <NumberInput 
-                        value={airTanks} 
-                        onChange={(value) => setAirTanks(parseInt(value) || 20)}
-                        min={0}
-                        max={100}
-                      >
-                        <NumberInputField />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                    </FormControl>
-
-                    <FormControl>
-                      <FormLabel>Nitrox Tanks</FormLabel>
-                      <NumberInput 
-                        value={nitroxTanks} 
-                        onChange={(value) => setNitroxTanks(parseInt(value) || 10)}
-                        min={0}
-                        max={100}
-                      >
-                        <NumberInputField />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                    </FormControl>
-                  </HStack>
 
                   <Text fontWeight="bold" mt={2}>Default Dive Times</Text>
                   <HStack spacing={4}>
