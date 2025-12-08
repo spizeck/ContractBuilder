@@ -214,51 +214,6 @@ export async function deleteContractNote(contractId: string, noteId: string): Pr
 }
 
 // Helper functions
-async function updateContractPaymentSummary(contractId: string): Promise<void> {
-  try {
-    const payments = await getPayments(contractId)
-    const contractRef = doc(db, 'groupContracts', contractId)
-    
-    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0)
-    const depositPaid = payments.some(p => p.paymentType === 'deposit' && p.status === 'confirmed')
-    const paidInFull = totalPaid >= (await getContractTotalCost(contractId))
-    
-    // Determine payment status
-    let paymentStatus: 'unpaid' | 'deposit-paid' | 'partial-payment' | 'paid-in-full' = 'unpaid'
-    if (paidInFull) {
-      paymentStatus = 'paid-in-full'
-    } else if (totalPaid > 0 && depositPaid) {
-      paymentStatus = 'partial-payment'
-    } else if (depositPaid) {
-      paymentStatus = 'deposit-paid'
-    }
-
-    await updateDoc(contractRef, {
-      totalPaid,
-      depositPaid,
-      paidInFull,
-      paymentStatus,
-      depositPaidAt: depositPaid ? payments.find(p => p.paymentType === 'deposit')?.paymentDate : null,
-      paidInFullAt: paidInFull ? new Date() : null
-    })
-  } catch (error) {
-    console.error('Error updating contract payment summary:', error)
-    // Don't throw here as this is a background operation
-  }
-}
-
-async function getContractTotalCost(contractId: string): Promise<number> {
-  try {
-    const contractDoc = await getDoc(doc(db, 'groupContracts', contractId))
-    if (contractDoc.exists()) {
-      return contractDoc.data().totalCost || 0
-    }
-    return 0
-  } catch (error) {
-    console.error('Error getting contract total cost:', error)
-    return 0
-  }
-}
 
 function getDocumentType(fileName: string, paymentMethod: string): string {
   const extension = fileName.toLowerCase().split('.').pop()
@@ -281,5 +236,119 @@ function extractFilePathFromUrl(url: string): string | null {
     return pathMatch ? pathMatch[1] : null
   } catch {
     return null
+  }
+}
+
+export function extractContractIdFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    const pathMatch = urlObj.pathname.match(/\/payment-receipts\/(.+)$/)
+    return pathMatch ? pathMatch[1] : null
+  } catch {
+    return null
+  }
+}
+
+// Update contract payment summary after payment changes
+export async function updateContractPaymentSummary(contractId: string): Promise<void> {
+  try {
+    console.log('🔄 Updating payment summary for contract:', contractId)
+    
+    // Get all payments for this contract
+    const paymentsQuery = query(
+      collection(db, 'payments'),
+      where('contractId', '==', contractId),
+      where('status', '==', 'confirmed'), // Only count confirmed payments
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(paymentsQuery)
+    const payments = querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
+        paymentDate: data.paymentDate instanceof Timestamp ? data.paymentDate.toDate() : new Date(data.paymentDate)
+      } as Payment
+    })
+
+    // Calculate payment totals
+    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0)
+    const hasDepositPayment = payments.some(payment => payment.paymentType === 'deposit')
+    
+    // Get the contract to check total cost
+    const contractRef = doc(db, 'groupContracts', contractId)
+    const contractDoc = await getDoc(contractRef)
+    
+    if (!contractDoc.exists()) {
+      console.error('Contract not found:', contractId)
+      return
+    }
+    
+    const contractData = contractDoc.data()
+    const totalCost = contractData.totalCost || 0
+    
+    console.log('💰 Payment calculation:', { totalPaid, totalCost, hasDepositPayment })
+    
+    // Determine payment status
+    const depositPaid = hasDepositPayment
+    const paidInFull = totalPaid >= totalCost && totalPaid > 0
+    
+    const paymentStatus = paidInFull ? 'paid-in-full' : 
+                         depositPaid ? 'deposit-paid' : 'unpaid'
+    
+    console.log('📊 New payment status:', paymentStatus)
+    
+    // Update contract with payment summary
+    const updateData = {
+      totalPaid,
+      depositPaid,
+      paidInFull,
+      paymentStatus,
+      paidInFullAt: paidInFull && !contractData.paidInFull ? Timestamp.now() : contractData.paidInFullAt || null,
+      paidInFullBy: paidInFull && !contractData.paidInFull ? 'system' : contractData.paidInFullBy || null,
+      depositPaidAt: depositPaid && !contractData.depositPaid ? Timestamp.now() : contractData.depositPaidAt || null,
+      depositPaidBy: depositPaid && !contractData.depositPaid ? 'system' : contractData.depositPaidBy || null
+    }
+    
+    await updateDoc(contractRef, updateData)
+    console.log('✅ Contract payment summary updated successfully')
+    
+  } catch (error) {
+    console.error('❌ Error updating contract payment summary:', error)
+    throw new Error('Failed to update contract payment summary')
+  }
+}
+
+// Debug function to recalculate all existing contracts
+export async function recalculateAllContractPaymentStatuses(): Promise<void> {
+  try {
+    console.log('🚀 Starting bulk recalculation of all contract payment statuses...')
+    
+    // Get all contracts
+    const contractsQuery = query(collection(db, 'groupContracts'))
+    const querySnapshot = await getDocs(contractsQuery)
+    const contracts = querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    } as { id: string; groupName?: string }))
+    
+    console.log(`📋 Found ${contracts.length} contracts to process`)
+    
+    // Process each contract
+    for (const contract of contracts) {
+      try {
+        await updateContractPaymentSummary(contract.id)
+        console.log(`✅ Updated contract: ${contract.groupName || contract.id}`)
+      } catch (error) {
+        console.error(`❌ Failed to update contract ${contract.id}:`, error)
+      }
+    }
+    
+    console.log('🎉 Bulk recalculation completed')
+  } catch (error) {
+    console.error('❌ Error in bulk recalculation:', error)
+    throw new Error('Failed to recalculate all contract payment statuses')
   }
 }

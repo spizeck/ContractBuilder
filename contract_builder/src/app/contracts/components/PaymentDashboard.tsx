@@ -16,7 +16,7 @@ import {
   Divider
 } from '@chakra-ui/react'
 import { GroupContract } from '@/types/contractTypes'
-import PaymentStatusBadge from '@/components/PaymentStatusBadge'
+import PaymentStatusBadge from './PaymentStatusBadge'
 
 interface PaymentDashboardProps {
   contracts: GroupContract[]
@@ -27,27 +27,24 @@ interface PaymentMetrics {
   totalContracts: number
   totalRevenue: number
   unpaidRevenue: number
-  depositPaidRevenue: number
-  partialPaymentRevenue: number
-  paidInFullRevenue: number
   unpaidCount: number
+  depositPaidRevenue: number
   depositPaidCount: number
-  partialPaymentCount: number
+  paidInFullRevenue: number
   paidInFullCount: number
 }
 
 export default function PaymentDashboard({ contracts, onFilterByStatus }: PaymentDashboardProps) {
+
   const metrics = useMemo((): PaymentMetrics => {
     const initial: PaymentMetrics = {
       totalContracts: 0,
       totalRevenue: 0,
       unpaidRevenue: 0,
       depositPaidRevenue: 0,
-      partialPaymentRevenue: 0,
       paidInFullRevenue: 0,
       unpaidCount: 0,
       depositPaidCount: 0,
-      partialPaymentCount: 0,
       paidInFullCount: 0
     }
 
@@ -59,9 +56,6 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
       if (contract.paidInFull) {
         acc.paidInFullRevenue += cost
         acc.paidInFullCount++
-      } else if (contract.depositPaid && contract.totalPaid && contract.totalPaid > 0) {
-        acc.partialPaymentRevenue += cost
-        acc.partialPaymentCount++
       } else if (contract.depositPaid) {
         acc.depositPaidRevenue += cost
         acc.depositPaidCount++
@@ -168,7 +162,12 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
         <VStack spacing={3} align="stretch">
           <HStack justify="space-between">
             <HStack>
-              <PaymentStatusBadge contract={{ paymentStatus: 'unpaid' } as GroupContract} />
+              <PaymentStatusBadge contract={{ 
+                groupName: 'Unpaid',
+                totalPaid: 0, 
+                depositPaid: false, 
+                paidInFull: false 
+              } as GroupContract} />
               <Text fontWeight="medium">{metrics.unpaidCount} contracts</Text>
             </HStack>
             <Text fontWeight="bold" color="unpaid">
@@ -178,7 +177,11 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
           
           <HStack justify="space-between">
             <HStack>
-              <PaymentStatusBadge contract={{ paymentStatus: 'deposit-paid' } as GroupContract} />
+              <PaymentStatusBadge contract={{ 
+                totalPaid: 500, 
+                depositPaid: true, 
+                paidInFull: false 
+              } as GroupContract} />
               <Text fontWeight="medium">{metrics.depositPaidCount} contracts</Text>
             </HStack>
             <Text fontWeight="bold" color="deposit">
@@ -186,19 +189,14 @@ export default function PaymentDashboard({ contracts, onFilterByStatus }: Paymen
             </Text>
           </HStack>
           
+                    
           <HStack justify="space-between">
             <HStack>
-              <PaymentStatusBadge contract={{ paymentStatus: 'partial-payment' } as GroupContract} />
-              <Text fontWeight="medium">{metrics.partialPaymentCount} contracts</Text>
-            </HStack>
-            <Text fontWeight="bold" color="partial">
-              {formatCurrency(metrics.partialPaymentRevenue)}
-            </Text>
-          </HStack>
-          
-          <HStack justify="space-between">
-            <HStack>
-              <PaymentStatusBadge contract={{ paymentStatus: 'paid-in-full' } as GroupContract} />
+              <PaymentStatusBadge contract={{ 
+                totalPaid: 5000, 
+                depositPaid: true, 
+                paidInFull: true 
+              } as GroupContract} />
               <Text fontWeight="medium">{metrics.paidInFullCount} contracts</Text>
             </HStack>
             <Text fontWeight="bold" color="paid">

@@ -124,7 +124,7 @@ export interface GroupContract {
   paidInFull?: boolean; // Whether contract is paid in full
   paidInFullAt?: Date; // When contract was paid in full
   paidInFullBy?: string; // Who marked as paid in full
-  paymentStatus?: 'unpaid' | 'deposit-paid' | 'partial-payment' | 'paid-in-full'; // Overall payment status
+  paymentStatus?: 'unpaid' | 'deposit-paid' | 'paid-in-full'; // Overall payment status
 }
 
 export interface Rate {

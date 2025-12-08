@@ -25,11 +25,11 @@ import {
 import { getCommissionRate } from '@/utils/contractCalculations'
 import SignedContractUpload from '../../components/SignedContractUpload'
 import { useAuth } from '@/context/AuthContext'
-import PaymentModal from '@/components/PaymentModal'
+import PaymentModal from '../../components/PaymentModal'
 import ContractNotes from '../../components/ContractNotes'
 import { Payment } from '@/types/contractTypes'
 import { getPayments } from '@/services/payments'
-import PaymentHistory from '@/components/PaymentHistory'
+import PaymentHistory from '../../components/PaymentHistory'
 
 export default function ViewContractPage () {
   const params = useParams()
@@ -450,6 +450,7 @@ export default function ViewContractPage () {
           onClose={onPaymentModalClose}
           contractId={id as string}
           contractTotalCost={contract?.totalCost || 0}
+          totalPaid={contract?.totalPaid || 0}
           onPaymentAdded={handlePaymentAdded}
         />
       )}

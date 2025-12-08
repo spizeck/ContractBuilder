@@ -22,7 +22,7 @@ import {
 } from '@/services/groupContracts'
 import { getHotels } from '@/services/hotels'
 import { GroupContract, Hotel } from '@/types/contractTypes'
-import PaymentStatusBadge from '@/components/PaymentStatusBadge'
+import PaymentStatusBadge from './PaymentStatusBadge'
 import { parseDate } from '@/utils/dateHelpers'
 import PaymentDashboard from './PaymentDashboard'
 
@@ -57,6 +57,22 @@ export default function GroupContractsList ({
   useEffect(() => {
     fetchContracts()
     fetchHotels()
+  }, [])
+
+  // Refresh contracts when component gains focus (e.g., navigating back from contract view)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchContracts()
+      }
+    }
+
+    // Listen for page visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   const fetchContracts = async () => {
@@ -116,9 +132,7 @@ export default function GroupContractsList ({
         if (updatedFilters.paymentStatus === 'unpaid') {
           return !contract.depositPaid && !contract.paidInFull
         } else if (updatedFilters.paymentStatus === 'deposit-paid') {
-          return contract.depositPaid && !contract.paidInFull && (!contract.totalPaid || contract.totalPaid === 0)
-        } else if (updatedFilters.paymentStatus === 'partial-payment') {
-          return contract.depositPaid && contract.totalPaid && contract.totalPaid > 0 && !contract.paidInFull
+          return contract.depositPaid && !contract.paidInFull
         } else if (updatedFilters.paymentStatus === 'paid-in-full') {
           return contract.paidInFull
         }
@@ -154,6 +168,7 @@ export default function GroupContractsList ({
     applyFilters(updatedFilters)
   }
 
+  
   return (
     <VStack spacing={8} align='stretch'>
       {/* Page Header */}

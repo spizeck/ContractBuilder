@@ -148,12 +148,12 @@ export default function ContractNotes({ contractId }: ContractNotesProps) {
                 p={4}
                 borderWidth="1px"
                 borderRadius="md"
-                bg="gray.50"
+                bg="cardBg"
               >
                 <HStack justify="space-between" align="start">
                   <VStack align="start" spacing={2} flex={1}>
                     <Text whiteSpace="pre-wrap">{note.text}</Text>
-                    <Text fontSize="xs" color="gray.500">
+                    <Text fontSize="xs" color="textPrimary">
                       {note.createdByName || note.createdBy} •{" "}
                       {formatDateTime(note.createdAt)}
                     </Text>

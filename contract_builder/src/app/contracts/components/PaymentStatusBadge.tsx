@@ -13,11 +13,8 @@ export default function PaymentStatusBadge({ contract, size = 'md' }: PaymentSta
     if (contract.paidInFull) {
       return { status: 'Paid in Full', colorScheme: 'green' }
     }
-    if (contract.depositPaid && contract.totalPaid && contract.totalPaid > 0) {
-      return { status: 'Partial Payment', colorScheme: 'orange' }
-    }
     if (contract.depositPaid) {
-      return { status: 'Deposit Paid', colorScheme: 'yellow' }
+      return { status: 'Deposit', colorScheme: 'yellow' }
     }
     return { status: 'Unpaid', colorScheme: 'red' }
   }

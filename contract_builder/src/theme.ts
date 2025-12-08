@@ -75,10 +75,6 @@ const theme = extendTheme({
         default: 'yellow.600',
         _dark: 'yellow.400',
       },
-      partial: {
-        default: 'orange.500',
-        _dark: 'orange.400',
-      },
       
       // Background colors
       bgHover: {
