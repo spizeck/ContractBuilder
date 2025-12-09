@@ -28,14 +28,13 @@ interface Props {
 }
 
 // Canonical categories
-const ALLOWED_CATEGORIES: AssetCategory[] = [
+const ALLOWED_CATEGORIES = [
   "Marine",
   "Compressors",
   "Vehicles",
   "Scuba Equipment",
-  "Scuba Tanks",
   "Other",
-];
+] as const;
 
 export default function AddEditAssetForm({ asset, onClose }: Props) {
   // Flat form state to avoid union typing issues

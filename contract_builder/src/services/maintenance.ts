@@ -72,7 +72,7 @@ function num(v: unknown): number | undefined {
   return isNaN(n) ? undefined : n;
 }
 
-async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, nextServiceDueHours, nextServiceDue }: DocumentData) {
+async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, nextServiceDueHours, nextServiceDue, nextServiceDueDate, readingKilometers, nextServiceDueKilometers }: DocumentData) {
   if (!assetId) return;
 
   const logDate = toDate(date);
@@ -87,6 +87,7 @@ async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, n
   const assetCurrentHours = num(
     assetRaw?.currentHours != null ? assetRaw.currentHours : assetRaw?.hours
   );
+  const assetCurrentKilometers = num(assetRaw?.currentKilometers);
 
   const reading =
     readingHours != null
@@ -95,12 +96,15 @@ async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, n
       ? num(hoursAtService)
       : undefined;
 
-  const nextDue =
+  const nextDueHours =
     nextServiceDueHours != null
       ? num(nextServiceDueHours)
       : nextServiceDue != null
       ? num(nextServiceDue)
       : undefined;
+
+  const nextDueKilometers = num(nextServiceDueKilometers);
+  const nextDueDate = toDate(nextServiceDueDate);
 
   const update: any = {};
 
@@ -111,11 +115,37 @@ async function syncAssetFromLog({ assetId, date, readingHours, hoursAtService, n
     }
   }
 
-  if (nextDue != null) {
-    // Only update next service / last service date if this log is not older
-    // than the asset's existing lastServiceDate (when present).
+  if (readingKilometers != null) {
+    // Never roll back current kilometers; only move forward
+    if (assetCurrentKilometers == null || readingKilometers >= assetCurrentKilometers) {
+      update.currentKilometers = readingKilometers;
+    }
+  }
+
+  if (nextDueHours != null) {
+    // Only update next service hours if this log is not older than the asset's existing lastServiceDate
     if (!logDate || !assetLastServiceDate || logDate >= assetLastServiceDate) {
-      update.nextServiceDueHours = nextDue;
+      update.nextServiceDueHours = nextDueHours;
+      if (logDate) {
+        update.lastServiceDate = logDate;
+      }
+    }
+  }
+
+  if (nextDueKilometers != null) {
+    // Only update next service kilometers if this log is not older than the asset's existing lastServiceDate
+    if (!logDate || !assetLastServiceDate || logDate >= assetLastServiceDate) {
+      update.nextServiceDueKilometers = nextDueKilometers;
+      if (logDate) {
+        update.lastServiceDate = logDate;
+      }
+    }
+  }
+
+  if (nextDueDate != null) {
+    // Only update next service due date if this log is not older than the asset's existing lastServiceDate
+    if (!logDate || !assetLastServiceDate || logDate >= assetLastServiceDate) {
+      update.nextServiceDueDate = nextDueDate;
       if (logDate) {
         update.lastServiceDate = logDate;
       }
