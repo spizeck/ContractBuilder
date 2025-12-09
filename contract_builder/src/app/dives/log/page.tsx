@@ -10,14 +10,14 @@ export default function LogDivePage() {
 
   const handleSave = async (data: any) => {
     await addDive(data);
-    router.push("/dives/view");
+    router.push("/dives/log");
   };
 
   return (
     <ProtectedPage allowedRoles={['admin', 'manager', 'staff']}>
     <DiveForm
       onSave={handleSave}
-      onCancel={() => router.push("/dives/view")}
+      onCancel={() => router.push("/dives/dashboard")}
     />
     </ProtectedPage>
   );
