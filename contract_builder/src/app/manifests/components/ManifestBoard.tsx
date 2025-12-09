@@ -50,10 +50,10 @@ const mockCustomers: Customer[] = [
   {
     id: "1",
     bookingReference: "BK001",
+    documentId: "DOC001",
     fullName: "John Doe",
     email: "john@example.com",
-    hotel: "Sea Saba Resort",
-    roomNumber: "101",
+    accommodations: "Sea Saba Resort",
     certificationLevel: "Open Water",
     nitroxCertified: true,
     equipmentNeeded: {
@@ -70,10 +70,10 @@ const mockCustomers: Customer[] = [
   {
     id: "2",
     bookingReference: "BK002",
+    documentId: "DOC002",
     fullName: "Jane Smith",
     email: "jane@example.com",
-    hotel: "Sea Saba Resort",
-    roomNumber: "102",
+    accommodations: "Sea Saba Resort",
     certificationLevel: "Advanced",
     nitroxCertified: false,
     equipmentNeeded: {
@@ -452,7 +452,7 @@ export default function ManifestBoard() {
                                   <VStack align="start" spacing={0}>
                                     <Text fontWeight="bold">{customer.fullName}</Text>
                                     <Text fontSize="xs" color="textMuted">
-                                      {customer.bookingReference} • {customer.hotel}
+                                      {customer.bookingReference} • {customer.accommodations}
                                     </Text>
                                   </VStack>
                                   <IconButton
@@ -519,8 +519,7 @@ export default function ManifestBoard() {
                         </Td>
                         <Td>
                           <VStack align="start" spacing={0}>
-                            <Text>{customer.hotel}</Text>
-                            <Text fontSize="xs" color="textMuted">Room {customer.roomNumber}</Text>
+                            <Text>{customer.accommodations}</Text>
                           </VStack>
                         </Td>
                         <Td>

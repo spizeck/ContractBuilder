@@ -7,14 +7,28 @@ const CREW_COLLECTION = 'crew';
 export const crewService = {
   // Get all active crew members
   async getAllCrew(): Promise<CrewMember[]> {
-    const q = query(collection(db, CREW_COLLECTION), where('active', '==', true), orderBy('name'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    })) as CrewMember[];
+    try {
+      console.log('Fetching crew from collection:', CREW_COLLECTION);
+      const q = query(collection(db, CREW_COLLECTION), where('active', '==', true), orderBy('name'));
+      const querySnapshot = await getDocs(q);
+      console.log('Query successful, found', querySnapshot.docs.length, 'crew members');
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+        updatedAt: doc.data().updatedAt?.toDate()
+      })) as CrewMember[];
+    } catch (error) {
+      console.error('Crew service error:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      throw error;
+    }
   },
 
   // Get crew member by ID

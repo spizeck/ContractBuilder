@@ -7,14 +7,28 @@ const TAXIS_COLLECTION = 'taxis';
 export const taxiService = {
   // Get all active taxis
   async getAllTaxis(): Promise<Taxi[]> {
-    const q = query(collection(db, TAXIS_COLLECTION), where('active', '==', true), orderBy('name'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    })) as Taxi[];
+    try {
+      console.log('Fetching taxis from collection:', TAXIS_COLLECTION);
+      const q = query(collection(db, TAXIS_COLLECTION), where('active', '==', true), orderBy('name'));
+      const querySnapshot = await getDocs(q);
+      console.log('Query successful, found', querySnapshot.docs.length, 'taxis');
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+        updatedAt: doc.data().updatedAt?.toDate()
+      })) as Taxi[];
+    } catch (error) {
+      console.error('Taxi service error:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      throw error;
+    }
   },
 
   // Get taxi by ID

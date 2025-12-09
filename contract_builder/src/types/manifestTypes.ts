@@ -1,17 +1,20 @@
 // Customer data from booking engine
 export interface Customer {
   id: string;
-  bookingReference: string; // Unique booking ID from "Document" column
-  fullName: string; // Combined name from Checkfront
-  age?: string; // From Checkfront
-  email?: string;
-  phone?: string;
-  hotel?: string; // Added manually post-import
-  roomNumber?: string; // Added manually post-import
-  certificationLevel: string; // Open Water, Advanced, etc.
-  nitroxCertified: boolean;
+  bookingReference: string; // From "Booking" column - useful for API integration
+  documentId: string; // From "Document" column - waiver document ID
+  fullName: string; // From "Name" column
+  age?: string; // From "Age" column
+  email?: string; // From "Email" column
+  phone?: string; // From "Phone Number" column
+  accommodations?: string; // From "Accommodations" column (replaces hotel)
+  certificationLevel: string; // From "Certification Level" column
+  certificationAgency?: string; // From "Certification Agency and Number" column
+  nitroxCertified: boolean; // From "Nitrox Certification Agency and Number" column
   equipmentNeeded: EquipmentNeeds;
-  specialRequirements?: string; // From "Is there anything else..." column
+  specialRequirements?: string; // From "Is there anything else you would like for us to know?" column
+  lastDiveDate?: string; // From "Date of Last Dive" column
+  totalDives?: string; // From "Number of Dives in your Lifetime" column
   createdAt: Date;
   updatedAt: Date;
 }
