@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   Box,
   VStack,
+  HStack,
   FormControl,
   FormLabel,
   Input,
@@ -23,8 +24,9 @@ import {
 } from '@chakra-ui/react'
 import { useAuth } from '@/context/AuthContext'
 import { auth, db } from '@/lib/firebase'
-import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, collection, getDocs, addDoc, setDoc } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
 import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
@@ -45,6 +47,13 @@ export default function ProfilePage () {
   // For admin/manager user list
   const [users, setUsers] = useState<any[]>([])
   const [savingUser, setSavingUser] = useState<string | null>(null)
+
+  // For hotel staff management
+  const [hotels, setHotels] = useState<any[]>([])
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('staff')
+  const [inviteHotel, setInviteHotel] = useState('')
+  const [inviting, setInviting] = useState(false)
 
   // Load own profile
   useEffect(() => {
@@ -79,6 +88,17 @@ export default function ProfilePage () {
       }
     }
     loadUsers()
+  }, [role])
+
+  // Load hotels for dropdown
+  useEffect(() => {
+    const loadHotels = async () => {
+      if (role === 'admin') {
+        const snap = await getDocs(collection(db, 'hotels'))
+        setHotels(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      }
+    }
+    loadHotels()
   }, [role])
 
   const handleProfileSave = async () => {
@@ -118,6 +138,70 @@ export default function ProfilePage () {
       prev.map(u => (u.id === userId ? { ...u, role: newRole } : u))
     )
     setSavingUser(null)
+  }
+
+  const handleHotelStaffInvite = async () => {
+    if (!inviteEmail || !inviteHotel) {
+      setError('Please fill in all fields')
+      return
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(inviteEmail)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    setInviting(true)
+    try {
+      // Generate a temporary password
+      const tempPassword = Math.random().toString(36).slice(-8)
+      
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        inviteEmail,
+        tempPassword
+      )
+      
+      // Create user document in Firestore with hotelId
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: inviteEmail,
+        name: inviteEmail.split('@')[0], // Default name from email
+        role: inviteRole,
+        hotelId: inviteHotel,
+        createdAt: new Date().toISOString(),
+        preferences: defaultPrefs
+      })
+      
+      // Send password reset email so user can set their own password
+      await sendPasswordResetEmail(auth, inviteEmail)
+      
+      // Refresh users list
+      const snap = await getDocs(collection(db, 'users'))
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      
+      // Clear form
+      setInviteEmail('')
+      setInviteRole('staff')
+      setInviteHotel('')
+      
+      setMessage(`Hotel staff invited successfully! They will receive an email to set their password.`)
+      setError(null)
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please use a different email or check the user list.')
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address format.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak. Please try again.')
+      } else {
+        setError(err.message || 'Failed to invite staff member. Please try again.')
+      }
+    }
+    setInviting(false)
   }
 
   if (loading) return <Spinner />
@@ -246,6 +330,63 @@ export default function ProfilePage () {
           </Button>
         </VStack>
 
+        {role === 'admin' && (
+          <>
+            <Divider my={6} />
+            <Text fontSize='2xl' fontWeight='bold' mb={6}>
+              Hotel Staff Management
+            </Text>
+            
+            <Box p={6} borderWidth='1px' borderRadius='lg' bg='cardBg' mb={6}>
+              <Text fontSize='lg' fontWeight='medium' mb={6}>Invite New Hotel Staff Member</Text>
+              
+              <VStack spacing={4} align='stretch'>
+                <HStack spacing={4} align='start'>
+                  <FormControl flex={2}>
+                    <FormLabel>Email</FormLabel>
+                    <Input
+                      value={inviteEmail}
+                      onChange={e => setInviteEmail(e.target.value)}
+                      placeholder='staff@example.com'
+                      type='email'
+                    />
+                  </FormControl>
+                  
+                  <FormControl flex={1}>
+                    <FormLabel>Role</FormLabel>
+                    <Select value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
+                      <option value='staff'>Staff</option>
+                      <option value='manager'>Manager</option>
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl flex={1}>
+                    <FormLabel>Hotel</FormLabel>
+                    <Select value={inviteHotel} onChange={e => setInviteHotel(e.target.value)}>
+                      <option value=''>Select Hotel</option>
+                      {hotels.map(hotel => (
+                        <option key={hotel.id} value={hotel.id}>
+                          {hotel.name} - {hotel.location || 'No location'}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </HStack>
+                
+                <Box pt={2}>
+                  <Button
+                    colorScheme='teal'
+                    onClick={handleHotelStaffInvite}
+                    isLoading={inviting}
+                  >
+                    Invite Staff Member
+                  </Button>
+                </Box>
+              </VStack>
+            </Box>
+          </>
+        )}
+
         {(role === 'admin' || role === 'manager') && (
           <>
             <Divider my={6} />
@@ -261,6 +402,7 @@ export default function ProfilePage () {
                     <Th>Email</Th>
                     <Th>Name</Th>
                     <Th>Role</Th>
+                    {role === 'admin' && <Th>Hotel</Th>}
                     {role === 'admin' && <Th>Action</Th>}
                   </Tr>
                 </Thead>
@@ -295,6 +437,15 @@ export default function ProfilePage () {
                           u.role || 'viewer'
                         )}
                       </Td>
+                      {role === 'admin' && (
+                        <Td>
+                          {u.hotelId ? (
+                            hotels.find(h => h.id === u.hotelId)?.name || 'Unknown Hotel'
+                          ) : (
+                            '-'
+                          )}
+                        </Td>
+                      )}
                       {role === 'admin' && (
                         <Td>
                           <Button

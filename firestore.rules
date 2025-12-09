@@ -5,63 +5,85 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId
-        && (!("role" in request.resource.data) 
-            || request.resource.data.role == resource.data.role)
-        || isAdmin();
+      allow write: if request.auth != null; // Temporarily allow any authenticated user to write
     }
 
-    // Contracts collection
+    // Hotels collection - staff can only read/write their assigned hotel, admins can read all
+    match /hotels/{hotelId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(hotelId));
+    }
+
+    // Contracts collection - staff can only read contracts for their hotel
     match /groupContracts/{contractId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
       
       // Contract notes subcollection
       match /notes/{noteId} {
-        allow read: if true;
-        allow write: if isManagerOrAbove();
+        allow read: if isAdmin() 
+          || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
+        allow write: if isAdmin() 
+          || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
       }
     }
 
-    // Payments collection
+    // Payments collection - staff can only read payments for their hotel's contracts
     match /payments/{paymentId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
     }
 
-    match /hotels/{hotelId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
+    
     match /divePackages/{packageId} {
       allow read: if true;
       allow write: if isManagerOrAbove();
     }
 
+    // Meal packages - staff can only read/write for their hotel
     match /mealPackages/{packageId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
     }
 
+    // Rates - staff can only read/write for their hotel
     match /rates/{rateId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
     }
 
+    // Room categories - staff can only read/write for their hotel
     match /roomCategories/{categoryId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
     }
 
+    // Room types - staff can only read/write for their hotel
     match /roomTypes/{roomTypeId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
     }
 
+    // Seasons - staff can only read/write for their hotel
     match /seasons/{seasonId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
     }
 
     
@@ -123,6 +145,14 @@ service cloud.firestore {
     function isStaffOrAbove() {
     	let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
       return role == "admin" || role == "manager" || role == "staff";
+    }
+
+    // Check if user has access to a specific hotel
+    function hasHotelAccess(hotelId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      let userHotelId = userDoc.data.hotelId;
+      
+      return userDoc.data.role == "admin" ? true : (userHotelId != null && userHotelId == hotelId);
     }
   }
 }

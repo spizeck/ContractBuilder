@@ -23,6 +23,7 @@
     "firebase": "^12.3.0",
     "firebase-admin": "^13.5.0",
     "framer-motion": "^11.5.4",
+    "lucide-react": "^0.556.0",
     "papaparse": "^5.5.3",
     "react": "^18",
     "react-datepicker": "^7.3.0",

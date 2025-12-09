@@ -10,7 +10,8 @@ export interface UserProfile {
   uid: string;
   email: string;
   name: string;
-  role: "admin" | "guide" | "customer"; // adjust for your roles
+  role: "admin" | "guide" | "customer" | "staff" | "manager"; // adjust for your roles
+  hotelId?: string; // Assigned hotel for staff/manager roles
   createdAt: string; // ISO date
-  preferences: UserPreferences; // optional in case older users don’t have it
+  preferences: UserPreferences; // optional in case older users don't have it
 }

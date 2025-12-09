@@ -32,6 +32,14 @@ export default function NavLinks() {
     </>
   )
 
+  const hotelStaffLinks = (
+    <>
+      <MenuItem as={NextLink} href="/hotel-staff">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/hotel-staff/hotel">Hotel Details</MenuItem>
+      <MenuItem as={NextLink} href="/hotel-staff/contracts">Contracts</MenuItem>
+    </>
+  )
+
   const diveLogLinks = (
     <>
       <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
@@ -72,12 +80,21 @@ export default function NavLinks() {
 
         {user && (
           <>
-            <Menu>
-              <MenuButton as={Button} variant="link" color="white">
-                Contracts
-              </MenuButton>
-              <MenuList color="teal">{contractLinks}</MenuList>
-            </Menu>
+            {(role === 'staff' || role === 'manager') ? (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Hotel Staff
+                </MenuButton>
+                <MenuList color="teal">{hotelStaffLinks}</MenuList>
+              </Menu>
+            ) : (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Contracts
+                </MenuButton>
+                <MenuList color="teal">{contractLinks}</MenuList>
+              </Menu>
+            )}
 
             <Menu>
               <MenuButton as={Button} variant="link" color="white">
@@ -131,13 +148,25 @@ export default function NavLinks() {
       {user && (
         <Box>
           <Accordion allowToggle>
+            {/* Hotel Staff Section */}
+            {(role === 'staff' || role === 'manager') && (
+              <AccordionItem>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">Hotel Staff</Box>
+                </AccordionButton>
+                <AccordionPanel pb={2}>{hotelStaffLinks}</AccordionPanel>
+              </AccordionItem>
+            )}
+
             {/* Contracts Section */}
-            <AccordionItem>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">Contracts</Box>
-              </AccordionButton>
-              <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
-            </AccordionItem>
+            {!(role === 'staff' || role === 'manager') && (
+              <AccordionItem>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">Contracts</Box>
+                </AccordionButton>
+                <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
+              </AccordionItem>
+            )}
 
             {/* Dive Log Section */}
             <AccordionItem>
