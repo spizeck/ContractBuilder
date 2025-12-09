@@ -12,6 +12,7 @@ import { getTechnicians } from "@/services/technicians"
 import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
 import { MaintenanceLogForm } from '@/types/formTypes'
 import { useAuth } from '@/context/AuthContext'
+import { toInputDate } from '@/utils/formatters'
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()
@@ -23,7 +24,6 @@ export default function LogForm({ id }: { id?: string }) {
     setMounted(true)
   }, [])
 
-  const toInputDate = (d: Date) => d.toISOString().split("T")[0]
   const [form, setForm] = useState<MaintenanceLogForm>({ 
     date: toInputDate(new Date()),
     assetId: '',
@@ -149,8 +149,11 @@ export default function LogForm({ id }: { id?: string }) {
         createdBy: user?.uid || "system",
         assetName: selectedAsset.name,
         category: selectedAsset.category,
-        // Convert string date back to Date if present
-        nextServiceDueDate: form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : undefined,
+        // Convert string date back to Date at noon UTC to avoid timezone issues
+        nextServiceDueDate: form.nextServiceDueDate ? (() => {
+          const [y, m, d] = form.nextServiceDueDate.split("-").map(Number);
+          return new Date(Date.UTC(y, m - 1, d, 12)); // Noon UTC
+        })() : undefined,
       }
 
       if (!payload.assetId) {

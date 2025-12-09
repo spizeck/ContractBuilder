@@ -20,6 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { addAsset, updateAsset, getAssets } from "@/services/assets";
 import { Asset, ServiceTracking, AssetCategory } from "@/types/maintenance";
+import { toInputDate } from "@/utils/formatters";
 
 // Props
 interface Props {
@@ -37,7 +38,6 @@ const ALLOWED_CATEGORIES = [
 ] as const;
 
 export default function AddEditAssetForm({ asset, onClose }: Props) {
-  // Flat form state to avoid union typing issues
   type FormState = {
     name?: string;
     category?: AssetCategory;
@@ -367,9 +367,7 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
                     type="date"
                     value={
                       form.nextServiceDueDate
-                        ? new Date(form.nextServiceDueDate)
-                            .toISOString()
-                            .slice(0, 10)
+                        ? toInputDate(new Date(form.nextServiceDueDate))
                         : ""
                     }
                     onChange={(e) =>
@@ -392,7 +390,7 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
                 type="date"
                 value={
                   form.lastServiceDate
-                    ? new Date(form.lastServiceDate).toISOString().slice(0, 10)
+                    ? toInputDate(new Date(form.lastServiceDate))
                     : ""
                 }
                 onChange={(e) =>

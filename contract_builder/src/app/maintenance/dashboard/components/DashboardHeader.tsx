@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { IconButton } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 
-const CATEGORIES: string[] = [
+const CATEGORIES = [
   "All",
   "Marine",
   "Compressors",
