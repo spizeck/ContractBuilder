@@ -362,7 +362,13 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
       // Second pass: create child assets and link them
       for (let i = 0; i < childAssets.length; i++) {
         const row = childAssets[i];
-        const parentId = parentAssets.get(row.parentAssetName);
+        
+        if (!row.parentAssetName) {
+          console.warn(`Child asset "${row.name}" has no parentAssetName specified`);
+          continue;
+        }
+        
+        const parentId = parentAssets.get(row.parentAssetName ?? "");
         
         if (!parentId) {
           console.warn(`Parent asset "${row.parentAssetName}" not found for child "${row.name}"`);
