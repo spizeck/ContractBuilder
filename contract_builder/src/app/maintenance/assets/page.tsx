@@ -19,6 +19,7 @@ import {
 import { getAssets, deleteAsset } from "@/services/assets";
 import { Asset, AssetCategory } from "@/types/maintenance";
 import AddEditAssetForm from "../components/AddEditAssetForm";
+import BulkImportModal from "../components/BulkImportModal";
 import {
   getTrackingLabel,
   getCurrentReading,
@@ -52,6 +53,7 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   useEffect(() => {
     loadAssets();
@@ -61,6 +63,7 @@ export default function AssetsPage() {
     setLoading(true);
     try {
       const data = await getAssets();
+      console.log('Loaded assets:', data.length, data.map(a => ({ id: a.id, name: a.name, category: a.category, active: a.active })));
       setAssets(data);
     } finally {
       setLoading(false);
@@ -137,7 +140,6 @@ export default function AssetsPage() {
 
           {/* New Asset button (opens the modal with empty form) */}
           <Button
-            ml="auto"
             colorScheme="blue"
             onClick={() => {
               setEditingAsset(null);
@@ -145,6 +147,15 @@ export default function AssetsPage() {
             }}
           >
             New Asset
+          </Button>
+
+          {/* Bulk Import button */}
+          <Button
+            colorScheme="green"
+            onClick={() => setShowBulkImport(true)}
+            leftIcon={<span>📥</span>}
+          >
+            Bulk Import
           </Button>
         </HStack>
       </Box>
@@ -210,6 +221,14 @@ export default function AssetsPage() {
             setEditingAsset(null);
             loadAssets();
           }}
+        />
+      )}
+
+      {showBulkImport && (
+        <BulkImportModal
+          isOpen={showBulkImport}
+          onClose={() => setShowBulkImport(false)}
+          onImportComplete={loadAssets}
         />
       )}
     </Box>
