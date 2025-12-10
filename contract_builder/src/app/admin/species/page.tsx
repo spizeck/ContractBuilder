@@ -23,7 +23,7 @@ import {
   updateSpecies
 } from '@/services/species'
 import AddEditSpeciesForm from '../components/AddEditSpeciesForm'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 
 export default function SpeciesPage () {
   const [speciesList, setSpeciesList] = useState<Species[]>([])
@@ -61,7 +61,7 @@ export default function SpeciesPage () {
   }
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'hotel-manager']}>
+    <ProtectedRoute module="diveLog" permission="edit">
       <Box p={6}>
         <Heading size='lg' mb={4}>
           Manage Species
@@ -135,6 +135,6 @@ export default function SpeciesPage () {
           </>
         )}
       </Box>
-    </ProtectedPage>
+    </ProtectedRoute>
   )
 }

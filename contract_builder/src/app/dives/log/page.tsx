@@ -3,7 +3,7 @@
 import {useRouter} from "next/navigation";
 import DiveForm from "../components/diveForm/DiveForm";
 import {addDive} from "@/services/dives";
-import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 
 export default function LogDivePage() {
   const router = useRouter();
@@ -14,11 +14,11 @@ export default function LogDivePage() {
   };
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff']}>
+    <ProtectedRoute module="diveLog" permission="create">
     <DiveForm
       onSave={handleSave}
       onCancel={() => router.push("/dives/dashboard")}
     />
-    </ProtectedPage>
+    </ProtectedRoute>
   );
 }

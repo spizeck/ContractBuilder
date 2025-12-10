@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { getDiveDashboardData } from "@/services/diveDashboard";
 import type { DiveDashboardData } from "@/types/dashboard";
-import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 import SummaryCards from "@/app/dives/dashboard/components/SummaryCards";
 import SiteMatrix from "@/app/dives/dashboard/components/SiteMatrix";
 import TemperatureChart from "@/app/dives/dashboard/components/TemperatureChart";
@@ -74,7 +74,7 @@ export default function DiveDashboardPage() {
   }
 
   return (
-    <ProtectedPage allowedRoles={["admin", "hotel-manager", "hotel-staff"]}>
+    <ProtectedRoute module="diveLog" permission="view">
       <Box p={6} maxW="full">
         <VStack spacing={6} align="stretch">
           {/* Header */}
@@ -137,6 +137,6 @@ export default function DiveDashboardPage() {
           <SeasonalWildlifePatterns patterns={dashboardData.seasonalPatterns} />
         </VStack>
       </Box>
-    </ProtectedPage>
+    </ProtectedRoute>
   );
 }

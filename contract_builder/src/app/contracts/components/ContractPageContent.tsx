@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { VStack } from '@chakra-ui/react'
 import GroupContractWizard from './GroupContractWizard'
 import GroupContractsList from './GroupContractsList'
-import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 import { getGroupContractById } from '@/services/groupContracts'
 
 export default function ContractPageContent() {
@@ -59,7 +59,7 @@ export default function ContractPageContent() {
   }
 
   return (
-     <ProtectedPage allowedRoles={["admin", "hotel-manager"]}>
+    <ProtectedRoute module="contracts" permission="view">
     <VStack spacing={4} p={5}>
 
       {view === 'home' && (
@@ -90,6 +90,6 @@ export default function ContractPageContent() {
         
       )}
     </VStack>
-    </ProtectedPage>
+    </ProtectedRoute>
   )
 }
