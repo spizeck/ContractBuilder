@@ -11,6 +11,7 @@ export default function LogDivePage() {
   const router = useRouter();
   const toast = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [formKey, setFormKey] = useState(0); // Used to reset the form
 
   const handleSave = async (data: any) => {
     console.log('=== HANDLE SAVE DEBUG ===');
@@ -31,16 +32,17 @@ export default function LogDivePage() {
       console.log('Creating toast notification...');
       toast({
         title: "Dive saved successfully!",
-        description: "Your dive has been logged and added to the system.",
+        description: "Your dive has been logged. Form reset for next dive.",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
       console.log('Toast notification created');
       
-      console.log('Redirecting to /dives/view...');
-      router.push("/dives/view");
-      console.log('Redirect command sent');
+      // Reset form by incrementing key instead of redirecting
+      console.log('Resetting form for next dive...');
+      setFormKey(prev => prev + 1);
+      console.log('Form reset completed');
       
     } catch (error) {
       console.error('Error in handleSave:', error);
@@ -62,6 +64,7 @@ export default function LogDivePage() {
   return (
     <ProtectedRoute module="diveLog" permission="create">
     <DiveForm
+      key={formKey} // This forces form reset when key changes
       onSave={handleSave}
       onCancel={() => router.push("/dives/dashboard")}
       isSaving={isSaving}

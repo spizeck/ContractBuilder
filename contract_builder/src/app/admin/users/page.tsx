@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   VStack,
@@ -31,12 +31,14 @@ import {
   AlertIcon,
   Divider,
   Flex,
+  Input,
 } from "@chakra-ui/react";
 import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 import { usePermissions } from "@/context/PermissionProvider";
 import { UserRole, PermissionLevel, ModulePermissions, DEFAULT_PERMISSIONS } from "@/types/permissions";
-import { collection, getDocs, doc, updateDoc, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 interface User {
   id: string;
@@ -54,6 +56,7 @@ interface User {
 export default function UserManagementPage() {
   const { isAdmin } = usePermissions();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +67,12 @@ export default function UserManagementPage() {
   const [editRole, setEditRole] = useState<UserRole>('employee');
   const [editPermissions, setEditPermissions] = useState<ModulePermissions>(DEFAULT_PERMISSIONS.employee);
   const [editHotelId, setEditHotelId] = useState<string>('');
+
+  // Form state for creating user
+  const [createEmail, setCreateEmail] = useState('');
+  const [createRole, setCreateRole] = useState<UserRole>('hotel-staff');
+  const [createHotelId, setCreateHotelId] = useState<string>('');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -282,6 +291,81 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!createEmail || (createRole === 'hotel-staff' && !createHotelId)) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(createEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      // Store current user to restore after creation
+      const currentUser = auth.currentUser;
+      
+      // Generate a temporary password
+      const tempPassword = Math.random().toString(36).slice(-8);
+      
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        createEmail,
+        tempPassword
+      );
+      
+      // Get default permissions for the role
+      const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
+      
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: createEmail,
+        name: createEmail.split('@')[0], // Default name from email
+        role: createRole,
+        hotelId: createRole === 'hotel-staff' ? createHotelId : null,
+        permissions: defaultPermissions,
+        createdAt: new Date().toISOString(),
+        archived: false
+      });
+      
+      // Send password reset email so user can set their own password
+      await sendPasswordResetEmail(auth, createEmail);
+      
+      // Restore original user session
+      if (currentUser) {
+        await auth.updateCurrentUser(currentUser);
+      }
+      
+      // Refresh users list
+      await loadUsers();
+      
+      // Clear form and close modal
+      setCreateEmail('');
+      setCreateRole('hotel-staff');
+      setCreateHotelId('');
+      onCreateClose();
+      
+      setError(null);
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already registered. Please use a different email.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address format.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak. Please try again.');
+      } else {
+        setError(err.message || 'Failed to create user. Please try again.');
+      }
+    }
+    setCreating(false);
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'red';
@@ -333,11 +417,18 @@ export default function UserManagementPage() {
     <ProtectedRoute adminOnly>
       <Box p={8}>
         <VStack spacing={6} align="stretch">
-          <Box>
-            <Heading size="lg" mb={2}>User Management</Heading>
-            <Text color="textPrimary">
-              Manage user roles and module permissions
-            </Text>
+          <Box mb={6}>
+            <Flex justify="space-between" align="center" mb={4}>
+              <Box>
+                <Heading size="lg" mb={2}>User Management</Heading>
+                <Text color="textPrimary">
+                  Manage user roles and module permissions
+                </Text>
+              </Box>
+              <Button colorScheme="teal" onClick={onCreateOpen}>
+                Create New User
+              </Button>
+            </Flex>
           </Box>
 
           {error && (
@@ -504,6 +595,76 @@ export default function UserManagementPage() {
                 </Button>
                 <Button colorScheme="blue" onClick={handleSaveUser}>
                   Save Changes
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Create User Modal */}
+          <Modal isOpen={isCreateOpen} onClose={onCreateClose} size="lg">
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Create New User</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <VStack spacing={4} align="stretch">
+                  <FormControl>
+                    <FormLabel>Email Address</FormLabel>
+                    <Input
+                      value={createEmail}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreateEmail(e.target.value)}
+                      placeholder="staff@example.com"
+                      type="email"
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Role</FormLabel>
+                    <Select value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
+                      <option value="employee">Employee</option>
+                      <option value="hotel-staff">Hotel Staff</option>
+                      <option value="admin">Admin</option>
+                    </Select>
+                  </FormControl>
+
+                  {/* Hotel Assignment for Hotel Staff */}
+                  {createRole === 'hotel-staff' && (
+                    <FormControl>
+                      <FormLabel>Hotel Assignment</FormLabel>
+                      <Select 
+                        value={createHotelId} 
+                        onChange={(e) => setCreateHotelId(e.target.value)}
+                        placeholder="Select a hotel"
+                      >
+                        {hotels.map((hotel) => (
+                          <option key={hotel.id} value={hotel.id}>
+                            {hotel.name}
+                          </option>
+                        ))}
+                      </Select>
+                      <Text fontSize="sm" color="gray.600" mt={1}>
+                        Hotel staff will only have access to their assigned hotel's data
+                      </Text>
+                    </FormControl>
+                  )}
+
+                  <Alert status="info">
+                    <AlertIcon />
+                    The user will receive a password reset email to set their own password
+                  </Alert>
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="ghost" mr={3} onClick={onCreateClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  colorScheme="teal" 
+                  onClick={handleCreateUser}
+                  isLoading={creating}
+                  isDisabled={!createEmail || (createRole === 'hotel-staff' && !createHotelId)}
+                >
+                  Create User
                 </Button>
               </ModalFooter>
             </ModalContent>
