@@ -718,7 +718,18 @@ export default function TotalCostCalculation({
             );
           })}
 
-          {/* Hotel addons are now included in room totals calculation */}
+          {/* Hotel Addons */}
+          {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
+            <>
+              {contractData.hotelAddons.map((addon, idx) => (
+                <VStack key={idx} align="stretch" spacing={1}>
+                  <Text>
+                    {addon.description}: ${formatCurrency(addon.amount)}
+                  </Text>
+                </VStack>
+              ))}
+            </>
+          )}
 
           <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
           <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
