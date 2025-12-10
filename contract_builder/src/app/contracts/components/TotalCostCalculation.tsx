@@ -209,6 +209,10 @@ export default function TotalCostCalculation({
         { gross: 0, foc: 0, commission: 0, net: 0 }
       );
 
+      // Add hotel addons to gross room cost
+      const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
+      const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
+
       // Simple FOC calculation - use override if selected, otherwise use original FOC
       let focDeduction = results.roomTotals?.foc || 0;
 
@@ -236,10 +240,10 @@ export default function TotalCostCalculation({
         focDeduction = freeGuests * perGuestPerNight * nights;
       }
 
-      const adjustedGross = newRoomTotals.gross - focDeduction;
+      const adjustedGross = grossRoomCostWithAddons - focDeduction;
       const commissionRate = getCommissionRate(contractData.bookingType || "");
       const finalRoomTotals = {
-        gross: newRoomTotals.gross,
+        gross: grossRoomCostWithAddons,
         foc: focDeduction,
         commission: adjustedGross * commissionRate,
         net: adjustedGross * (1 - commissionRate),
@@ -439,6 +443,10 @@ export default function TotalCostCalculation({
             { gross: 0, foc: 0, commission: 0, net: 0 }
           );
 
+          // Add hotel addons to gross room cost
+          const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
+          const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
+
           // FOC calculation with custom rates - follow the same pattern as original calculation
           const focRule = parseFocRule(hotelData.focRule || "0+0");
           let focDeduction = 0;
@@ -516,12 +524,12 @@ export default function TotalCostCalculation({
             }
           }
 
-          const adjustedGross = newRoomTotals.gross - focDeduction;
+          const adjustedGross = grossRoomCostWithAddons - focDeduction;
           const commissionRate = getCommissionRate(
             contractData.bookingType || ""
           );
           const finalRoomTotals = {
-            gross: newRoomTotals.gross,
+            gross: grossRoomCostWithAddons,
             foc: focDeduction,
             commission: adjustedGross * commissionRate,
             net: adjustedGross * (1 - commissionRate),
