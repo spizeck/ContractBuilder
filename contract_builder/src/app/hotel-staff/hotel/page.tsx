@@ -34,12 +34,12 @@ export default function HotelDetailsPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!loading && user && (role === 'staff' || role === 'manager')) {
+    if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadHotelData()
     } else if (!loading && !user) {
       // Redirect to login if not authenticated
       window.location.href = '/login?redirect=/hotel-staff/hotel'
-    } else if (!loading && user && role !== 'staff' && role !== 'manager') {
+    } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       // Redirect to dashboard if wrong role
       window.location.href = '/'
     }
@@ -102,7 +102,7 @@ export default function HotelDetailsPage() {
     )
   }
 
-  if (!user || (role !== 'staff' && role !== 'manager')) {
+  if (!user || (role !== 'hotel-staff' && role !== 'hotel-manager')) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" minH="100vh">
         <Card maxW="md">

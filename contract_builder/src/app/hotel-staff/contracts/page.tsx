@@ -33,19 +33,19 @@ export default function HotelContractsPage() {
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
-    if (!loading && user && (role === 'staff' || role === 'manager')) {
+    if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadContracts()
     } else if (!loading && !user) {
       // Redirect to login if not authenticated
       window.location.href = '/login?redirect=/hotel-staff/contracts'
-    } else if (!loading && user && role !== 'staff' && role !== 'manager') {
+    } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       // Redirect to dashboard if wrong role
       window.location.href = '/'
     }
   }, [user, role, loading])
 
   useEffect(() => {
-    // Filter contracts based on search term
+    // Filter contracts based on search term (archived contracts are excluded at database level)
     const filtered = contracts.filter(contract =>
       contract.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,7 +128,7 @@ export default function HotelContractsPage() {
     )
   }
 
-  if (!user || (role !== 'staff' && role !== 'manager')) {
+  if (!user || (role !== 'hotel-staff' && role !== 'hotel-manager')) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" minH="100vh">
         <Card maxW="md">

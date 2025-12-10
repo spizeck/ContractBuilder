@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react'
 import { useAuth } from '@/context/AuthContext'
 import { auth, db } from '@/lib/firebase'
-import { doc, getDoc, updateDoc, collection, getDocs, addDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, collection, getDocs, addDoc, setDoc, query, where } from 'firebase/firestore'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
@@ -51,7 +51,7 @@ export default function ProfilePage () {
   // For hotel staff management
   const [hotels, setHotels] = useState<any[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('staff')
+  const [inviteRole, setInviteRole] = useState('hotel-staff')
   const [inviteHotel, setInviteHotel] = useState('')
   const [inviting, setInviting] = useState(false)
 
@@ -79,16 +79,25 @@ export default function ProfilePage () {
     loadProfile()
   }, [user])
 
-  // Load all users if admin or manager
+  // Load users based on role and hotel assignment
   useEffect(() => {
     const loadUsers = async () => {
-      if (role === 'admin' || role === 'manager') {
+      if (role === 'admin') {
+        // Admin sees all users
         const snap = await getDocs(collection(db, 'users'))
         setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      } else if (role === 'hotel-manager' || role === 'hotel-staff') {
+        // Hotel users only see users from their hotel
+        if (userProfile?.hotelId) {
+          const snap = await getDocs(
+            query(collection(db, 'users'), where('hotelId', '==', userProfile.hotelId))
+          )
+          setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        }
       }
     }
     loadUsers()
-  }, [role])
+  }, [role, userProfile?.hotelId])
 
   // Load hotels for dropdown
   useEffect(() => {
@@ -155,6 +164,9 @@ export default function ProfilePage () {
 
     setInviting(true)
     try {
+      // Store current user to restore after creation
+      const currentUser = auth.currentUser
+      
       // Generate a temporary password
       const tempPassword = Math.random().toString(36).slice(-8)
       
@@ -179,13 +191,18 @@ export default function ProfilePage () {
       // Send password reset email so user can set their own password
       await sendPasswordResetEmail(auth, inviteEmail)
       
+      // Restore original user session
+      if (currentUser) {
+        await auth.updateCurrentUser(currentUser)
+      }
+      
       // Refresh users list
       const snap = await getDocs(collection(db, 'users'))
       setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
       
       // Clear form
       setInviteEmail('')
-      setInviteRole('staff')
+      setInviteRole('hotel-staff')
       setInviteHotel('')
       
       setMessage(`Hotel staff invited successfully! They will receive an email to set their password.`)
@@ -209,7 +226,7 @@ export default function ProfilePage () {
     return <Text color='red.500'>You must be logged in to view this page.</Text>
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'manager', 'staff', 'viewer']}>
+    <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff', 'viewer']}>
       <Box p={6} maxW='800px' mx='auto'>
         <Text fontSize='2xl' fontWeight='bold' mb={4}>
           My Profile
@@ -232,83 +249,88 @@ export default function ProfilePage () {
             />
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Depth Units</FormLabel>
-            <Select
-              value={userProfile?.preferences.units.depth}
-              onChange={e =>
-                setUserProfile(prev =>
-                  prev
-                    ? {
-                        ...prev,
-                        preferences: {
-                          ...prev.preferences,
-                          units: {
-                            ...prev.preferences.units,
-                            depth: e.target.value as 'meters' | 'feet'
+          {/* Unit Preferences - Admin only */}
+          {role === 'admin' && (
+            <>
+              <FormControl>
+                <FormLabel>Depth Units</FormLabel>
+                <Select
+                  value={userProfile?.preferences.units.depth}
+                  onChange={e =>
+                    setUserProfile(prev =>
+                      prev
+                        ? {
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              units: {
+                                ...prev.preferences.units,
+                                depth: e.target.value as 'meters' | 'feet'
+                              }
+                            }
                           }
-                        }
-                      }
-                    : prev
-                )
-              }
-            >
-              <option value='meters'>Meters</option>
-              <option value='feet'>Feet</option>
-            </Select>
-          </FormControl>
+                        : prev
+                    )
+                  }
+                >
+                  <option value='meters'>Meters</option>
+                  <option value='feet'>Feet</option>
+                </Select>
+              </FormControl>
 
-          <FormControl>
-            <FormLabel>Temperature Units</FormLabel>
-            <Select
-              value={userProfile?.preferences.units.temp}
-              onChange={e =>
-                setUserProfile(prev =>
-                  prev
-                    ? {
-                        ...prev,
-                        preferences: {
-                          ...prev.preferences,
-                          units: {
-                            ...prev.preferences.units,
-                            temp: e.target.value as 'celsius' | 'fahrenheit'
+              <FormControl>
+                <FormLabel>Temperature Units</FormLabel>
+                <Select
+                  value={userProfile?.preferences.units.temp}
+                  onChange={e =>
+                    setUserProfile(prev =>
+                      prev
+                        ? {
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              units: {
+                                ...prev.preferences.units,
+                                temp: e.target.value as 'celsius' | 'fahrenheit'
+                              }
+                            }
                           }
-                        }
-                      }
-                    : prev
-                )
-              }
-            >
-              <option value='celsius'>Celsius</option>
-              <option value='fahrenheit'>Fahrenheit</option>
-            </Select>
-          </FormControl>
+                        : prev
+                    )
+                  }
+                >
+                  <option value='celsius'>Celsius</option>
+                  <option value='fahrenheit'>Fahrenheit</option>
+                </Select>
+              </FormControl>
 
-          <FormControl>
-            <FormLabel>Pressure Units</FormLabel>
-            <Select
-              value={userProfile?.preferences.units.pressure}
-              onChange={e =>
-                setUserProfile(prev =>
-                  prev
-                    ? {
-                        ...prev,
-                        preferences: {
-                          ...prev.preferences,
-                          units: {
-                            ...prev.preferences.units,
-                            pressure: e.target.value as 'bar' | 'psi'
+              <FormControl>
+                <FormLabel>Pressure Units</FormLabel>
+                <Select
+                  value={userProfile?.preferences.units.pressure}
+                  onChange={e =>
+                    setUserProfile(prev =>
+                      prev
+                        ? {
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              units: {
+                                ...prev.preferences.units,
+                                pressure: e.target.value as 'bar' | 'psi'
+                              }
+                            }
                           }
-                        }
-                      }
-                    : prev
-                )
-              }
-            >
-              <option value='bar'>Bar</option>
-              <option value='psi'>PSI</option>
-            </Select>
-          </FormControl>
+                        : prev
+                    )
+                  }
+                >
+                  <option value='bar'>Bar</option>
+                  <option value='psi'>PSI</option>
+                </Select>
+              </FormControl>
+            </>
+          )}
 
           <FormControl>
             <FormLabel>Role</FormLabel>
@@ -355,8 +377,8 @@ export default function ProfilePage () {
                   <FormControl flex={1}>
                     <FormLabel>Role</FormLabel>
                     <Select value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-                      <option value='staff'>Staff</option>
-                      <option value='manager'>Manager</option>
+                      <option value='hotel-staff'>Hotel Staff</option>
+                      <option value='hotel-manager'>Hotel Manager</option>
                     </Select>
                   </FormControl>
                   
@@ -387,11 +409,11 @@ export default function ProfilePage () {
           </>
         )}
 
-        {(role === 'admin' || role === 'manager') && (
+        {(role === 'admin' || role === 'hotel-manager') && (
           <>
             <Divider my={6} />
             <Text fontSize='2xl' fontWeight='bold' mb={4}>
-              User List {role === 'admin' ? '(Manage Roles)' : '(View Only)'}
+              {role === 'admin' ? 'User List (Manage Roles)' : 'Hotel Staff List (View Only)'}
             </Text>
 
             <TableContainer overflowX='auto'>
@@ -428,8 +450,8 @@ export default function ProfilePage () {
                               size='sm' // smaller select for mobile
                             >
                               <option value='viewer'>Viewer</option>
-                              <option value='staff'>Staff</option>
-                              <option value='manager'>Manager</option>
+                              <option value='hotel-staff'>Hotel Staff</option>
+                              <option value='hotel-manager'>Hotel Manager</option>
                               <option value='admin'>Admin</option>
                             </Select>
                           </Tooltip>

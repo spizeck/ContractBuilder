@@ -33,12 +33,12 @@ export default function HotelStaffDashboard() {
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
-    if (!loading && user && (role === 'staff' || role === 'manager')) {
+    if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadDashboardData()
     } else if (!loading && !user) {
       // Redirect to login if not authenticated
       window.location.href = '/login?redirect=/hotel-staff'
-    } else if (!loading && user && role !== 'staff' && role !== 'manager') {
+    } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       // Redirect to dashboard if wrong role
       window.location.href = '/'
     }
@@ -83,7 +83,7 @@ export default function HotelStaffDashboard() {
     )
   }
 
-  if (!user || (role !== 'staff' && role !== 'manager')) {
+  if (!user || (role !== 'hotel-staff' && role !== 'hotel-manager')) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" minH="100vh">
         <Card maxW="md">
@@ -236,7 +236,7 @@ export default function HotelStaffDashboard() {
                           {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
                         </Text>
                         <Text fontSize="sm" color="gray.600">
-                          <Text color="textSecondary">{contract.totalGuests} guests</Text> • {contract.numDivers} divers
+                          <span style={{ color: 'var(--chakra-colors-textSecondary)' }}>{contract.totalGuests} guests</span> • {contract.numDivers} divers
                         </Text>
                       </VStack>
                       <VStack align="end" spacing={1}>

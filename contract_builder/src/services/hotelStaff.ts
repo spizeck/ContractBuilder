@@ -55,12 +55,13 @@ export async function getHotelByStaffId(staffId: string): Promise<Hotel | null> 
   }
 }
 
-// Get contracts assigned to a specific hotel
+// Get contracts assigned to a specific hotel (excluding archived)
 export async function getContractsByHotelId(hotelId: string): Promise<GroupContract[]> {
   try {
     const contractsQuery = query(
       collection(db, 'groupContracts'),
       where('hotelId', '==', hotelId),
+      where('archived', '==', false),
       orderBy('createdAt', 'desc')
     )
     

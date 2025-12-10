@@ -65,7 +65,7 @@ export default function GuidesPage () {
   if (loading) return <Spinner />
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'manager']}>
+    <ProtectedPage allowedRoles={['admin', 'hotel-manager']}>
       <Box p={6}>
         <Heading size='lg' mb={4}>
           Manage Guides

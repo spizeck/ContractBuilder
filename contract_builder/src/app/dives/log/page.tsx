@@ -14,7 +14,7 @@ export default function LogDivePage() {
   };
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'manager', 'staff']}>
+    <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff']}>
     <DiveForm
       onSave={handleSave}
       onCancel={() => router.push("/dives/dashboard")}

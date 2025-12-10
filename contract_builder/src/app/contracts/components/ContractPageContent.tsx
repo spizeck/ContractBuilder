@@ -63,7 +63,7 @@ export default function ContractPageContent() {
   }
 
   return (
-     <ProtectedPage allowedRoles={["admin", "manager"]}>
+     <ProtectedPage allowedRoles={["admin", "hotel-manager"]}>
     <VStack spacing={4} p={5}>
 
       {view === 'home' && (

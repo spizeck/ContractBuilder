@@ -45,7 +45,7 @@ export default function NavLinks() {
       <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
       <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
       <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
-      {(role === 'admin' || role === 'manager') && (
+      {(role === 'admin' || role === 'hotel-manager') && (
         <>
           <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
           <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
@@ -80,7 +80,7 @@ export default function NavLinks() {
 
         {user && (
           <>
-            {(role === 'staff' || role === 'manager') ? (
+            {(role === 'hotel-staff' || role === 'hotel-manager') ? (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Hotel Staff
@@ -96,14 +96,18 @@ export default function NavLinks() {
               </Menu>
             )}
 
-            <Menu>
-              <MenuButton as={Button} variant="link" color="white">
-                Dive Log
-              </MenuButton>
-              <MenuList color="teal">{diveLogLinks}</MenuList>
-            </Menu>
+            {/* Dive Log Section - Admin only */}
+            {role === 'admin' && (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Dive Log
+                </MenuButton>
+                <MenuList color="teal">{diveLogLinks}</MenuList>
+              </Menu>
+            )}
 
-            {(role === 'admin' || role === 'manager') && (
+            {/* Maintenance Section - Admin only */}
+            {role === 'admin' && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Maintenance
@@ -132,60 +136,64 @@ export default function NavLinks() {
       </Flex>
 
       {/* Mobile Nav */}
-<Flex display={{ base: 'flex', md: 'none' }}>
-  <Menu>
-    <MenuButton
-      as={IconButton}
-      aria-label="Open Menu"
-      icon={<HamburgerIcon />}
-      variant="outline"
-      color="white"
-      border="none"
-    />
-    <MenuList color="teal" p={0}>
-      <MenuItem as={NextLink} href="/">Home</MenuItem>
+      <Flex display={{ base: 'flex', md: 'none' }}>
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            aria-label="Open Menu"
+            icon={<HamburgerIcon />}
+            variant="outline"
+            color="white"
+            border="none"
+          />
+          <MenuList color="teal" p={0}>
+            <MenuItem as={NextLink} href="/">Home</MenuItem>
 
-      {user && (
-        <Box>
-          <Accordion allowToggle>
-            {/* Hotel Staff Section */}
-            {(role === 'staff' || role === 'manager') && (
-              <AccordionItem>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">Hotel Staff</Box>
-                </AccordionButton>
-                <AccordionPanel pb={2}>{hotelStaffLinks}</AccordionPanel>
-              </AccordionItem>
-            )}
+            {user && (
+              <Box>
+                <Accordion allowToggle>
+                  {/* Hotel Staff Section */}
+                  {(role === 'hotel-staff' || role === 'hotel-manager') && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Hotel Staff</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{hotelStaffLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
 
-            {/* Contracts Section */}
-            {!(role === 'staff' || role === 'manager') && (
-              <AccordionItem>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">Contracts</Box>
-                </AccordionButton>
-                <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
-              </AccordionItem>
-            )}
+                  {/* Contracts Section */}
+                  {!(role === 'hotel-staff' || role === 'hotel-manager') && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Contracts</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
 
-            {/* Dive Log Section */}
-            <AccordionItem>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">Dive Log</Box>
-              </AccordionButton>
-              <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
-            </AccordionItem>
+                  {/* Dive Log Section - Admin only */}
+                  {role === 'admin' && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Dive Log</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
 
-            {/* Maintenance Section */}
-            {(role === 'admin' || role === 'manager') && (
-              <AccordionItem>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">Maintenance</Box>
-                </AccordionButton>
-                <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
-              </AccordionItem>
-            )}
-          </Accordion>
+                  {/* Maintenance Section - Admin only */}
+                  {role === 'admin' && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Maintenance</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
+                </Accordion>
+
+            )
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
           <LogoutButton asMenuItem/>

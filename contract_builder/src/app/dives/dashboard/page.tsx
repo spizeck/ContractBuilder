@@ -74,7 +74,7 @@ export default function DiveDashboardPage() {
   }
 
   return (
-    <ProtectedPage allowedRoles={["admin", "manager", "staff"]}>
+    <ProtectedPage allowedRoles={["admin", "hotel-manager", "hotel-staff"]}>
       <Box p={6} maxW="full">
         <VStack spacing={6} align="stretch">
           {/* Header */}

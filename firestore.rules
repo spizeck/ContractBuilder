@@ -139,12 +139,12 @@ service cloud.firestore {
 
     function isManagerOrAbove() {
       let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return role == "admin" || role == "manager";
+      return role == "admin" || role == "hotel-manager";
     }
     
     function isStaffOrAbove() {
     	let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return role == "admin" || role == "manager" || role == "staff";
+      return role == "admin" || role == "hotel-manager" || role == "hotel-staff";
     }
 
     // Check if user has access to a specific hotel

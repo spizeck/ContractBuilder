@@ -12,12 +12,20 @@ const nextConfig = {
     return config;
   },
 
+  // Turbopack config (empty since we're using webpack alias)
+  turbopack: {},
+
   // Vercel optimization
   compress: true,
   poweredByHeader: false,
-  // Image optimization
+  // Image optimization (updated for Next.js 16)
   images: {
-    domains: ["firebasestorage.googleapis.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+      },
+    ],
     formats: ["image/webp", "image/avif"],
   },
   // Build optimizations

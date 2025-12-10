@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -26,8 +28,42 @@ import {
   FiActivity,
 } from "react-icons/fi";
 import { TbScubaMask } from "react-icons/tb";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
+  const { user, role, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      // Redirect hotel users to their dashboard
+      if (role === 'hotel-staff' || role === 'hotel-manager') {
+        router.push('/hotel-staff');
+      }
+    }
+  }, [user, role, loading, router]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={4} justify="center" minH="50vh">
+          <Text>Loading...</Text>
+        </VStack>
+      </Container>
+    );
+  }
+
+  // If user is hotel role, don't render admin homepage (they'll be redirected)
+  if (user && (role === 'hotel-staff' || role === 'hotel-manager')) {
+    return (
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={4} justify="center" minH="50vh">
+          <Text>Redirecting to hotel dashboard...</Text>
+        </VStack>
+      </Container>
+    );
+  }
   return (
     <Container maxW="7xl" py={8}>
       {/* Header Section */}

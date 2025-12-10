@@ -36,7 +36,7 @@ export default function EditDivePage() {
   };
 
   return (
-    <ProtectedPage allowedRoles={["admin", "manager", "staff"]}>
+    <ProtectedPage allowedRoles={["admin", "hotel-manager", "hotel-staff"]}>
     <DiveForm
       initialDive={dive}
       onSave={handleSave}

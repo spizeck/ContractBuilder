@@ -7,7 +7,7 @@ import {Center, Spinner} from "@chakra-ui/react";
 
 interface Props {
   children: ReactNode;
-  allowedRoles?: string[]; // e.g. ["admin", "manager"]
+  allowedRoles?: string[]; // e.g. ["admin", "hotel-manager"]
 }
 
 export default function ProtectedPage({children, allowedRoles}: Props) {
