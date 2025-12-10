@@ -320,7 +320,9 @@ export default function TotalCostCalculation({
         totalCost: results?.overall.net || 0,
         createdAt: new Date(),
         customRates:
-          Object.keys(customRates).length > 0 ? customRates : undefined,
+          Object.keys(customRates).length > 0 
+            ? Object.fromEntries(Object.entries(customRates).filter(([_, v]) => v !== undefined))
+            : undefined,
         hasCustomRates: Object.keys(customRates).length > 0,
         // Add addon arrays to contract data
         hotelAddons: contractData.hotelAddons || [],

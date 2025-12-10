@@ -93,7 +93,7 @@ export default function DivePackageSelectionForm ({
           >
             {selectedPkg ? selectedPkg.name : 'Select a dive package'}
           </MenuButton>
-          <MenuList w='100%'>
+          <MenuList w='100%' maxHeight='500px' overflowY='auto'>
             {divePackages.map(pkg => (
               <MenuItem key={pkg.id} onClick={() => setDivePackageId(pkg.id)}>
                 {pkg.name}

@@ -141,6 +141,12 @@ export default function PaymentHistory({
                   Status: {payment.status}
                 </Text>
                 
+                {payment.notes && (
+                  <Text fontSize="sm" color="textPrimary" mt={2}>
+                    <strong>Notes:</strong> {payment.notes}
+                  </Text>
+                )}
+                
                 {payment.paymentDocumentUrl && (
                   <Link
                     href={payment.paymentDocumentUrl}

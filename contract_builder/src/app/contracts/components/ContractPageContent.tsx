@@ -16,7 +16,7 @@ export default function ContractPageContent() {
   // Check for edit parameter on component mount
   useEffect(() => {
     const editId = searchParams.get('edit')
-    if (editId) {
+    if (editId && editId !== 'undefined') {
       // Load the contract for editing
       const loadContractForEdit = async () => {
         try {
