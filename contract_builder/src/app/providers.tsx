@@ -11,6 +11,7 @@ import NextLink from 'next/link'
 import React from 'react'
 import theme from '@/theme'
 import { AuthProvider } from '@/context/AuthContext'
+import { PermissionProvider } from '@/context/PermissionProvider'
 import NavLinks from '@/components/shared/LayoutComponents/NavLinks'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -38,7 +39,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           </Flex>
 
           <Box as="main" p={8} flex={1}>
-            {children}
+            <PermissionProvider>
+              {children}
+            </PermissionProvider>
           </Box>
         </Flex>
       </AuthProvider>

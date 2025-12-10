@@ -2,157 +2,222 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null; // Temporarily allow any authenticated user to write
-    }
-
-    // Hotels collection - staff can only read/write their assigned hotel, admins can read all
-    match /hotels/{hotelId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(hotelId));
-    }
-
-    // Contracts collection - staff can only read contracts for their hotel
-    match /groupContracts/{contractId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-      
-      // Contract notes subcollection
-      match /notes/{noteId} {
-        allow read: if isAdmin() 
-          || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
-        allow write: if isAdmin() 
-          || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
-      }
-    }
-
-    // Payments collection - staff can only read payments for their hotel's contracts
-    match /payments/{paymentId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
-    }
-
-    
-    match /divePackages/{packageId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
-    // Meal packages - staff can only read/write for their hotel
-    match /mealPackages/{packageId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-    }
-
-    // Rates - staff can only read/write for their hotel
-    match /rates/{rateId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-    }
-
-    // Room categories - staff can only read/write for their hotel
-    match /roomCategories/{categoryId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-    }
-
-    // Room types - staff can only read/write for their hotel
-    match /roomTypes/{roomTypeId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-    }
-
-    // Seasons - staff can only read/write for their hotel
-    match /seasons/{seasonId} {
-      allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId));
-    }
-
-    
-    match /dives/{diveId} {
-      allow read: if true;
-      allow create: if isStaffOrAbove();
-      allow update, delete: if request.auth.uid == resource.data.createdBy || isManagerOrAbove();
-    }
-
-    match /species/{speciesId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
-    match /sites/{siteId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
-    match /boats/{boatId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
+    // Helper functions for permission checking
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    match /guides/{guideId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
-    match /diveNumber/{diveNumberId} {
-      allow read: if true;
-      allow write: if isManagerOrAbove();
-    }
-
-    match /maintenanceLogs/{logId} {
-      allow read, write: if isStaffOrAbove();
-    }
-
-    match /assets/{assetId} {
-      allow read: if isStaffOrAbove();
-      allow write: if isManagerOrAbove();
-    }
-
-    match /technicians/{techId} {
-      allow read: if isStaffOrAbove();
-      allow write: if isManagerOrAbove();
-    }
-
-    // Helpers
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return request.auth != null && getUserData().role == 'admin';
     }
 
     function isManagerOrAbove() {
-      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return role == "admin" || role == "hotel-manager";
+      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager';
     }
     
     function isStaffOrAbove() {
-    	let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return role == "admin" || role == "hotel-manager" || role == "hotel-staff";
+      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager' || getUserData().role == 'hotel-staff' || getUserData().role == 'employee';
+    }
+
+    function isHotelStaff() {
+      return request.auth != null && 
+             (getUserData().role == 'hotel-staff' || 
+              getUserData().role == 'hotel-manager');
+    }
+    
+    function isEmployee() {
+      return request.auth != null && 
+             (getUserData().role == 'employee' || 
+              getUserData().role == 'viewer');
+    }
+    
+    function hasPermission(module, requiredLevel) {
+      return isAdmin() ? true : (
+        getUserData().permissions == null ? false : (
+          getUserData().permissions[module] == null ? false : (
+            // Permission hierarchy: edit > create > view
+            getUserData().permissions[module] == 'edit' ? true : (
+              getUserData().permissions[module] == 'create' ? (
+                requiredLevel == 'view' || requiredLevel == 'create'
+              ) : (
+                getUserData().permissions[module] == 'view' && requiredLevel == 'view'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    function canAccessModule(module) {
+      return isAdmin() ? true : (
+        getUserData().permissions == null ? false : getUserData().permissions[module] != null
+      );
+    }
+    
+    function isValidRole(role) {
+      return role == 'admin' || role == 'hotel-staff' || role == 'employee' || 
+             role == 'hotel-manager' || role == 'viewer';
+    }
+    
+    function isValidPermissionLevel(level) {
+      return level == null || level == 'view' || level == 'create' || level == 'edit';
+    }
+    
+    function isValidPermissions(permissions) {
+      return (permissions.contracts == null || isValidPermissionLevel(permissions.contracts)) &&
+             (permissions.diveLog == null || isValidPermissionLevel(permissions.diveLog)) &&
+             (permissions.maintenance == null || isValidPermissionLevel(permissions.maintenance));
     }
 
     // Check if user has access to a specific hotel
     function hasHotelAccess(hotelId) {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      let userHotelId = userDoc.data.hotelId;
+      return getUserData().role == 'admin' ? true : (
+        getUserData().hotelId != null && getUserData().hotelId == hotelId
+      );
+    }
+
+    // Users collection - only admins can create/update, authenticated users can read their own
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow list: if isAdmin();
+      allow create: if isAdmin() && 
+                     isValidRole(request.resource.data.role) &&
+                     (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
+      allow update: if isAdmin() && 
+                     (isValidRole(request.resource.data.role) || request.resource.data.role == null) &&
+                     (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
+      allow delete: if isAdmin();
+    }
+
+    // Hotels collection - combine hotel access with module permissions
+    match /hotels/{hotelId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    // Contracts collection - combine hotel access with module permissions
+    match /groupContracts/{contractId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow create: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(request.resource.data.hotelId) && hasPermission('contracts', 'create'));
+      allow update: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+      allow delete: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
       
-      return userDoc.data.role == "admin" ? true : (userHotelId != null && userHotelId == hotelId);
+      // Contract notes subcollection
+      match /notes/{noteId} {
+        allow read: if isAdmin() 
+          || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId) && canAccessModule('contracts'));
+        allow write: if isAdmin() 
+          || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+      }
+    }
+
+    // Payments collection - combine hotel access with module permissions
+    match /payments/{paymentId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && canAccessModule('contracts'));
+      allow create: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'create'));
+      allow update: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+      allow delete: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    match /divePackages/{packageId} {
+      allow read: if canAccessModule('contracts');
+      allow write: if hasPermission('contracts', 'edit');
+    }
+
+    // Meal packages - combine hotel access with module permissions
+    match /mealPackages/{packageId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    // Rates - combine hotel access with module permissions
+    match /rates/{rateId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    // Room categories - combine hotel access with module permissions
+    match /roomCategories/{categoryId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    // Room types - combine hotel access with module permissions
+    match /roomTypes/{roomTypeId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    // Seasons - combine hotel access with module permissions
+    match /seasons/{seasonId} {
+      allow read: if isAdmin() 
+        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+      allow write: if isAdmin() 
+        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+    }
+
+    match /dives/{diveId} {
+      allow read: if canAccessModule('diveLog');
+      allow create: if hasPermission('diveLog', 'create');
+      allow update, delete: if hasPermission('diveLog', 'edit') || request.auth.uid == resource.data.createdBy;
+    }
+
+    match /species/{speciesId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+
+    match /sites/{siteId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+
+    match /boats/{boatId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+    
+    match /guides/{guideId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+
+    match /diveNumber/{diveNumberId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+
+    match /maintenanceLogs/{logId} {
+      allow read: if canAccessModule('maintenance');
+      allow write: if hasPermission('maintenance', 'create');
+    }
+
+    match /assets/{assetId} {
+      allow read: if canAccessModule('maintenance');
+      allow write: if hasPermission('maintenance', 'edit');
+    }
+
+    match /technicians/{techId} {
+      allow read: if canAccessModule('maintenance');
+      allow write: if hasPermission('maintenance', 'edit');
     }
   }
 }

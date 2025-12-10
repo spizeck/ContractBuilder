@@ -102,7 +102,7 @@ export default function DivePackageSelectionForm ({
           </MenuList>
         </Menu>
         {selectedPkg?.description && (
-          <Text fontSize='sm' color='gray.600' mt={2}>
+          <Text fontSize='sm' color='textPrimary' mt={2}>
             {selectedPkg.description}
           </Text>
         )}

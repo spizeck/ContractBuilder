@@ -1,0 +1,153 @@
+'use client'
+
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
+import { 
+  UserRole, 
+  PermissionLevel, 
+  ModulePermissions, 
+  UserPermissions,
+  DEFAULT_PERMISSIONS,
+  ROLE_HIERARCHY 
+} from '@/types/permissions'
+import { doc, getDoc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+
+interface PermissionContextType {
+  userPermissions: UserPermissions | null
+  hasPermission: (module: keyof ModulePermissions, level: PermissionLevel) => boolean
+  isAdmin: () => boolean
+  isHotelStaff: () => boolean
+  isEmployee: () => boolean
+  canAccessModule: (module: keyof ModulePermissions) => boolean
+}
+
+const PermissionContext = createContext<PermissionContextType>({
+  userPermissions: null,
+  hasPermission: () => false,
+  isAdmin: () => false,
+  isHotelStaff: () => false,
+  isEmployee: () => false,
+  canAccessModule: () => false,
+})
+
+export function PermissionProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) {
+      setUserPermissions(null)
+      setLoading(false)
+      return
+    }
+
+    // Set up real-time listener for user document
+    const userDocRef = doc(db, 'users', user.uid)
+    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+      try {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data()
+          
+          // Map legacy roles to new role system
+          let mappedRole: UserRole = 'employee'
+          if (userData.role === 'admin') mappedRole = 'admin'
+          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff'
+          else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff'
+          else if (userData.role === 'viewer') mappedRole = 'employee'
+          
+          // Use actual permissions from Firestore, or fall back to defaults for legacy users
+          const permissions = userData.permissions || DEFAULT_PERMISSIONS[mappedRole]
+          
+          setUserPermissions({
+            role: mappedRole,
+            permissions,
+            archived: userData.archived || false
+          })
+        } else {
+          // User document doesn't exist, use default permissions
+          setUserPermissions({
+            role: 'employee',
+            permissions: DEFAULT_PERMISSIONS.employee
+          })
+        }
+      } catch (error) {
+        console.error('Error loading user permissions:', error)
+        setUserPermissions({
+          role: 'employee',
+          permissions: DEFAULT_PERMISSIONS.employee
+        })
+      } finally {
+        setLoading(false)
+      }
+    }, (error) => {
+      console.error('Error setting up user listener:', error)
+      setUserPermissions({
+        role: 'employee',
+        permissions: DEFAULT_PERMISSIONS.employee
+      })
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [user])
+
+  const hasPermission = (module: keyof ModulePermissions, level: PermissionLevel): boolean => {
+    if (!userPermissions || !level) return false
+
+    // Archived users have no permissions
+    if (userPermissions.archived) return false
+
+    // Admin has all permissions
+    if (userPermissions.role === 'admin') return true
+
+    const userLevel = userPermissions.permissions[module]
+    if (!userLevel) return false
+
+    // Permission hierarchy: edit > create > view
+    const levelHierarchy = { edit: 3, create: 2, view: 1 }
+    const userLevelValue = levelHierarchy[userLevel]
+    const requiredLevelValue = levelHierarchy[level]
+
+    return userLevelValue >= requiredLevelValue
+  }
+
+  const isAdmin = (): boolean => userPermissions?.role === 'admin'
+  const isHotelStaff = (): boolean => userPermissions?.role === 'hotel-staff'
+  const isEmployee = (): boolean => userPermissions?.role === 'employee'
+
+  const canAccessModule = (module: keyof ModulePermissions): boolean => {
+    if (!userPermissions) return false
+
+    // Archived users cannot access any modules
+    if (userPermissions.archived) return false
+
+    // Admin can access all modules
+    if (userPermissions.role === 'admin') return true
+
+    const permission = userPermissions.permissions[module]
+    return permission !== null && permission !== undefined
+  }
+
+  return (
+    <PermissionContext.Provider value={{
+      userPermissions,
+      hasPermission,
+      isAdmin,
+      isHotelStaff,
+      isEmployee,
+      canAccessModule,
+    }}>
+      {children}
+    </PermissionContext.Provider>
+  )
+}
+
+export const usePermissions = () => {
+  const context = useContext(PermissionContext)
+  if (!context) {
+    throw new Error('usePermissions must be used within a PermissionProvider')
+  }
+  return context
+}
