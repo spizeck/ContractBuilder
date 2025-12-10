@@ -111,16 +111,16 @@ export default function AddonSelectionForm({
   }
 
   const handleSubmit = () => {
-    // Validate that all addons have descriptions and positive amounts
+    // Validate that all addons have descriptions (amount can be positive or negative for discounts)
     const allAddons = [...hotelAddons, ...diveAddons, ...mealAddons]
     const invalidAddons = allAddons.filter(
-      addon => !addon.description.trim() || addon.amount <= 0
+      addon => !addon.description.trim()
     )
 
     if (invalidAddons.length > 0) {
       toast({
         title: 'Validation Error',
-        description: 'All addons must have a description and positive amount.',
+        description: 'All addons must have a description. Amount can be positive (charge) or negative (discount).',
         status: 'error',
         duration: 5000,
         isClosable: true,

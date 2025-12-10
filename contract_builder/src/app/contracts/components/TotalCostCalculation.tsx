@@ -281,6 +281,30 @@ export default function TotalCostCalculation({
         await archiveGroupContract(contractData.id);
       }
 
+      // Clean customRates data
+      let cleanedRates: any = null;
+      let hasValidRates = false;
+      
+      if (customRates && Object.keys(customRates).length > 0) {
+        if (Array.isArray(customRates)) {
+          // Handle sparse arrays
+          const tempRates: { [key: number]: number } = {};
+          customRates.forEach((value, index) => {
+            if (value !== undefined && value !== null) {
+              tempRates[index] = value;
+              hasValidRates = true;
+            }
+          });
+          cleanedRates = hasValidRates ? tempRates : null;
+        } else {
+          // Handle objects
+          cleanedRates = Object.fromEntries(
+            Object.entries(customRates).filter(([_, v]) => v !== undefined && v !== null)
+          );
+          hasValidRates = Object.keys(cleanedRates).length > 0;
+        }
+      }
+
       const groupContract: Omit<GroupContract, "id"> = {
         archived: false,
         groupName: contractData.groupName!,
@@ -319,16 +343,22 @@ export default function TotalCostCalculation({
         }),
         totalCost: results?.overall.net || 0,
         createdAt: new Date(),
-        customRates:
-          Object.keys(customRates).length > 0 
-            ? Object.fromEntries(Object.entries(customRates).filter(([_, v]) => v !== undefined))
-            : undefined,
-        hasCustomRates: Object.keys(customRates).length > 0,
+        // Only include customRates if it has valid data
+        ...(cleanedRates && { customRates: cleanedRates }),
+        hasCustomRates: hasValidRates,
         // Add addon arrays to contract data
         hotelAddons: contractData.hotelAddons || [],
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
       };
+
+      // Debug: Log customRates structure before filtering
+      console.log('Original customRates:', customRates);
+      console.log('CustomRates type:', typeof customRates);
+      console.log('CustomRates keys:', Object.keys(customRates));
+
+      // Debug: Log filtered customRates
+      console.log('Filtered customRates:', groupContract.customRates);
 
       await addGroupContract(groupContract);
       alert("Contract saved successfully!");

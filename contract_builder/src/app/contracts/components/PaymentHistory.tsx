@@ -18,6 +18,7 @@ import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { Payment } from '@/types/contractTypes'
 import { getPayments, deletePayment } from '@/services/payments'
 import { formatDateTime } from '@/utils/dateHelpers'
+import { formatCurrency, roundToCents } from '@/utils/formatters'
 
 interface PaymentHistoryProps {
   contractId: string
@@ -123,7 +124,7 @@ export default function PaymentHistory({
               <VStack align="start" spacing={2} flex={1}>
                 <HStack>
                   <Text fontWeight="bold" fontSize="lg">
-                    ${payment.amount.toLocaleString()}
+                    {formatCurrency(payment.amount)}
                   </Text>
                   <Badge colorScheme={
                     payment.paymentType === 'deposit' ? 'yellow' :
@@ -176,13 +177,13 @@ export default function PaymentHistory({
       
       <Box>
         <Text fontSize="md" fontWeight="bold">
-          Total Paid: ${payments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
+          Total Paid: {formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0))}
         </Text>
-        <Text fontSize="sm" color="textMuted">
-          Contract Total: ${contractTotalCost.toLocaleString()}
+        <Text fontSize="md" fontWeight="bold">
+          Contract Total: {formatCurrency(contractTotalCost)}
         </Text>
-        <Text fontSize="sm" color="textMuted">
-          Remaining: ${Math.max(0, contractTotalCost - payments.reduce((sum, p) => sum + p.amount, 0)).toLocaleString()}
+        <Text fontSize="md" fontWeight="bold">
+          Remaining: {formatCurrency(roundToCents(Math.max(0, contractTotalCost - payments.reduce((sum, p) => sum + p.amount, 0))))}
         </Text>
       </Box>
     </VStack>

@@ -10,7 +10,7 @@ import {
   RoomType,
   Totals
 } from '@/types/contractTypes'
-import { parseFocRule } from '@/utils/formatters'
+import { parseFocRule, roundToCents } from '@/utils/formatters'
 
 export function calculateNumberOfNights (
   startDate: string,
@@ -132,11 +132,11 @@ export function calculateTotalCost (
           `No rate found for ${room.categoryId}, ${room.occupancyType}, season ${season.name}`
         )
 
-      const gross = room.numRooms * nights * rate.price
+      const gross = roundToCents(room.numRooms * nights * rate.price)
       grossRoomCost += gross
 
-      const commission = gross * commissionRate
-      const net = gross - commission
+      const commission = roundToCents(gross * commissionRate)
+      const net = roundToCents(gross - commission)
 
       const category = roomCategories.find(c => c.id === room.categoryId)
       const categoryName = category ? category.name : room.categoryId
@@ -167,54 +167,59 @@ export function calculateTotalCost (
         r.occupancyType.toLowerCase() === 'double'
     )
     if (baseRate) {
-      const perGuestPerNight = baseRate.price / 2 // assume double occupancy
+      const perGuestPerNight = roundToCents(baseRate.price / 2) // assume double occupancy
       const freeGuests =
         Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free
-      focDeduction = freeGuests * perGuestPerNight * nights
+      focDeduction = roundToCents(freeGuests * perGuestPerNight * nights)
     }
   }
 
   // Add hotel addons to room gross before commission calculation
-  const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
-  const grossRoomCostWithAddons = grossRoomCost + hotelAddonTotal
+  const hotelAddonTotal = roundToCents((contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0))
+  const grossRoomCostWithAddons = roundToCents(grossRoomCost + hotelAddonTotal)
   
-  const adjustedGross = grossRoomCostWithAddons - focDeduction
+  const adjustedGross = roundToCents(grossRoomCostWithAddons - focDeduction)
   const roomTotals: Totals = {
     gross: grossRoomCostWithAddons,
     foc: focDeduction,
-    commission: adjustedGross * commissionRate,
-    net: adjustedGross * (1 - commissionRate)
+    commission: roundToCents(adjustedGross * commissionRate),
+    net: roundToCents(adjustedGross * (1 - commissionRate))
   }
 
   // ---- Dives ----
   let diveTotals: Totals = { gross: 0, foc: 0, commission: 0, net: 0 }
   if (divePackage && numDivers) {
-    const divePackageGross = divePackage.price * numDivers
-    const diveAddonTotal = (contractData.diveAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
-    const gross = divePackageGross + diveAddonTotal
-    const foc = Math.floor(numDivers / 8) * divePackage.price
-    const adjustedGross = gross - foc
-    const commission = adjustedGross * commissionRate
-    diveTotals = { gross, foc, commission, net: adjustedGross - commission }
+    const divePackageGross = roundToCents(divePackage.price * numDivers)
+    const diveAddonTotal = roundToCents((contractData.diveAddons || []).reduce((sum, addon) => sum + addon.amount, 0))
+    const gross = roundToCents(divePackageGross + diveAddonTotal)
+    const foc = roundToCents(Math.floor(numDivers / 8) * divePackage.price)
+    const adjustedGross = roundToCents(gross - foc)
+    diveTotals = {
+      gross,
+      foc,
+      commission: roundToCents(adjustedGross * commissionRate),
+      net: roundToCents(adjustedGross * (1 - commissionRate))
+    }
   }
 
   // ---- Meals ----
   let mealTotals: Omit<Totals, 'foc'> = { gross: 0, commission: 0, net: 0 }
   if (mealPackage && totalGuests) {
-    const mealPackageGross = mealPackage.price * totalGuests
-    const mealAddonTotal = (contractData.mealAddons || []).reduce((sum, addon) => sum + addon.amount, 0)
-    const gross = mealPackageGross + mealAddonTotal
-    const commission = gross * (mealPackage.commissionRate ?? 0)
-    mealTotals = { gross, commission, net: gross - commission }
+    const mealPackageGross = roundToCents(mealPackage.price * totalGuests)
+    const mealAddonTotal = roundToCents((contractData.mealAddons || []).reduce((sum, addon) => sum + addon.amount, 0))
+    const gross = roundToCents(mealPackageGross + mealAddonTotal)
+    const commission = roundToCents(gross * (mealPackage.commissionRate ?? 0))
+    mealTotals = { gross, commission, net: roundToCents(gross - commission) }
   }
 
   // ---- Overall ----
   const overall: Totals = {
-    gross: roomTotals.gross + diveTotals.gross + mealTotals.gross,
-    foc: (roomTotals.foc ?? 0) + (diveTotals.foc ?? 0),
-    commission:
-      roomTotals.commission + diveTotals.commission + mealTotals.commission,
-    net: roomTotals.net + diveTotals.net + mealTotals.net
+    gross: roundToCents(roomTotals.gross + diveTotals.gross + mealTotals.gross),
+    foc: roundToCents((roomTotals.foc ?? 0) + (diveTotals.foc ?? 0)),
+    commission: roundToCents(
+      roomTotals.commission + diveTotals.commission + mealTotals.commission
+    ),
+    net: roundToCents(roomTotals.net + diveTotals.net + mealTotals.net)
   }
 
   return { totalGuests, roomCosts, roomTotals, diveTotals, mealTotals, overall }

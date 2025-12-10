@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Box,
   SimpleGrid,
@@ -17,8 +17,10 @@ import {
   Alert,
   AlertIcon,
 } from "@chakra-ui/react";
-import { GroupContract } from "@/types/contractTypes";
+import { GroupContract, Payment } from "@/types/contractTypes";
 import PaymentStatusBadge from "./PaymentStatusBadge";
+import { getPayments } from "@/services/payments";
+import { roundToCents } from "@/utils/formatters";
 
 interface PaymentDashboardProps {
   contracts: GroupContract[];
@@ -48,6 +50,35 @@ export default function PaymentDashboard({
   onFilterByStatus,
 }: PaymentDashboardProps) {
   const [viewMode, setViewMode] = useState<"upcoming" | "past">("upcoming");
+  const [paymentsByContract, setPaymentsByContract] = useState<{ [key: string]: Payment[] }>({});
+
+  // Fetch payments for all contracts
+  useEffect(() => {
+    const fetchAllPayments = async () => {
+      const paymentsMap: { [key: string]: Payment[] } = {};
+
+      // Fetch payments for each contract
+      await Promise.all(
+        contracts.map(async (contract) => {
+          if (contract.id) {
+            try {
+              const payments = await getPayments(contract.id);
+              paymentsMap[contract.id] = payments;
+            } catch (error) {
+              console.error(`Error fetching payments for contract ${contract.id}:`, error);
+              paymentsMap[contract.id] = [];
+            }
+          }
+        })
+      );
+
+      setPaymentsByContract(paymentsMap);
+    };
+
+    if (contracts.length > 0) {
+      fetchAllPayments();
+    }
+  }, [contracts]);
 
   // Filter contracts based on view mode
   const filteredContracts = useMemo(() => {
@@ -83,36 +114,37 @@ export default function PaymentDashboard({
 
     return filteredContracts.reduce((acc, contract) => {
       const cost = contract.totalCost || 0;
-      const paid = contract.totalPaid || 0;
       acc.totalRevenue += cost;
 
-      if (contract.paidInFull) {
-        // Summary cards: fully paid contracts
+      // Calculate payment status dynamically from fetched payments
+      const payments = paymentsByContract[contract.id] || [];
+      const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+      const remaining = roundToCents(cost - totalPaid);
+
+      if (remaining <= 0) {
+        // Fully paid contracts
         acc.paidInFullValue += cost;
         acc.paidInFullCount++;
         acc.totalSecuredContracts++;
-        // Revenue by Payment Status: total contract values
         acc.paidInFullRevenue += cost;
-      } else if (contract.depositPaid) {
-        // Summary cards: secured contracts (have deposits, not fully paid)
+      } else if (totalPaid > 0) {
+        // Secured contracts (have deposits, not fully paid)
         acc.securedContractsValue += cost;
         acc.securedContractsCount++;
         acc.totalSecuredContracts++;
-        acc.depositsAmount += paid;
+        acc.depositsAmount += totalPaid;
         acc.depositsCount++;
-        // Revenue by Payment Status: total contract values
         acc.depositPaidRevenue += cost;
       } else {
-        // Summary cards: unsecured contracts (no deposits)
+        // Unsecured contracts (no deposits)
         acc.unsecuredContractsValue += cost;
         acc.unsecuredContractsCount++;
-        // Revenue by Payment Status: total contract values
         acc.unpaidRevenue += cost;
       }
 
       return acc;
     }, initial);
-  }, [filteredContracts]);
+  }, [filteredContracts, paymentsByContract]);
 
   // Label for view mode
 

@@ -24,6 +24,7 @@ import { GroupContract, Hotel } from "@/types/contractTypes";
 import PaymentStatusBadge from "./PaymentStatusBadge";
 import { parseDate } from "@/utils/dateHelpers";
 import PaymentDashboard from "./PaymentDashboard";
+import { formatCurrency } from "@/utils/formatters";
 
 export default function GroupContractsList({
   onBack,
@@ -267,7 +268,7 @@ export default function GroupContractsList({
                   <PaymentStatusBadge contract={contract} size="sm" />
                   {contract.totalCost && (
                     <Text fontSize="sm" fontWeight="medium" color="gray.600">
-                      ${contract.totalCost.toLocaleString()}
+                      {formatCurrency(contract.totalCost)}
                     </Text>
                   )}
                 </HStack>

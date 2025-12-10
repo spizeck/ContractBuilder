@@ -33,6 +33,7 @@ import {
 import { addPayment } from '@/services/payments'
 import { Payment } from '@/types/contractTypes'
 import { useAuth } from '@/context/AuthContext'
+import { formatCurrency, roundToCents } from '@/utils/formatters'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -178,13 +179,13 @@ export default function PaymentModal({
               {/* Payment Summary */}
               <Box w="full">
                 <Text fontSize="sm" color="textPrimary" mb={2}>
-                  Contract Total: ${contractTotalCost.toLocaleString()}
+                  Contract Total: {formatCurrency(contractTotalCost)}
                 </Text>
                 <Text fontSize="sm" color="textPrimary" mb={2}>
-                  Already Paid: ${totalPaid.toLocaleString()}
+                  Already Paid: {formatCurrency(totalPaid)}
                 </Text>
                 <Text fontSize="sm" color="textPrimary" mb={2}>
-                  Remaining Balance: ${remainingBalance.toLocaleString()}
+                  Remaining Balance: {formatCurrency(roundToCents(remainingBalance))}
                 </Text>
                 <Progress 
                   value={progressPercentage} 

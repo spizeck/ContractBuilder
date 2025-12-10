@@ -81,6 +81,10 @@ export function formatCurrency(value: number | null | undefined): string {
   });
 }
 
+export function roundToCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 // Helper function to format date for input without timezone shift
 export function toInputDate(date: Date): string {
   const year = date.getFullYear();
