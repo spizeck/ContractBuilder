@@ -21,7 +21,7 @@ import { useAuth } from '@/context/AuthContext'
 import LogoutButton from './LogoutButton'
 
 export default function NavLinks() {
-  const { user, role } = useAuth()
+  const { user, role, loading } = useAuth()
 
   // All the links (to reuse for desktop + mobile)
   const contractLinks = (
@@ -78,7 +78,9 @@ export default function NavLinks() {
           Home
         </Link>
 
-        {user && (
+        {loading ? (
+          <Box>Loading...</Box>
+        ) : user && (
           <>
             {(role === 'hotel-staff' || role === 'hotel-manager') ? (
               <Menu>
@@ -123,7 +125,9 @@ export default function NavLinks() {
           </>
         )}
 
-        {!user && (
+        {loading ? (
+          <Box>...</Box>
+        ) : !user && (
           <>
             <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
               Login
@@ -149,7 +153,9 @@ export default function NavLinks() {
           <MenuList color="teal" p={0}>
             <MenuItem as={NextLink} href="/">Home</MenuItem>
 
-            {user && (
+            {loading ? (
+              <Box>...</Box>
+            ) : user && (
               <Box>
                 <Accordion allowToggle>
                   {/* Hotel Staff Section */}
@@ -200,7 +206,9 @@ export default function NavLinks() {
         </Box>
       )}
 
-      {!user && (
+      {loading ? (
+        <Box>...</Box>
+      ) : !user && (
         <>
           <MenuItem as={NextLink} href="/login">Login</MenuItem>
           <MenuItem as={NextLink} href="/register">Register</MenuItem>

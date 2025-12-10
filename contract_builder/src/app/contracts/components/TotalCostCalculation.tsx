@@ -295,7 +295,7 @@ export default function TotalCostCalculation({
         roomCosts:
           results?.roomCosts.map((rc) => ({
             description: rc.description,
-            cost: rc.net,
+            cost: rc.gross,
           })) || [],
         totalRoomCost: results?.roomTotals.net || 0,
         totalGuests: results?.totalGuests || 0,

@@ -26,6 +26,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           align="center"
           justify="space-between"
           className="no-print"
+          suppressHydrationWarning={true}
         >
           <Link as={NextLink} href="/" _hover={{ textDecoration: 'none' }}>
             <Heading as="h1" size="lg">
