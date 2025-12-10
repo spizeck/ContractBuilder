@@ -48,10 +48,6 @@ export default function ContractPageContent() {
     setView('add')
   }
 
-  const handleViewEditContracts = () => {
-    setView('list')
-  }
-
   const handleBackToHome = () => {
     setView('home')
     setEditingContract(null)
