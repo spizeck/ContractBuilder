@@ -23,7 +23,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function MaintenanceDashboardPage() {
   const { role } = useAuth(); // expects roles like 'viewer', 'manager', 'admin'
-  const canEdit = role === "admin" || role === "manager";
+  const canEdit = role === "admin" || role === "hotel-manager";
 
   // Get raw data (unfiltered) from the existing hook
   const { assets: rawAssets, logs: rawLogs, technicians: rawTechnicians, loading } = useMaintenanceData({

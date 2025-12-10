@@ -183,7 +183,7 @@ export default function LogsModal({
                 {pagedLogs.map((l) => {
                   const canEdit =
                     user &&
-                    (user.uid === l.createdBy || role === "admin" || role === "manager");
+                    (user.uid === l.createdBy || role === "admin" || role === "hotel-manager");
 
                   const isCollapsed = !!collapsed[l.id];
 
