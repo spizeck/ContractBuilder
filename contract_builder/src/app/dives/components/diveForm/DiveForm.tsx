@@ -23,12 +23,14 @@ interface DiveFormProps {
   initialDive?: Dive
   onSave: (data: Omit<Dive, 'id' | 'createdAt'>) => Promise<void>
   onCancel: () => void
+  isSaving?: boolean
 }
 
 export default function DiveForm ({
   initialDive,
   onSave,
-  onCancel
+  onCancel,
+  isSaving = false
 }: DiveFormProps) {
   const { user } = useAuth()
   const { prefs, boats, sites, speciesList, guides, loading, maxStep } =
@@ -102,30 +104,62 @@ export default function DiveForm ({
       : setWaterTemperature(val)
 
   const handleSubmit = async () => {
-    if (!user) return
+    console.log('=== DIVE FORM SUBMIT DEBUG ===');
+    console.log('User:', user?.email);
+    console.log('Date:', date);
+    console.log('Dive Slot:', diveSlot);
+    console.log('Boat ID:', boatId);
+    console.log('Guide:', diveGuide);
+    console.log('Site ID:', diveSiteId);
+    console.log('Max Depth:', maxDepth);
+    console.log('Water Temp:', waterTemperature);
+    console.log('Sightings:', sightings);
+
+    if (!user) {
+      console.log('No user found - returning');
+      return
+    }
 
     const warnings = validateDive(maxDepth, waterTemperature, prefs)
-    if (warnings.length && !confirm('Warnings:\n' + warnings.join('\n'))) return
+    console.log('Validation warnings:', warnings);
+    if (warnings.length && !confirm('Warnings:\n' + warnings.join('\n'))) {
+      console.log('User cancelled due to warnings');
+      return
+    }
 
+    console.log('Checking for duplicate dive...');
     const duplicate = await checkDuplicateDive(
       date,
       diveSlot,
       boatId,
+      diveGuide,
       initialDive?.id || ''
     )
-    if (duplicate) return alert('This dive has already been logged.')
+    console.log('Duplicate check result:', duplicate);
+    if (duplicate) {
+      console.log('Duplicate dive found - alerting user');
+      return alert('This dive has already been logged.')
+    }
 
-    await onSave({
-      date,
-      diveSlot,
-      boatId,
-      diveGuide,
-      diveSiteId,
-      maxDepth,
-      waterTemperature,
-      createdBy: user.uid,
-      sightings
-    })
+    console.log('Calling onSave with dive data...');
+    try {
+      await onSave({
+        date,
+        diveSlot,
+        boatId,
+        diveGuide,
+        diveSiteId,
+        maxDepth,
+        waterTemperature,
+        createdBy: user.uid,
+        sightings
+      });
+      console.log('onSave completed successfully');
+    } catch (error) {
+      console.error('Error in onSave:', error);
+    }
+    
+    console.log('=== END DIVE FORM SUBMIT DEBUG ===');
   }
 
   if (loading) return <Spinner />
@@ -217,6 +251,7 @@ export default function DiveForm ({
         onBack={() => setStep(step - 1)}
         onNext={() => setStep(step + 1)}
         onSubmit={handleSubmit}
+        isSaving={isSaving}
       />
     </>
   )

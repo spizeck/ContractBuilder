@@ -10,6 +10,7 @@ interface FormActionsProps {
   onBack: () => void
   onNext: () => void
   onSubmit: () => void | Promise<void>
+  isSaving?: boolean
 }
 
 export default function FormActions ({
@@ -19,7 +20,8 @@ export default function FormActions ({
   onCancel,
   onBack,
   onNext,
-  onSubmit
+  onSubmit,
+  isSaving = false
 }: FormActionsProps) {
   if (step === 0) {
     return (
@@ -53,7 +55,7 @@ export default function FormActions ({
         Cancel
       </Button>
       <Button onClick={onBack}>Back</Button>
-      <Button colorScheme='teal' onClick={onSubmit}>
+      <Button colorScheme='teal' onClick={onSubmit} isLoading={isSaving} isDisabled={isSaving}>
         {initialDive ? 'Update Dive' : 'Save Dive'}
       </Button>
     </HStack>
