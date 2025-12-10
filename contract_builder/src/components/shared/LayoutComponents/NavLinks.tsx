@@ -47,7 +47,7 @@ export default function NavLinks() {
 
   const contractLinks = (
     <>
-      <MenuItem as={NextLink} href="/contracts/dashboard">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/contracts">Dashboard</MenuItem>
       <MenuItem as={NextLink} href="/hotels">Manage Hotels</MenuItem>
       <MenuItem as={NextLink} href="/dive-packages">Manage Dive Packages</MenuItem>
     </>

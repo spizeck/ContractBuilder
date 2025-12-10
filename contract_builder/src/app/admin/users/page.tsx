@@ -115,6 +115,7 @@ export default function UserManagementPage() {
           role: userData.role, // Keep original role for display
           permissions: userData.permissions, // Use existing permissions if available
           hotelId: userData.hotelId, // Include hotel assignment
+          archived: userData.archived || false, // Include archived status
           createdAt: userData.createdAt,
           preferences: userData.preferences,
           units: userData.units,

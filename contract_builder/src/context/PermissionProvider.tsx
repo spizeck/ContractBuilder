@@ -37,61 +37,80 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('=== PERMISSION PROVIDER DEBUG ===');
+    console.log('User:', user?.email);
+    
     if (!user) {
-      setUserPermissions(null)
-      setLoading(false)
-      return
+      console.log('No user - setting permissions to null');
+      setUserPermissions(null);
+      setLoading(false);
+      return;
     }
 
+    console.log('Setting up Firestore listener for user:', user.uid);
+    
     // Set up real-time listener for user document
-    const userDocRef = doc(db, 'users', user.uid)
+    const userDocRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+      console.log('=== FIRESTORE SNAPSHOT ===');
+      console.log('Doc exists:', docSnapshot.exists());
+      
       try {
         if (docSnapshot.exists()) {
-          const userData = docSnapshot.data()
+          const userData = docSnapshot.data();
+          console.log('User data from Firestore:', userData);
           
           // Map legacy roles to new role system
-          let mappedRole: UserRole = 'employee'
-          if (userData.role === 'admin') mappedRole = 'admin'
-          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff'
-          else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff'
-          else if (userData.role === 'viewer') mappedRole = 'employee'
+          let mappedRole: UserRole = 'employee';
+          if (userData.role === 'admin') mappedRole = 'admin';
+          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
+          else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
+          else if (userData.role === 'viewer') mappedRole = 'employee';
+          
+          console.log('Mapped role:', mappedRole);
+          console.log('User permissions from Firestore:', userData.permissions);
           
           // Use actual permissions from Firestore, or fall back to defaults for legacy users
-          const permissions = userData.permissions || DEFAULT_PERMISSIONS[mappedRole]
+          const permissions = userData.permissions || DEFAULT_PERMISSIONS[mappedRole];
+          console.log('Final permissions:', permissions);
           
-          setUserPermissions({
+          const finalPermissions = {
             role: mappedRole,
             permissions,
             archived: userData.archived || false
-          })
+          };
+          
+          console.log('Setting userPermissions:', finalPermissions);
+          setUserPermissions(finalPermissions);
         } else {
+          console.log('User document does not exist - using defaults');
           // User document doesn't exist, use default permissions
           setUserPermissions({
             role: 'employee',
             permissions: DEFAULT_PERMISSIONS.employee
-          })
+          });
         }
       } catch (error) {
-        console.error('Error loading user permissions:', error)
+        console.error('Error loading user permissions:', error);
         setUserPermissions({
           role: 'employee',
           permissions: DEFAULT_PERMISSIONS.employee
-        })
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }, (error) => {
-      console.error('Error setting up user listener:', error)
+      console.error('=== FIRESTORE LISTENER ERROR ===');
+      console.error('Error setting up user listener:', error);
       setUserPermissions({
         role: 'employee',
         permissions: DEFAULT_PERMISSIONS.employee
-      })
-      setLoading(false)
-    })
+      });
+      setLoading(false);
+    });
 
-    return () => unsubscribe()
-  }, [user])
+    return () => unsubscribe();
+  }, [user]);
 
   const hasPermission = (module: keyof ModulePermissions, level: PermissionLevel): boolean => {
     if (!userPermissions || !level) return false
