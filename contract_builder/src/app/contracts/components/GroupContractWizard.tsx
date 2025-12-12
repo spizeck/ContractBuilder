@@ -18,11 +18,34 @@ export default function GroupContractWizard ({
 
   const nextStep = (data: any) => {
     setContractData({ ...contractData, ...data })
-    setStep(step + 1)
+    
+    // For direct hotel booking, skip room selection and meal package steps
+    if (data.bookingType === 'directHotelBooking' || contractData.bookingType === 'directHotelBooking') {
+      if (step === 1) {
+        setStep(3) // Skip to dive package selection
+      } else if (step === 3) {
+        setStep(5) // Skip meal package, go to addons
+      } else {
+        setStep(step + 1)
+      }
+    } else {
+      setStep(step + 1)
+    }
   }
 
   const prevStep = () => {
-    setStep(step - 1)
+    // For direct hotel booking, skip room selection and meal package steps when going back
+    if (contractData.bookingType === 'directHotelBooking') {
+      if (step === 5) {
+        setStep(3) // Go back to dive package, skip meal package
+      } else if (step === 3) {
+        setStep(1) // Go back to initial form, skip room selection
+      } else {
+        setStep(step - 1)
+      }
+    } else {
+      setStep(step - 1)
+    }
   }
 
   switch (step) {
@@ -75,6 +98,7 @@ export default function GroupContractWizard ({
             diveAddons: contractData.diveAddons,
             mealAddons: contractData.mealAddons,
           }}
+          bookingType={contractData.bookingType}
           onNext={nextStep}
           onBack={prevStep}
           onCancel={onCancel}

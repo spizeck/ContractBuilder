@@ -319,7 +319,7 @@ export default function TotalCostCalculation({
         diveTotals: results?.diveTotals,
         mealTotals: results?.mealTotals,
         overall: results?.overall,
-        rooms: contractData.rooms!,
+        rooms: contractData.rooms || [],
         roomCosts:
           results?.roomCosts.map((rc) => ({
             description: rc.description,
@@ -672,103 +672,105 @@ export default function TotalCostCalculation({
         </CardBody>
       </Card>
 
-      {/* Rooms */}
-      <Card>
-        <CardHeader py={2} px={3}>
-          <Flex justify="space-between">
-            <Text fontWeight="bold">Rooms</Text>
-            <HStack spacing={2}>
-              {onEditStep && (
-                <Button size="sm" onClick={() => onEditStep(2)}>
-                  Edit Rooms
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={
-                  isEditingRates
-                    ? handleCancelEditingRates
-                    : handleStartEditingRates
-                }
-              >
-                {isEditingRates ? "Cancel" : "Edit Rates"}
-              </Button>
-              {isEditingRates && (
-                <Button size="sm" onClick={handleSaveRates} colorScheme="green">
-                  Save All Rates
-                </Button>
-              )}
-            </HStack>
-          </Flex>
-        </CardHeader>
-        <CardBody>
-          {isEditingRates && (
-            <Text fontSize="sm" color="textPrimary" mb={2}>
-              Check the box next to a room rate to use it as the FOC base rate
-            </Text>
-          )}
-          {sortedRoomCosts.map((rc, idx) => {
-            // Find the original index for this room cost to access tempRates
-            const originalIdx = roomCosts.indexOf(rc);
-            return (
-              <VStack key={idx} align="stretch" spacing={1}>
-                {isEditingRates ? (
-                  <HStack spacing={2}>
-                    <Checkbox
-                      isChecked={focOverrideIndex === originalIdx}
-                      onChange={() => handleFocOverrideChange(originalIdx)}
-                      size="sm"
-                    />
-                    <Text flex={1}>
-                      {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
-                    </Text>
-                    <Input
-                      type="number"
-                      value={tempRates[originalIdx]?.toString() || ""}
-                      onChange={(e) =>
-                        handleRateChange(originalIdx, e.target.value)
-                      }
-                      onFocus={handleInputFocus}
-                      size="sm"
-                      width="80px"
-                      step="0.01"
-                      min="0"
-                    />
-                    <Text>/night</Text>
-                  </HStack>
-                ) : (
-                  <Text>
-                    {rc.description}
-                    {customRates[originalIdx] !== undefined && (
-                      <Text as="span" color="red.500" ml={1}>
-                        *
-                      </Text>
-                    )}
-                  </Text>
+      {/* Rooms - Only show if not direct hotel booking */}
+      {contractData.bookingType !== 'directHotelBooking' && (
+        <Card>
+          <CardHeader py={2} px={3}>
+            <Flex justify="space-between">
+              <Text fontWeight="bold">Rooms</Text>
+              <HStack spacing={2}>
+                {onEditStep && (
+                  <Button size="sm" onClick={() => onEditStep(2)}>
+                    Edit Rooms
+                  </Button>
                 )}
-              </VStack>
-            );
-          })}
-
-          {/* Hotel Addons */}
-          {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
-            <>
-              {contractData.hotelAddons.map((addon, idx) => (
+                <Button
+                  size="sm"
+                  onClick={
+                    isEditingRates
+                      ? handleCancelEditingRates
+                      : handleStartEditingRates
+                  }
+                >
+                  {isEditingRates ? "Cancel" : "Edit Rates"}
+                </Button>
+                {isEditingRates && (
+                  <Button size="sm" onClick={handleSaveRates} colorScheme="green">
+                    Save All Rates
+                  </Button>
+                )}
+              </HStack>
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            {isEditingRates && (
+              <Text fontSize="sm" color="textPrimary" mb={2}>
+                Check the box next to a room rate to use it as the FOC base rate
+              </Text>
+            )}
+            {sortedRoomCosts.map((rc, idx) => {
+              // Find the original index for this room cost to access tempRates
+              const originalIdx = roomCosts.indexOf(rc);
+              return (
                 <VStack key={idx} align="stretch" spacing={1}>
-                  <Text>
-                    {addon.description}: ${formatCurrency(addon.amount)}
-                  </Text>
+                  {isEditingRates ? (
+                    <HStack spacing={2}>
+                      <Checkbox
+                        isChecked={focOverrideIndex === originalIdx}
+                        onChange={() => handleFocOverrideChange(originalIdx)}
+                        size="sm"
+                      />
+                      <Text flex={1}>
+                        {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
+                      </Text>
+                      <Input
+                        type="number"
+                        value={tempRates[originalIdx]?.toString() || ""}
+                        onChange={(e) =>
+                          handleRateChange(originalIdx, e.target.value)
+                        }
+                        onFocus={handleInputFocus}
+                        size="sm"
+                        width="80px"
+                        step="0.01"
+                        min="0"
+                      />
+                      <Text>/night</Text>
+                    </HStack>
+                  ) : (
+                    <Text>
+                      {rc.description}
+                      {customRates[originalIdx] !== undefined && (
+                        <Text as="span" color="red.500" ml={1}>
+                          *
+                        </Text>
+                      )}
+                    </Text>
+                  )}
                 </VStack>
-              ))}
-            </>
-          )}
+              );
+            })}
 
-          <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
-          <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
-          <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
-          <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
-        </CardBody>
-      </Card>
+            {/* Hotel Addons */}
+            {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
+              <>
+                {contractData.hotelAddons.map((addon, idx) => (
+                  <VStack key={idx} align="stretch" spacing={1}>
+                    <Text>
+                      {addon.description}: ${formatCurrency(addon.amount)}
+                    </Text>
+                  </VStack>
+                ))}
+              </>
+            )}
+
+            <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
+            <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
+            <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
+            <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Dives */}
       {divePackage && (
@@ -810,8 +812,8 @@ export default function TotalCostCalculation({
         </Card>
       )}
 
-      {/* Meals */}
-      {mealPackage && (
+      {/* Meals - Only show if not direct hotel booking */}
+      {mealPackage && contractData.bookingType !== 'directHotelBooking' && (
         <Card>
           <CardHeader py={2} px={3}>
             <Flex justify="space-between">

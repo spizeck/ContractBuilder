@@ -98,7 +98,7 @@ export function calculateTotalCost (
   overall: Totals
 } {
   const { startDate, endDate, rooms, numDivers, bookingType } = contractData
-  if (!startDate || !endDate || !rooms)
+  if (!startDate || !endDate)
     throw new Error('Missing required contract data.')
 
   const nights = calculateNumberOfNights(startDate, endDate)
@@ -116,7 +116,11 @@ export function calculateTotalCost (
     net: number
   }[] = []
 
-  for (const room of rooms) {
+  // For direct hotel booking, use numDivers as guest count and skip room calculations
+  if (!rooms || rooms.length === 0) {
+    totalGuests = numDivers || 0
+  } else {
+    for (const room of rooms) {
     if (room.numRooms > 0 && room.categoryId && room.occupancyType) {
       const occNum = getOccupancyNumber(room.occupancyType)
       totalGuests += occNum * room.numRooms
@@ -154,23 +158,27 @@ export function calculateTotalCost (
       })
     }
   }
+  }
 
   // ---- FOC calculation (after totalGuests known) ----
-  const focRoomType = roomTypes.find(
-    rt => rt.hotelId === hotel.id && rt.isFocBase
-  )
-  if (focRoomType) {
-    const baseRate = rates.find(
-      r => 
-        r.categoryId === focRoomType.categoryId && 
-        r.seasonId === season.id && 
-        r.occupancyType.toLowerCase() === 'double'
+  // Skip FOC for direct hotel bookings since there are no room costs
+  if (rooms && rooms.length > 0) {
+    const focRoomType = roomTypes.find(
+      rt => rt.hotelId === hotel.id && rt.isFocBase
     )
-    if (baseRate) {
-      const perGuestPerNight = roundToCents(baseRate.price / 2) // assume double occupancy
-      const freeGuests =
-        Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free
-      focDeduction = roundToCents(freeGuests * perGuestPerNight * nights)
+    if (focRoomType) {
+      const baseRate = rates.find(
+        r => 
+          r.categoryId === focRoomType.categoryId && 
+          r.seasonId === season.id && 
+          r.occupancyType.toLowerCase() === 'double'
+      )
+      if (baseRate) {
+        const perGuestPerNight = roundToCents(baseRate.price / 2) // assume double occupancy
+        const freeGuests =
+          Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free
+        focDeduction = roundToCents(freeGuests * perGuestPerNight * nights)
+      }
     }
   }
 

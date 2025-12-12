@@ -27,11 +27,13 @@ interface AddonData {
 
 export default function AddonSelectionForm({
   initialAddons,
+  bookingType,
   onNext,
   onBack,
   onCancel
 }: {
   initialAddons?: Partial<AddonData>
+  bookingType?: string
   onNext: (data: AddonData) => void
   onBack: () => void
   onCancel: () => void
@@ -128,10 +130,14 @@ export default function AddonSelectionForm({
       return
     }
 
+    // For direct hotel booking, clear hotel and meal addons
+    const finalHotelAddons = bookingType === 'directHotelBooking' ? [] : hotelAddons
+    const finalMealAddons = bookingType === 'directHotelBooking' ? [] : mealAddons
+
     onNext({
-      hotelAddons,
+      hotelAddons: finalHotelAddons,
       diveAddons,
-      mealAddons,
+      mealAddons: finalMealAddons,
     })
   }
 
@@ -212,15 +218,23 @@ export default function AddonSelectionForm({
         </Box>
 
         <VStack spacing={6} align="stretch">
-          {renderAddonSection('Hotel Addons', hotelAddons, 'hotel')}
-          
-          <Divider />
+          {/* Only show hotel addons if not direct hotel booking */}
+          {bookingType !== 'directHotelBooking' && (
+            <>
+              {renderAddonSection('Hotel Addons', hotelAddons, 'hotel')}
+              <Divider />
+            </>
+          )}
           
           {renderAddonSection('Dive Addons', diveAddons, 'dive')}
           
-          <Divider />
-          
-          {renderAddonSection('Meal Addons', mealAddons, 'meal')}
+          {/* Only show meal addons if not direct hotel booking */}
+          {bookingType !== 'directHotelBooking' && (
+            <>
+              <Divider />
+              {renderAddonSection('Meal Addons', mealAddons, 'meal')}
+            </>
+          )}
         </VStack>
 
         {grandTotal > 0 && (

@@ -16,7 +16,7 @@ import NavLinks from '@/components/shared/LayoutComponents/NavLinks'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ChakraProvider theme={theme}>
+    <ChakraProvider theme={theme} resetCSS={true} disableGlobalStyle={false}>
       <AuthProvider>
         <Flex direction="column" minH="100vh">
           <Flex
