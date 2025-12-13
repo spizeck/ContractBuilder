@@ -6,7 +6,7 @@ import { onAuthStateChanged, type User } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 
-type Role = 'admin' | 'manager' | 'staff' | 'viewer'
+type Role = 'admin' | 'hotel-manager' | 'hotel-staff' | 'viewer'
 
 interface AuthContextType {
   user: User | null

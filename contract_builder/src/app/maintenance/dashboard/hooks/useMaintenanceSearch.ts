@@ -42,6 +42,7 @@ export function useMaintenanceData(params: {
       qRef,
       (snap) => {
         const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Asset[];
+        console.log('Dashboard loaded assets:', items.length, items.map(a => ({ id: a.id, name: a.name, category: a.category, active: a.active })));
         // Client-side sort by name for stable UI without composite index
         setAssets(
           items.sort((a, b) => (a.name || "").localeCompare(b.name || ""))

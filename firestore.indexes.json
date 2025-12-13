@@ -59,6 +59,14 @@
         { "fieldPath": "assetId", "order": "ASCENDING" },
         { "fieldPath": "date", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "groupContracts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "hotelId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

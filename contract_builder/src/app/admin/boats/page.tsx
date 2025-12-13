@@ -16,7 +16,7 @@ import {
   TableContainer
 } from '@chakra-ui/react'
 import { Boat } from '@/types/diveLogTypes'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 import { addBoat, deleteBoat, getBoats, updateBoat } from '@/services/boats'
 import AddEditBoatForm from '../components/AddEditBoatForm'
 
@@ -61,7 +61,7 @@ export default function BoatsPage () {
   }
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'manager']}>
+    <ProtectedRoute module="diveLog" permission="edit">
       <Box p={6}>
         <Heading size='lg' mb={4}>
           Manage Boats
@@ -122,6 +122,6 @@ export default function BoatsPage () {
           </>
         )}
       </Box>
-    </ProtectedPage>
+    </ProtectedRoute>
   )
 }

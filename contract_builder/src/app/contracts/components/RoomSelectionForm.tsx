@@ -246,7 +246,7 @@ export default function RoomSelectionForm ({
                     )?.name
                   : 'Select a category'}
               </MenuButton>
-              <MenuList>
+              <MenuList maxHeight='500px' overflowY='auto'>
                 {filteredRoomCategories.map(category => (
                   <MenuItem
                     key={category.id}
@@ -273,7 +273,7 @@ export default function RoomSelectionForm ({
               >
                 {selection.occupancyType || 'Select occupancy'}
               </MenuButton>
-              <MenuList>
+              <MenuList maxHeight='500px' overflowY='auto'>
                 {(() => {
                   const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad']
                   return rates

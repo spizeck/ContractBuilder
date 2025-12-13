@@ -27,13 +27,12 @@ export interface CategoryPanelsProps {
   onEditAsset?: (asset: Asset) => void;
 }
 
-const CATEGORY_ORDER: Record<AssetCategory, number> = {
+const CATEGORY_ORDER: Record<string, number> = {
   Marine: 0,
   Compressors: 1,
   Vehicles: 2,
   "Scuba Equipment": 3,
-  "Scuba Tanks": 4,
-  Other: 5,
+  Other: 4,
 };
 
 export default function CategoryPanels({

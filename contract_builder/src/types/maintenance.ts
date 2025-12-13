@@ -6,7 +6,6 @@ export type AssetCategory =
   | "Compressors"
   | "Vehicles"
   | "Scuba Equipment"
-  | "Scuba Tanks"
   | "Other";
 
 // How an asset tracks service

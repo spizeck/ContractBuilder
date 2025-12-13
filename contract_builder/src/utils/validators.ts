@@ -24,7 +24,7 @@ export function validateDive(
   }
 
   // Temperature
-  if (waterTemp < 22 || waterTemp > 32) {
+  if (waterTemp < 22 || waterTemp >= 32) {
     const display = prefs?.units.temp === "fahrenheit"
       ? `${Math.round(celsiusToFahrenheit(waterTemp))} °F`
       : `${waterTemp} °C`;

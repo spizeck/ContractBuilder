@@ -21,26 +21,20 @@ import { useAuth } from '@/context/AuthContext'
 import LogoutButton from './LogoutButton'
 
 export default function NavLinks() {
-  const { user, role } = useAuth()
+  const { user, role, loading } = useAuth()
 
   // All the links (to reuse for desktop + mobile)
-  const contractLinks = (
-    <>
-      <MenuItem as={NextLink} href="/contracts">Contracts</MenuItem>
-      <MenuItem as={NextLink} href="/hotels">Hotels</MenuItem>
-      <MenuItem as={NextLink} href="/dive-packages">Dive Packages</MenuItem>
-    </>
-  )
-
   const diveLogLinks = (
     <>
       <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
       <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
       <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
-      {(role === 'admin' || role === 'manager') && (
+      {(role === 'admin') && (
         <>
           <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
           <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
+          <MenuItem as={NextLink} href="/admin/boats">Manage Boats</MenuItem>
           <MenuItem as={NextLink} href="/admin/species">Manage Species</MenuItem>
         </>
       )}
@@ -50,16 +44,33 @@ export default function NavLinks() {
   const maintenanceLinks = (
     <>
       <MenuItem as={NextLink} href="/maintenance/dashboard">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/technicians">Technicians</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
       <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>
+      <MenuItem as={NextLink} href="/maintenance/technicians">Manage Technicians</MenuItem>
+      <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
+    </>
+  )
+
+  const contractLinks = (
+    <>
+      <MenuItem as={NextLink} href="/contracts">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/hotels">Manage Hotels</MenuItem>
+      <MenuItem as={NextLink} href="/dive-packages">Manage Dive Packages</MenuItem>
+    </>
+  )
+
+  const userLinks = (
+    <>
+      <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
+      {role === 'admin' && (
+        <MenuItem as={NextLink} href="/admin/users">Manage Users</MenuItem>
+      )}
     </>
   )
 
   const manifestLinks = (
     <>
       <MenuItem as={NextLink} href="/manifests">Manifests & Taxis</MenuItem>
-      {(role === 'admin' || role === 'manager') && (
+      {(role === 'admin') && (
         <>
           <MenuItem as={NextLink} href="/operations/manage-crew">Manage Crew</MenuItem>
           <MenuItem as={NextLink} href="/operations/manage-boats">Manage Boats</MenuItem>
@@ -82,23 +93,22 @@ export default function NavLinks() {
           Home
         </Link>
 
-        {user && (
+        {loading ? (
+          <Box>Loading...</Box>
+        ) : user && (
           <>
-            <Menu>
-              <MenuButton as={Button} variant="link" color="white">
-                Contracts
-              </MenuButton>
-              <MenuList color="teal">{contractLinks}</MenuList>
-            </Menu>
+            {/* Dive Log Section - Admin only */}
+            {role === 'admin' && (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Dive Log
+                </MenuButton>
+                <MenuList color="teal">{diveLogLinks}</MenuList>
+              </Menu>
+            )}
 
-            <Menu>
-              <MenuButton as={Button} variant="link" color="white">
-                Dive Log
-              </MenuButton>
-              <MenuList color="teal">{diveLogLinks}</MenuList>
-            </Menu>
-
-            {(role === 'admin' || role === 'manager') && (
+            {/* Maintenance Section - Admin only */}
+            {role === 'admin' && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Maintenance
@@ -114,14 +124,30 @@ export default function NavLinks() {
               <MenuList color="teal">{manifestLinks}</MenuList>
             </Menu>
 
-            <Link as={NextLink} href="/profile" _hover={{ textDecoration: 'underline' }}>
-              Profile
-            </Link>
+            {/* Contracts Section */}
+            {!(role === 'hotel-staff' || role === 'hotel-manager') && (
+              <Menu>
+                <MenuButton as={Button} variant="link" color="white">
+                  Contracts
+                </MenuButton>
+                <MenuList color="teal">{contractLinks}</MenuList>
+              </Menu>
+            )}
+
+            {/* User Section */}
+            <Menu>
+              <MenuButton as={Button} variant="link" color="white">
+                User
+              </MenuButton>
+              <MenuList color="teal">{userLinks}</MenuList>
+            </Menu>
             <LogoutButton />
           </>
         )}
 
-        {!user && (
+        {loading ? (
+          <Box>...</Box>
+        ) : !user && (
           <>
             <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
               Login
@@ -134,40 +160,36 @@ export default function NavLinks() {
       </Flex>
 
       {/* Mobile Nav */}
-<Flex display={{ base: 'flex', md: 'none' }}>
-  <Menu>
-    <MenuButton
-      as={IconButton}
-      aria-label="Open Menu"
-      icon={<HamburgerIcon />}
-      variant="outline"
-      color="white"
-      border="none"
-    />
-    <MenuList color="teal" p={0}>
-      <MenuItem as={NextLink} href="/">Home</MenuItem>
+      <Flex display={{ base: 'flex', md: 'none' }}>
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            aria-label="Open Menu"
+            icon={<HamburgerIcon />}
+            variant="outline"
+            color="white"
+            border="none"
+          />
+          <MenuList color="teal" p={0}>
+            <MenuItem as={NextLink} href="/">Home</MenuItem>
 
-      {user && (
-        <Box>
-          <Accordion allowToggle>
-            {/* Contracts Section */}
-            <AccordionItem>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">Contracts</Box>
-              </AccordionButton>
-              <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
-            </AccordionItem>
-
-            {/* Dive Log Section */}
-            <AccordionItem>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">Dive Log</Box>
-              </AccordionButton>
-              <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
-            </AccordionItem>
+            {loading ? (
+              <Box>...</Box>
+            ) : user && (
+              <Box>
+                <Accordion allowToggle>
+                  {/* Dive Log Section */}
+                  {role === 'admin' && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Dive Log</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{diveLogLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
 
             {/* Maintenance Section */}
-            {(role === 'admin' || role === 'manager') && (
+            {(role === 'admin') && (
               <AccordionItem>
                 <AccordionButton>
                   <Box flex="1" textAlign="left">Maintenance</Box>
@@ -175,14 +197,6 @@ export default function NavLinks() {
                 <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
               </AccordionItem>
             )}
-
-            {/* Operations Section */}
-            <AccordionItem>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">Operations</Box>
-              </AccordionButton>
-              <AccordionPanel pb={2}>{manifestLinks}</AccordionPanel>
-            </AccordionItem>
           </Accordion>
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>

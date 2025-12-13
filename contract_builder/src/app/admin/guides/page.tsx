@@ -19,7 +19,7 @@ import {
   TableContainer
 } from '@chakra-ui/react'
 import { Guide } from '@/types/diveLogTypes'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 import {
   addGuide,
   deleteGuide,
@@ -65,7 +65,7 @@ export default function GuidesPage () {
   if (loading) return <Spinner />
 
   return (
-    <ProtectedPage allowedRoles={['admin', 'manager']}>
+    <ProtectedRoute module="diveLog" permission="edit">
       <Box p={6}>
         <Heading size='lg' mb={4}>
           Manage Guides
@@ -116,6 +116,6 @@ export default function GuidesPage () {
           </Table>
         </TableContainer>
       </Box>
-    </ProtectedPage>
+    </ProtectedRoute>
   )
 }

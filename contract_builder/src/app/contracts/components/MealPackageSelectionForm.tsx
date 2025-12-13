@@ -85,7 +85,7 @@ export default function MealPackageSelectionForm ({
           >
             {selectedPkg ? selectedPkg.name : 'Select a meal package'}
           </MenuButton>
-          <MenuList w='100%'>
+          <MenuList w='100%' maxHeight='500px' overflowY='auto'>
             {mealPackages.map(pkg => (
               <MenuItem key={pkg.id} onClick={() => setMealPackageId(pkg.id)}>
                 {pkg.name}
@@ -95,7 +95,7 @@ export default function MealPackageSelectionForm ({
         </Menu>
 
         {selectedPkg?.description && (
-          <Text fontSize='sm' color='gray.600' mt={2}>
+          <Text fontSize='sm' color='textPrimary' mt={2}>
             {selectedPkg.description}
           </Text>
         )}

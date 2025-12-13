@@ -12,13 +12,18 @@ import { getTechnicians } from "@/services/technicians"
 import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
 import { MaintenanceLogForm } from '@/types/formTypes'
 import { useAuth } from '@/context/AuthContext'
+import { toInputDate } from '@/utils/formatters'
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const prefillAssetId = searchParams?.get("assetId") ?? undefined
+  const [mounted, setMounted] = useState(false)
 
-  const toInputDate = (d: Date) => d.toISOString().split("T")[0]
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [form, setForm] = useState<MaintenanceLogForm>({ 
     date: toInputDate(new Date()),
     assetId: '',
@@ -144,8 +149,11 @@ export default function LogForm({ id }: { id?: string }) {
         createdBy: user?.uid || "system",
         assetName: selectedAsset.name,
         category: selectedAsset.category,
-        // Convert string date back to Date if present
-        nextServiceDueDate: form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : undefined,
+        // Convert string date back to Date at noon UTC to avoid timezone issues
+        nextServiceDueDate: form.nextServiceDueDate ? (() => {
+          const [y, m, d] = form.nextServiceDueDate.split("-").map(Number);
+          return new Date(Date.UTC(y, m - 1, d, 12)); // Noon UTC
+        })() : undefined,
       }
 
       if (!payload.assetId) {
@@ -190,19 +198,23 @@ export default function LogForm({ id }: { id?: string }) {
     <Box maxW="600px" mx="auto" p={6}>
       <Heading size="md" mb={6}>{id ? "Edit Maintenance Log" : "New Maintenance Log"}</Heading>
       <form onSubmit={handleSubmit} autoComplete="off">
-        {/* prevent browser autofill by adding hidden username/password fields */}
-        <input
-          type="text"
-          name="__prevent_autofill_username"
-          autoComplete="username"
-          style={{ display: "none" }}
-        />
-        <input
-          type="password"
-          name="__prevent_autofill_password"
-          autoComplete="new-password"
-          style={{ display: "none" }}
-        />
+        {/* prevent browser autofill by adding hidden username/password fields - client side only */}
+        {mounted && (
+          <>
+            <input
+              type="text"
+              name="__prevent_autofill_username"
+              autoComplete="username"
+              style={{ display: "none" }}
+            />
+            <input
+              type="password"
+              name="__prevent_autofill_password"
+              autoComplete="new-password"
+              style={{ display: "none" }}
+            />
+          </>
+        )}
         <VStack spacing={4} align="stretch">
           {/* Cascading dropdowns for asset selection */}
           <FormControl isRequired>
@@ -313,25 +325,74 @@ export default function LogForm({ id }: { id?: string }) {
             />
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Hours at Service</FormLabel>
-            <Input
-              type="number"
-              value={form.hoursAtService || ""}
-              onChange={(e) => setForm({ ...form, hoursAtService: e.target.value ? parseFloat(e.target.value) : undefined })}
-              autoComplete="off"
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>Next Service Due (hours)</FormLabel>
-            <Input
-              type="number"
-              value={form.nextServiceDue || ""}
-              onChange={(e) => setForm({ ...form, nextServiceDue: e.target.value ? parseFloat(e.target.value) : undefined })}
-              autoComplete="off"
-            />
-          </FormControl>
+          {/* Conditional fields based on asset's service tracking type */}
+          {(() => {
+            const selectedAsset = assets.find(a => a.id === form.assetId);
+            const trackingType = selectedAsset?.serviceTracking;
+            
+            switch (trackingType) {
+              case "hours":
+                return (
+                  <>
+                    <FormControl>
+                      <FormLabel>Current Hours</FormLabel>
+                      <Input
+                        type="number"
+                        value={form.readingHours || ""}
+                        onChange={(e) => setForm({ ...form, readingHours: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Next Service Due (hours)</FormLabel>
+                      <Input
+                        type="number"
+                        value={form.nextServiceDueHours || ""}
+                        onChange={(e) => setForm({ ...form, nextServiceDueHours: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                  </>
+                );
+              case "kilometers":
+                return (
+                  <>
+                    <FormControl>
+                      <FormLabel>Current Kilometers</FormLabel>
+                      <Input
+                        type="number"
+                        value={form.readingKilometers || ""}
+                        onChange={(e) => setForm({ ...form, readingKilometers: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Next Service Due (kilometers)</FormLabel>
+                      <Input
+                        type="number"
+                        value={form.nextServiceDueKilometers || ""}
+                        onChange={(e) => setForm({ ...form, nextServiceDueKilometers: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                  </>
+                );
+              case "date":
+                return (
+                  <FormControl>
+                    <FormLabel>Next Service Due Date</FormLabel>
+                    <Input
+                      type="date"
+                      value={form.nextServiceDueDate || ""}
+                      onChange={(e) => setForm({ ...form, nextServiceDueDate: e.target.value })}
+                      autoComplete="off"
+                    />
+                  </FormControl>
+                );
+              default:
+                return null; // No tracking fields for "none" type
+            }
+          })()}
 
           <FormControl>
             <FormLabel>Cost</FormLabel>

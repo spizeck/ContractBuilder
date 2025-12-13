@@ -6,21 +6,20 @@ import { useMemo } from "react";
 import { IconButton } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 
-const categories = [
+const CATEGORIES = [
   "All",
   "Marine",
   "Compressors",
   "Vehicles",
   "Scuba Equipment",
-  "Scuba Tanks",
   "Other",
 ] as const;
 
 export interface DashboardHeaderProps {
   keyword: string;
   onKeyword: (v: string) => void;
-  category: (typeof categories)[number];
-  onCategory: (v: (typeof categories)[number]) => void;
+  category: (typeof CATEGORIES)[number];
+  onCategory: (v: (typeof CATEGORIES)[number]) => void;
   technicianId: string | "All";
   onTechnician: (v: string | "All") => void;
   range: { start: Date | null; end: Date | null };
@@ -61,7 +60,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
             value={props.category}
             onChange={(e) => props.onCategory(e.target.value as any)}
           >
-            {categories.map((c) => (
+            {CATEGORIES.map((c: string) => (
               <option key={c} value={c}>
                 {c}
               </option>

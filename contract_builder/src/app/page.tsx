@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -24,10 +26,45 @@ import {
   FiBarChart2,
   FiTool,
   FiActivity,
+  FiSettings,
 } from "react-icons/fi";
 import { TbScubaMask } from "react-icons/tb";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
+  const { user, role, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      // Redirect hotel users to their dashboard
+      if (role === "hotel-staff" || role === "hotel-manager") {
+        router.push("/hotel-staff");
+      }
+    }
+  }, [user, role, loading, router]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={4} justify="center" minH="50vh">
+          <Text>Loading...</Text>
+        </VStack>
+      </Container>
+    );
+  }
+
+  // If user is hotel role, don't render admin homepage (they'll be redirected)
+  if (user && (role === "hotel-staff" || role === "hotel-manager")) {
+    return (
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={4} justify="center" minH="50vh">
+          <Text>Redirecting to hotel dashboard...</Text>
+        </VStack>
+      </Container>
+    );
+  }
   return (
     <Container maxW="7xl" py={8}>
       {/* Header Section */}
@@ -277,8 +314,17 @@ export default function Home() {
               <ListItem>
                 Automatic FOC rules and commission calculations
               </ListItem>
+
               <ListItem>
-                Generate professional PDFs for client confirmation
+                <Link
+                  as={NextLink}
+                  href="/hotel-staff"
+                  color="blue.500"
+                  fontWeight="bold"
+                >
+                  Hotel Staff Portal
+                </Link>{" "}
+                - Hotel staff can manage hotel details and view their contracts
               </ListItem>
             </List>
           </VStack>
@@ -339,29 +385,58 @@ export default function Home() {
             </List>
           </VStack>
 
-          {/* Business Intelligence */}
+          {/* Operations */}
           <VStack align="start" spacing={4}>
             <HStack>
-              <Icon as={FiBarChart2} color="purple.500" boxSize={6} />
+              <Icon as={FiSettings} color="purple.500" boxSize={6} />
               <Heading as="h3" size="lg">
-                Business Intelligence
+                Operations
               </Heading>
             </HStack>
             <List spacing={3}>
               <ListItem>
-                Dive activity monitoring and performance metrics
+                <Link
+                  as={NextLink}
+                  href="/operations/checkfront"
+                  color="purple.500"
+                  fontWeight="bold"
+                >
+                  Checkfront Integration
+                </Link>{" "}
+                - Upload guest information from Checkfront bookings
               </ListItem>
               <ListItem>
-                Site utilization analysis and repetition patterns
+                <Link
+                  as={NextLink}
+                  href="/operations/manifests"
+                  color="purple.500"
+                  fontWeight="bold"
+                >
+                  Boat Manifests
+                </Link>{" "}
+                - Create and manage daily boat manifests for dives
               </ListItem>
               <ListItem>
-                Seasonal wildlife tracking and temperature trends
+                <Link
+                  as={NextLink}
+                  href="/operations/taxis"
+                  color="purple.500"
+                  fontWeight="bold"
+                >
+                  Taxi Management
+                </Link>{" "}
+                - Generate taxi lists and coordinate guest transportation
               </ListItem>
               <ListItem>
-                7-day operational matrices and detailed reporting
-              </ListItem>
-              <ListItem>
-                Data-driven insights for business optimization
+                <Link
+                  as={NextLink}
+                  href="/operations/fleet"
+                  color="purple.500"
+                  fontWeight="bold"
+                >
+                  Fleet Management
+                </Link>{" "}
+                - Manage boats, taxis, and operational equipment
               </ListItem>
             </List>
           </VStack>

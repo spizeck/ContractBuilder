@@ -20,10 +20,11 @@ import { useMaintenanceData } from "./hooks/useMaintenanceSearch";
 import { useDashboardFilters } from "./hooks/useDashboardFilters";
 import type { Asset } from "@/types/maintenance";
 import { useAuth } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
 
 export default function MaintenanceDashboardPage() {
   const { role } = useAuth(); // expects roles like 'viewer', 'manager', 'admin'
-  const canEdit = role === "admin" || role === "manager";
+  const canEdit = role === "admin" || role === "hotel-manager";
 
   // Get raw data (unfiltered) from the existing hook
   const { assets: rawAssets, logs: rawLogs, technicians: rawTechnicians, loading } = useMaintenanceData({
@@ -67,29 +68,30 @@ export default function MaintenanceDashboardPage() {
   };
 
   return (
-    <Box h="100%" display="flex" flexDirection="column" overflow="hidden">
-      <DashboardHeader
-        keyword={filters.searchTerm}
-        onKeyword={updateFilters.searchTerm}
-        category={filters.categoryId}
-        onCategory={updateFilters.categoryId}
-        technicianId={filters.technicianId}
-        onTechnician={updateFilters.technicianId}
-        range={{ start: filters.dateRange.from, end: filters.dateRange.to }}
-        onRange={(r) => updateFilters.dateRange({ from: r.start, to: r.end })}
-        technicians={rawTechnicians}
-      />
+    <ProtectedRoute module="maintenance" permission="view">
+      <Box h="100%" display="flex" flexDirection="column" overflow="hidden">
+        <DashboardHeader
+          keyword={filters.searchTerm}
+          onKeyword={updateFilters.searchTerm}
+          category={filters.categoryId}
+          onCategory={updateFilters.categoryId}
+          technicianId={filters.technicianId}
+          onTechnician={updateFilters.technicianId}
+          range={{ start: filters.dateRange.from, end: filters.dateRange.to }}
+          onRange={(r) => updateFilters.dateRange({ from: r.start, to: r.end })}
+          technicians={rawTechnicians}
+        />
 
-      <Box px={3} pt={3} overflow="hidden">
-        {loading ? (
-          <Spinner />
-        ) : (
-          <>
-            <SummaryCards 
-              summary={filterResult.stats} 
-              onFilterSelect={handleSummaryFilter}
-              activeCardFilter={filters.cardFilter}
-            />
+        <Box px={3} pt={3} overflow="hidden">
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <SummaryCards 
+                summary={filterResult.stats} 
+                onFilterSelect={handleSummaryFilter}
+                activeCardFilter={filters.cardFilter}
+              />
 
             <Grid
               templateColumns={{ base: "1fr", lg: "2fr 1fr" }}
@@ -127,6 +129,7 @@ export default function MaintenanceDashboardPage() {
         searchKeyword={filters.searchTerm} 
         dateRange={filters.dateRange}
       />
-    </Box>
+      </Box>
+    </ProtectedRoute>
   );
 }

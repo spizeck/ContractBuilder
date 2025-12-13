@@ -13,6 +13,14 @@ The Sea Saba Business App is an integrated management system that combines multi
 
 ## Core Features
 
+### 🔐 **Advanced Permission System**
+- **Granular Access Control**: Module-based permissions (diveLog, maintenance, contracts) with view/create/edit levels
+- **Role-Based Access**: Admin, Hotel Staff, and Employee roles with hierarchical permissions
+- **Hotel Assignment**: Hotel staff can be assigned to specific properties for localized access
+- **User Archiving**: Disable user access while preserving data integrity
+- **Real-Time Permissions**: Live permission updates via Firestore listeners
+- **Admin User Management**: Complete user lifecycle management with permission assignment
+
 ### 🤿 **Dive Operations Management**
 - **Dive Logging**: Record daily dives with detailed information including sites, guides, customers, and ocean conditions
 - **Species Tracking**: Log marine life sightings to support research and enhance guest experiences
@@ -29,6 +37,7 @@ The Sea Saba Business App is an integrated management system that combines multi
 - **FOC Logic**: Automatic Free of Charge calculations (7+1 diver rule for dives)
 - **Commission Engine**: Multi-tier commission structure for different booking types
 - **PDF Generation**: Professional contract documents with client confirmation sections
+- **Permission-Based Access**: Contract creation and management controlled by granular permissions
 
 ### 🔧 **Maintenance & Asset Tracking**
 - **Maintenance Dashboard**: Overview of all maintenance activities and upcoming services
@@ -36,6 +45,7 @@ The Sea Saba Business App is an integrated management system that combines multi
 - **Asset Management**: Track company equipment, vehicles, and valuable assets
 - **Technician Management**: Organize maintenance staff roles and assignments
 - **Preventive Maintenance**: Automated reminders and scheduling for equipment service
+- **Permission-Controlled Access**: Maintenance operations restricted by user permissions
 
 ### 📊 **Business Intelligence & Analytics**
 - **Operational Insights**: Real-time metrics on dive activity and performance
@@ -74,18 +84,39 @@ The Sea Saba Business App is an integrated management system that combines multi
 
 ## User Roles & Permissions
 
-### **All Staff Members**
-- View and create maintenance logs
-- Access dive history and viewing interfaces
-- View asset and technician information
-- Basic dashboard access
+### **Granular Permission System**
+The application uses a sophisticated permission system with module-based access control:
 
-### **Managers & Administrators**
-- Full contract creation and management capabilities
-- Hotel and dive package configuration
-- Asset and technician editing permissions
-- Administrative functions and system settings
-- Advanced analytics and reporting access
+- **Modules**: `diveLog`, `maintenance`, `contracts`
+- **Permission Levels**: `view`, `create`, `edit`
+- **Permission Hierarchy**: `edit` > `create` > `view`
+
+### **Admin Role**
+- **Full Access**: All modules with `edit` permissions
+- **User Management**: Create, edit, archive users and assign permissions
+- **System Configuration**: Manage sites, boats, guides, species
+- **Analytics**: Complete access to all business intelligence features
+- **Hotel Management**: Full control over all hotels and properties
+
+### **Hotel Staff Role**
+- **Hotel-Specific Access**: Assigned to specific hotel properties
+- **Contract Operations**: View/create/edit contracts for assigned hotel
+- **Dive Logging**: Full dive log access and management
+- **Maintenance**: View and create maintenance logs
+- **Limited Admin**: Manage hotel-specific assets and configurations
+
+### **Employee Role**
+- **Basic Access**: Default permissions (configurable per user)
+- **Dive History**: View dive logs and historical data
+- **Maintenance Logs**: View and create maintenance entries
+- **Limited Contract Access**: Based on assigned permissions
+- **Profile Management**: Personal profile and preferences
+
+### **User Archiving**
+- **Archive Status**: Users can be archived to disable all access
+- **Data Preservation**: Archived user data remains intact
+- **Reversible**: Users can be unarchived to restore access
+- **Security**: Archived users cannot access any system features
 
 ---
 
@@ -166,6 +197,73 @@ The application will be available at `http://localhost:3000`
 
 ### **Firebase Integration**
 - Always use `next/navigation` for routing (App Router)
+- Implement real-time listeners for live data updates
+- Use Firestore security rules for data protection
+- Handle offline scenarios gracefully
+- Implement proper error handling for Firebase operations
+
+### **Permission System Guidelines**
+- Always use `ProtectedRoute` component for route protection
+- Check permissions before rendering sensitive components
+- Use `usePermissions` hook for permission checks in components
+- Implement proper fallback UI for unauthorized access
+- Test all permission levels (view/create/edit) for each role
+
+---
+
+## Recent Updates & Improvements
+
+### **Permission System Overhaul (Latest)**
+- ✅ **Granular Access Control**: Implemented module-based permissions with view/create/edit levels
+- ✅ **Real-Time Permission Updates**: Live permission updates via Firestore listeners
+- ✅ **User Archiving**: Added user archiving functionality with access blocking
+- ✅ **Hotel Assignments**: Hotel staff can be assigned to specific properties
+- ✅ **Enhanced Security**: Updated Firestore security rules for granular permission enforcement
+- ✅ **Admin User Management**: Complete user lifecycle management interface
+
+### **UI/UX Improvements**
+- ✅ **Responsive Design**: Mobile-optimized user management interface
+- ✅ **Enhanced Navigation**: Restructured navigation with logical module grouping
+- ✅ **Better Error Handling**: Improved permission denied messaging and fallbacks
+- ✅ **Archive Status Display**: Visual indicators for archived users in management interface
+
+### **Technical Enhancements**
+- ✅ **TypeScript Integration**: Full type safety across permission system
+- ✅ **Performance Optimizations**: Efficient real-time data loading and caching
+- ✅ **Security Hardening**: Comprehensive Firestore security rules
+- ✅ **Code Quality**: Improved error handling and logging
+
+---
+
+## Deployment
+
+### **Firebase Deployment**
+```bash
+# Deploy Firestore rules
+firebase deploy --only firestore:rules
+
+# Deploy full application
+firebase deploy
+```
+
+### **Production Considerations**
+- Ensure all user documents have proper `permissions` field
+- Verify Firestore security rules are deployed and working
+- Test all user roles and permission levels
+- Monitor Firebase console for any security rule violations
+
+---
+
+## Troubleshooting
+
+### **Common Issues**
+- **Access Denied**: Ensure user has proper permissions field in Firestore
+- **Permission Errors**: Check Firestore security rules deployment status
+- **Real-Time Updates**: Verify Firebase listeners are properly configured
+- **User Management**: Ensure admin users have permissions field populated
+
+### **Debug Mode**
+For debugging permission issues, check browser console for detailed permission checking logs when accessing protected routes.
 - Implement proper error handling for Firestore operations
 - Use real-time listeners for live data updates
 - Structure collections with proper indexing for performance

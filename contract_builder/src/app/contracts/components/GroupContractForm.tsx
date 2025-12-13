@@ -144,7 +144,7 @@ export default function GroupContractForm ({
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.hotelId}>
-              <FormLabel>Hotel</FormLabel>
+              <FormLabel>Hotel {bookingType === 'directHotelBooking' && '(for dive packages)'}</FormLabel>
               <Select 
                 value={hotelId} 
                 onChange={e => setHotelId(e.target.value)}
@@ -157,6 +157,11 @@ export default function GroupContractForm ({
                 ))}
               </Select>
               <FormErrorMessage>{errors.hotelId}</FormErrorMessage>
+              {bookingType === 'directHotelBooking' && (
+                <Text fontSize="sm" color="gray.600" mt={1}>
+                  Required for dive package selection and pricing, even though guests book rooms directly
+                </Text>
+              )}
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.bookingType}>
@@ -170,6 +175,7 @@ export default function GroupContractForm ({
                 <option value='diveShop15'>Dive Shop 15%</option>
                 <option value='tourOperator20'>Tour Operator 20%</option>
                 <option value='tourOperator25'>Tour Operator 25%</option>
+                <option value='directHotelBooking'>Direct Hotel Booking</option>
               </Select>
               <FormErrorMessage>{errors.bookingType}</FormErrorMessage>
             </FormControl>

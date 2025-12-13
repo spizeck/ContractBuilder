@@ -209,6 +209,10 @@ export default function TotalCostCalculation({
         { gross: 0, foc: 0, commission: 0, net: 0 }
       );
 
+      // Add hotel addons to gross room cost
+      const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
+      const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
+
       // Simple FOC calculation - use override if selected, otherwise use original FOC
       let focDeduction = results.roomTotals?.foc || 0;
 
@@ -236,10 +240,10 @@ export default function TotalCostCalculation({
         focDeduction = freeGuests * perGuestPerNight * nights;
       }
 
-      const adjustedGross = newRoomTotals.gross - focDeduction;
+      const adjustedGross = grossRoomCostWithAddons - focDeduction;
       const commissionRate = getCommissionRate(contractData.bookingType || "");
       const finalRoomTotals = {
-        gross: newRoomTotals.gross,
+        gross: grossRoomCostWithAddons,
         foc: focDeduction,
         commission: adjustedGross * commissionRate,
         net: adjustedGross * (1 - commissionRate),
@@ -277,6 +281,30 @@ export default function TotalCostCalculation({
         await archiveGroupContract(contractData.id);
       }
 
+      // Clean customRates data
+      let cleanedRates: any = null;
+      let hasValidRates = false;
+      
+      if (customRates && Object.keys(customRates).length > 0) {
+        if (Array.isArray(customRates)) {
+          // Handle sparse arrays
+          const tempRates: { [key: number]: number } = {};
+          customRates.forEach((value, index) => {
+            if (value !== undefined && value !== null) {
+              tempRates[index] = value;
+              hasValidRates = true;
+            }
+          });
+          cleanedRates = hasValidRates ? tempRates : null;
+        } else {
+          // Handle objects
+          cleanedRates = Object.fromEntries(
+            Object.entries(customRates).filter(([_, v]) => v !== undefined && v !== null)
+          );
+          hasValidRates = Object.keys(cleanedRates).length > 0;
+        }
+      }
+
       const groupContract: Omit<GroupContract, "id"> = {
         archived: false,
         groupName: contractData.groupName!,
@@ -291,11 +319,11 @@ export default function TotalCostCalculation({
         diveTotals: results?.diveTotals,
         mealTotals: results?.mealTotals,
         overall: results?.overall,
-        rooms: contractData.rooms!,
+        rooms: contractData.rooms || [],
         roomCosts:
           results?.roomCosts.map((rc) => ({
             description: rc.description,
-            cost: rc.net,
+            cost: rc.gross,
           })) || [],
         totalRoomCost: results?.roomTotals.net || 0,
         totalGuests: results?.totalGuests || 0,
@@ -315,14 +343,22 @@ export default function TotalCostCalculation({
         }),
         totalCost: results?.overall.net || 0,
         createdAt: new Date(),
-        customRates:
-          Object.keys(customRates).length > 0 ? customRates : undefined,
-        hasCustomRates: Object.keys(customRates).length > 0,
+        // Only include customRates if it has valid data
+        ...(cleanedRates && { customRates: cleanedRates }),
+        hasCustomRates: hasValidRates,
         // Add addon arrays to contract data
         hotelAddons: contractData.hotelAddons || [],
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
       };
+
+      // Debug: Log customRates structure before filtering
+      console.log('Original customRates:', customRates);
+      console.log('CustomRates type:', typeof customRates);
+      console.log('CustomRates keys:', Object.keys(customRates));
+
+      // Debug: Log filtered customRates
+      console.log('Filtered customRates:', groupContract.customRates);
 
       await addGroupContract(groupContract);
       alert("Contract saved successfully!");
@@ -439,6 +475,10 @@ export default function TotalCostCalculation({
             { gross: 0, foc: 0, commission: 0, net: 0 }
           );
 
+          // Add hotel addons to gross room cost
+          const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
+          const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
+
           // FOC calculation with custom rates - follow the same pattern as original calculation
           const focRule = parseFocRule(hotelData.focRule || "0+0");
           let focDeduction = 0;
@@ -516,12 +556,12 @@ export default function TotalCostCalculation({
             }
           }
 
-          const adjustedGross = newRoomTotals.gross - focDeduction;
+          const adjustedGross = grossRoomCostWithAddons - focDeduction;
           const commissionRate = getCommissionRate(
             contractData.bookingType || ""
           );
           const finalRoomTotals = {
-            gross: newRoomTotals.gross,
+            gross: grossRoomCostWithAddons,
             foc: focDeduction,
             commission: adjustedGross * commissionRate,
             net: adjustedGross * (1 - commissionRate),
@@ -632,103 +672,105 @@ export default function TotalCostCalculation({
         </CardBody>
       </Card>
 
-      {/* Rooms */}
-      <Card>
-        <CardHeader py={2} px={3}>
-          <Flex justify="space-between">
-            <Text fontWeight="bold">Rooms</Text>
-            <HStack spacing={2}>
-              {onEditStep && (
-                <Button size="sm" onClick={() => onEditStep(2)}>
-                  Edit Rooms
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={
-                  isEditingRates
-                    ? handleCancelEditingRates
-                    : handleStartEditingRates
-                }
-              >
-                {isEditingRates ? "Cancel" : "Edit Rates"}
-              </Button>
-              {isEditingRates && (
-                <Button size="sm" onClick={handleSaveRates} colorScheme="green">
-                  Save All Rates
-                </Button>
-              )}
-            </HStack>
-          </Flex>
-        </CardHeader>
-        <CardBody>
-          {isEditingRates && (
-            <Text fontSize="sm" color="textPrimary" mb={2}>
-              Check the box next to a room rate to use it as the FOC base rate
-            </Text>
-          )}
-          {sortedRoomCosts.map((rc, idx) => {
-            // Find the original index for this room cost to access tempRates
-            const originalIdx = roomCosts.indexOf(rc);
-            return (
-              <VStack key={idx} align="stretch" spacing={1}>
-                {isEditingRates ? (
-                  <HStack spacing={2}>
-                    <Checkbox
-                      isChecked={focOverrideIndex === originalIdx}
-                      onChange={() => handleFocOverrideChange(originalIdx)}
-                      size="sm"
-                    />
-                    <Text flex={1}>
-                      {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
-                    </Text>
-                    <Input
-                      type="number"
-                      value={tempRates[originalIdx]?.toString() || ""}
-                      onChange={(e) =>
-                        handleRateChange(originalIdx, e.target.value)
-                      }
-                      onFocus={handleInputFocus}
-                      size="sm"
-                      width="80px"
-                      step="0.01"
-                      min="0"
-                    />
-                    <Text>/night</Text>
-                  </HStack>
-                ) : (
-                  <Text>
-                    {rc.description}
-                    {customRates[originalIdx] !== undefined && (
-                      <Text as="span" color="red.500" ml={1}>
-                        *
-                      </Text>
-                    )}
-                  </Text>
+      {/* Rooms - Only show if not direct hotel booking */}
+      {contractData.bookingType !== 'directHotelBooking' && (
+        <Card>
+          <CardHeader py={2} px={3}>
+            <Flex justify="space-between">
+              <Text fontWeight="bold">Rooms</Text>
+              <HStack spacing={2}>
+                {onEditStep && (
+                  <Button size="sm" onClick={() => onEditStep(2)}>
+                    Edit Rooms
+                  </Button>
                 )}
-              </VStack>
-            );
-          })}
-
-          {/* Hotel Addons */}
-          {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
-            <>
-              {contractData.hotelAddons.map((addon, idx) => (
+                <Button
+                  size="sm"
+                  onClick={
+                    isEditingRates
+                      ? handleCancelEditingRates
+                      : handleStartEditingRates
+                  }
+                >
+                  {isEditingRates ? "Cancel" : "Edit Rates"}
+                </Button>
+                {isEditingRates && (
+                  <Button size="sm" onClick={handleSaveRates} colorScheme="green">
+                    Save All Rates
+                  </Button>
+                )}
+              </HStack>
+            </Flex>
+          </CardHeader>
+          <CardBody>
+            {isEditingRates && (
+              <Text fontSize="sm" color="textPrimary" mb={2}>
+                Check the box next to a room rate to use it as the FOC base rate
+              </Text>
+            )}
+            {sortedRoomCosts.map((rc, idx) => {
+              // Find the original index for this room cost to access tempRates
+              const originalIdx = roomCosts.indexOf(rc);
+              return (
                 <VStack key={idx} align="stretch" spacing={1}>
-                  <Text>
-                    {addon.description}: ${formatCurrency(addon.amount)}
-                  </Text>
+                  {isEditingRates ? (
+                    <HStack spacing={2}>
+                      <Checkbox
+                        isChecked={focOverrideIndex === originalIdx}
+                        onChange={() => handleFocOverrideChange(originalIdx)}
+                        size="sm"
+                      />
+                      <Text flex={1}>
+                        {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
+                      </Text>
+                      <Input
+                        type="number"
+                        value={tempRates[originalIdx]?.toString() || ""}
+                        onChange={(e) =>
+                          handleRateChange(originalIdx, e.target.value)
+                        }
+                        onFocus={handleInputFocus}
+                        size="sm"
+                        width="80px"
+                        step="0.01"
+                        min="0"
+                      />
+                      <Text>/night</Text>
+                    </HStack>
+                  ) : (
+                    <Text>
+                      {rc.description}
+                      {customRates[originalIdx] !== undefined && (
+                        <Text as="span" color="red.500" ml={1}>
+                          *
+                        </Text>
+                      )}
+                    </Text>
+                  )}
                 </VStack>
-              ))}
-            </>
-          )}
+              );
+            })}
 
-          <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
-          <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
-          <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
-          <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
-        </CardBody>
-      </Card>
+            {/* Hotel Addons */}
+            {contractData.hotelAddons && contractData.hotelAddons.length > 0 && (
+              <>
+                {contractData.hotelAddons.map((addon, idx) => (
+                  <VStack key={idx} align="stretch" spacing={1}>
+                    <Text>
+                      {addon.description}: ${formatCurrency(addon.amount)}
+                    </Text>
+                  </VStack>
+                ))}
+              </>
+            )}
+
+            <Text>Gross: ${formatCurrency(roomTotals.gross)}</Text>
+            <Text>FOC Value: $({formatCurrency(roomTotals.foc)})</Text>
+            <Text>Commission: $({formatCurrency(roomTotals.commission)})</Text>
+            <Text>Net: ${formatCurrency(roomTotals.net)}</Text>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Dives */}
       {divePackage && (
@@ -770,8 +812,8 @@ export default function TotalCostCalculation({
         </Card>
       )}
 
-      {/* Meals */}
-      {mealPackage && (
+      {/* Meals - Only show if not direct hotel booking */}
+      {mealPackage && contractData.bookingType !== 'directHotelBooking' && (
         <Card>
           <CardHeader py={2} px={3}>
             <Flex justify="space-between">
