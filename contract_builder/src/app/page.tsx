@@ -101,13 +101,13 @@ export default function Home() {
               </VStack>
               <Button
                 as={NextLink}
-                href="/dives/log"
+                href="/dives/dashboard"
                 colorScheme="teal"
                 variant="solid"
                 w="full"
                 alignSelf="stretch"
               >
-                Log Dive
+                View Dashboard
               </Button>
             </VStack>
           </CardBody>
@@ -155,23 +155,23 @@ export default function Home() {
           <CardBody>
             <VStack spacing={4} h="full" justify="space-between">
               <VStack spacing={4}>
-                <Icon as={FiBarChart2} boxSize={12} color="purple.500" />
+                <Icon as={FiSettings} boxSize={12} color="purple.500" />
                 <Stack spacing={2} textAlign="center">
-                  <Heading size="md">Analytics</Heading>
+                  <Heading size="md">Operations</Heading>
                   <Text fontSize="sm" color="textMuted">
-                    View operational insights and reports
+                    View and manage manifests
                   </Text>
                 </Stack>
               </VStack>
               <Button
                 as={NextLink}
-                href="/dives/dashboard"
+                href="/manifests"
                 colorScheme="purple"
                 variant="solid"
                 w="full"
                 alignSelf="stretch"
               >
-                View Dashboard
+                View Manifests
               </Button>
             </VStack>
           </CardBody>
@@ -220,7 +220,7 @@ export default function Home() {
           {/* Dive Operations */}
           <VStack align="start" spacing={4}>
             <HStack>
-              <Icon as={FiActivity} color="teal.500" boxSize={6} />
+              <Icon as={TbScubaMask} color="teal.500" boxSize={6} />
               <Heading as="h3" size="lg">
                 Dive Operations
               </Heading>
