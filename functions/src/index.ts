@@ -38,15 +38,36 @@ export const getDivesByDate = functions.https.onRequest(
         return;
       }
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      const endExclusive = new Date(`${endDate}T00:00:00.000Z`);
+      endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+      console.log("getDivesByDate range", {
+        startDate,
+        endDate,
+        start: start.toISOString(),
+        endExclusive: endExclusive.toISOString(),
+      });
 
       // --- Pull dives in range ---
-      const divesSnap = await db
+      // Primary: Timestamp/Date field
+      // (end-exclusive avoids missing same-day dives)
+      let divesSnap = await db
         .collection("dives")
         .where("date", ">=", start)
-        .where("date", "<=", end)
+        .where("date", "<", endExclusive)
         .get();
+
+      // Fallback: if `date` is stored as "YYYY-MM-DD" string
+      if (divesSnap.empty) {
+        divesSnap = await db
+          .collection("dives")
+          .where("date", ">=", startDate)
+          .where("date", "<=", endDate)
+          .get();
+      }
+
+      console.log("getDivesByDate dives count", divesSnap.size);
 
       // --- Pull boats + sites for lookups ---
       const [boatsSnap, sitesSnap] = await Promise.all([

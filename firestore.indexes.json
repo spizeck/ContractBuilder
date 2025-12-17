@@ -68,19 +68,5 @@
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
-  ],
-  "fieldOverrides": [
-    {
-      "fieldPath": "archived",
-      "order": "ASCENDING"
-    },
-    {
-      "fieldPath": "hotelId",
-      "order": "ASCENDING"
-    },
-    {
-      "fieldPath": "startDate",
-      "order": "ASCENDING"
-    }
   ]
 }
