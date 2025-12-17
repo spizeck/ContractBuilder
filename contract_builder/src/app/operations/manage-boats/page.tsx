@@ -86,7 +86,7 @@ export default function ManageBoatsPage() {
 
   if (showForm) {
     return (
-      <ProtectedPage allowedRoles={["admin", "manager"]}>
+      <ProtectedPage allowedRoles={["admin", "hotel-manager"]}>
         <VStack spacing={6} align="stretch" maxW="4xl" mx="auto">
           <Heading>Boat Management</Heading>
           <AddEditBoatForm

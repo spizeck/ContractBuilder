@@ -18,7 +18,8 @@ interface PermissionContextType {
   hasPermission: (module: keyof ModulePermissions, level: PermissionLevel) => boolean
   isAdmin: () => boolean
   isHotelStaff: () => boolean
-  isEmployee: () => boolean
+  isManagerOrAbove: () => boolean
+  isStaffOrAbove: () => boolean
   canAccessModule: (module: keyof ModulePermissions) => boolean
 }
 
@@ -27,7 +28,8 @@ const PermissionContext = createContext<PermissionContextType>({
   hasPermission: () => false,
   isAdmin: () => false,
   isHotelStaff: () => false,
-  isEmployee: () => false,
+  isManagerOrAbove: () => false,
+  isStaffOrAbove: () => false,
   canAccessModule: () => false,
 })
 
@@ -61,11 +63,11 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           console.log('User data from Firestore:', userData);
           
           // Map legacy roles to new role system
-          let mappedRole: UserRole = 'employee';
+          let mappedRole: UserRole = 'viewer';
           if (userData.role === 'admin') mappedRole = 'admin';
-          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
+          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
           else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
-          else if (userData.role === 'viewer') mappedRole = 'employee';
+          else if (userData.role === 'viewer') mappedRole = 'viewer';
           
           console.log('Mapped role:', mappedRole);
           console.log('User permissions from Firestore:', userData.permissions);
@@ -86,15 +88,15 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           console.log('User document does not exist - using defaults');
           // User document doesn't exist, use default permissions
           setUserPermissions({
-            role: 'employee',
-            permissions: DEFAULT_PERMISSIONS.employee
+            role: 'viewer',
+            permissions: DEFAULT_PERMISSIONS.viewer
           });
         }
       } catch (error) {
         console.error('Error loading user permissions:', error);
         setUserPermissions({
-          role: 'employee',
-          permissions: DEFAULT_PERMISSIONS.employee
+          role: 'viewer',
+          permissions: DEFAULT_PERMISSIONS.viewer
         });
       } finally {
         setLoading(false);
@@ -103,8 +105,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       console.error('=== FIRESTORE LISTENER ERROR ===');
       console.error('Error setting up user listener:', error);
       setUserPermissions({
-        role: 'employee',
-        permissions: DEFAULT_PERMISSIONS.employee
+        role: 'viewer',
+        permissions: DEFAULT_PERMISSIONS.viewer
       });
       setLoading(false);
     });
@@ -134,7 +136,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = (): boolean => userPermissions?.role === 'admin'
   const isHotelStaff = (): boolean => userPermissions?.role === 'hotel-staff'
-  const isEmployee = (): boolean => userPermissions?.role === 'employee'
+  const isManagerOrAbove = (): boolean => userPermissions?.role === 'admin' || userPermissions?.role === 'hotel-manager'
+  const isStaffOrAbove = (): boolean => userPermissions?.role === 'admin' || userPermissions?.role === 'hotel-manager' || userPermissions?.role === 'hotel-staff'
 
   const canAccessModule = (module: keyof ModulePermissions): boolean => {
     if (!userPermissions) return false
@@ -155,7 +158,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       hasPermission,
       isAdmin,
       isHotelStaff,
-      isEmployee,
+      isManagerOrAbove,
+      isStaffOrAbove,
       canAccessModule,
     }}>
       {children}

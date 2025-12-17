@@ -24,7 +24,7 @@ export default function DiveActions ({
 }: DiveActionsProps) {
   const router = useRouter()
   const canDelete =
-    dive.createdBy === userId || ['manager', 'admin'].includes(role || '')
+    dive.createdBy === userId || ['hotel-manager', 'admin'].includes(role || '')
 
   async function handleDelete () {
     if (!confirm('Are you sure you want to delete this dive log?')) return

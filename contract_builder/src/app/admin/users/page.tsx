@@ -64,8 +64,8 @@ export default function UserManagementPage() {
   const [hotels, setHotels] = useState<any[]>([]);
 
   // Form state for editing user
-  const [editRole, setEditRole] = useState<UserRole>('employee');
-  const [editPermissions, setEditPermissions] = useState<ModulePermissions>(DEFAULT_PERMISSIONS.employee);
+  const [editRole, setEditRole] = useState<UserRole>('viewer');
+  const [editPermissions, setEditPermissions] = useState<ModulePermissions>(DEFAULT_PERMISSIONS.viewer);
   const [editHotelId, setEditHotelId] = useState<string>('');
 
   // Form state for creating user
@@ -111,11 +111,11 @@ export default function UserManagementPage() {
         const userData = doc.data() as Omit<User, 'id'>;
         
         // Map existing roles to new role system for backward compatibility
-        let mappedRole: UserRole = 'employee';
+        let mappedRole: UserRole = 'viewer';
         if (userData.role === 'admin') mappedRole = 'admin';
-        else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
+        else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
         else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
-        else if (userData.role === 'viewer') mappedRole = 'employee';
+        else if (userData.role === 'viewer') mappedRole = 'viewer';
         
         usersData.push({
           id: doc.id,
@@ -154,14 +154,14 @@ export default function UserManagementPage() {
     setSelectedUser(user);
     
     // Map existing role to new role system for editing
-    let mappedRole: UserRole = 'employee';
+    let mappedRole: UserRole = 'viewer';
     if (user.role === 'admin') mappedRole = 'admin';
-    else if (user.role === 'manager' || user.role === 'hotel-manager') mappedRole = 'hotel-staff';
+    else if (user.role === 'manager' || user.role === 'hotel-manager') mappedRole = 'hotel-manager';
     else if (user.role === 'hotel-staff') mappedRole = 'hotel-staff';
-    else if (user.role === 'viewer') mappedRole = 'employee';
+    else if (user.role === 'viewer') mappedRole = 'viewer';
     
     setEditRole(mappedRole);
-    setEditPermissions(user.permissions || { ...DEFAULT_PERMISSIONS.employee });
+    setEditPermissions(user.permissions || { ...DEFAULT_PERMISSIONS.viewer });
     setEditHotelId(user.hotelId || '');
     onOpen();
   };
@@ -171,11 +171,20 @@ export default function UserManagementPage() {
     if (role === 'admin') {
       // Admin gets all permissions
       setEditPermissions(DEFAULT_PERMISSIONS.admin);
+      setEditHotelId(''); // Clear hotel assignment for admin
+    } else if (role === 'hotel-manager') {
+      // Hotel manager gets default permissions
+      setEditPermissions(DEFAULT_PERMISSIONS['hotel-manager']);
+      // Keep hotel assignment if already set
     } else if (role === 'hotel-staff') {
       // Hotel staff gets default permissions
       setEditPermissions(DEFAULT_PERMISSIONS['hotel-staff']);
+      // Keep hotel assignment if already set
+    } else if (role === 'viewer') {
+      // Viewer gets no permissions
+      setEditPermissions(DEFAULT_PERMISSIONS.viewer);
+      setEditHotelId(''); // Clear hotel assignment for viewer
     }
-    // Employee keeps custom permissions
   };
 
   const handlePermissionChange = (module: keyof ModulePermissions, level: PermissionLevel) => {
@@ -241,7 +250,7 @@ export default function UserManagementPage() {
       if (user.archived) {
         // Unarchive user - restore default permissions based on role
         console.log('Unarchiving user...');
-        let defaultPermissions = DEFAULT_PERMISSIONS.employee;
+        let defaultPermissions = DEFAULT_PERMISSIONS.viewer;
         if (user.role === 'admin') defaultPermissions = DEFAULT_PERMISSIONS.admin;
         else if (user.role === 'manager' || user.role === 'hotel-manager' || user.role === 'hotel-staff') {
           defaultPermissions = DEFAULT_PERMISSIONS['hotel-staff'];
@@ -268,6 +277,7 @@ export default function UserManagementPage() {
           contracts: null,
           diveLog: null,
           maintenance: null,
+          operations: null,
         };
         
         const updateData = {
@@ -320,7 +330,7 @@ export default function UserManagementPage() {
       );
       
       // Get default permissions for the role
-      const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
+      const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.viewer;
       
       // Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
@@ -372,8 +382,7 @@ export default function UserManagementPage() {
       case 'manager':
       case 'hotel-manager':
       case 'hotel-staff': return 'yellow';
-      case 'viewer':
-      case 'employee': return 'blue';
+      case 'viewer': return 'blue';
       default: return 'gray';
     }
   };
@@ -523,14 +532,15 @@ export default function UserManagementPage() {
                   <FormControl>
                     <FormLabel>Role</FormLabel>
                     <Select value={editRole} onChange={(e) => handleRoleChange(e.target.value as UserRole)}>
-                      <option value="employee">Employee</option>
+                      <option value="viewer">Viewer</option>
                       <option value="hotel-staff">Hotel Staff</option>
+                      <option value="hotel-manager">Hotel Manager</option>
                       <option value="admin">Admin</option>
                     </Select>
                   </FormControl>
 
-                  {/* Hotel Assignment for Hotel Staff */}
-                  {editRole === 'hotel-staff' && (
+                  {/* Hotel Assignment for Hotel Staff and Managers */}
+                  {(editRole === 'hotel-staff' || editRole === 'hotel-manager') && (
                     <FormControl>
                       <FormLabel>Hotel Assignment</FormLabel>
                       <Select 
@@ -545,7 +555,7 @@ export default function UserManagementPage() {
                         ))}
                       </Select>
                       <Text fontSize="sm" color="gray.600" mt={1}>
-                        Hotel staff will only have access to their assigned hotel's data
+                        Hotel staff and managers will only have access to their assigned hotel's data
                       </Text>
                     </FormControl>
                   )}
@@ -567,7 +577,7 @@ export default function UserManagementPage() {
                     </Alert>
                   )}
                   
-                  {editRole === 'employee' && (
+                  {editRole === 'viewer' && (
                     <VStack spacing={4} align="stretch">
                       {Object.entries(editPermissions).map(([module, level]) => (
                         <FormControl key={module}>
@@ -621,14 +631,15 @@ export default function UserManagementPage() {
                   <FormControl>
                     <FormLabel>Role</FormLabel>
                     <Select value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
-                      <option value="employee">Employee</option>
+                      <option value="viewer">Viewer</option>
                       <option value="hotel-staff">Hotel Staff</option>
+                      <option value="hotel-manager">Hotel Manager</option>
                       <option value="admin">Admin</option>
                     </Select>
                   </FormControl>
 
-                  {/* Hotel Assignment for Hotel Staff */}
-                  {createRole === 'hotel-staff' && (
+                  {/* Hotel Assignment for Hotel Staff and Managers */}
+                  {(createRole === 'hotel-staff' || createRole === 'hotel-manager') && (
                     <FormControl>
                       <FormLabel>Hotel Assignment</FormLabel>
                       <Select 
@@ -643,7 +654,7 @@ export default function UserManagementPage() {
                         ))}
                       </Select>
                       <Text fontSize="sm" color="gray.600" mt={1}>
-                        Hotel staff will only have access to their assigned hotel's data
+                        Hotel staff and managers will only have access to their assigned hotel's data
                       </Text>
                     </FormControl>
                   )}

@@ -128,7 +128,7 @@ export default function ManageTaxisPage() {
 
   if (showForm) {
     return (
-      <ProtectedPage allowedRoles={["admin", "manager"]}>
+      <ProtectedPage allowedRoles={["admin", "hotel-manager"]}>
         <VStack spacing={6} align="stretch" maxW="4xl" mx="auto">
           <Heading>Taxi Management</Heading>
           <AddEditTaxiForm

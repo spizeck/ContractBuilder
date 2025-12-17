@@ -11,24 +11,11 @@ service cloud.firestore {
       return request.auth != null && getUserData().role == 'admin';
     }
 
-    function isManagerOrAbove() {
-      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager';
-    }
-    
-    function isStaffOrAbove() {
-      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager' || getUserData().role == 'hotel-staff' || getUserData().role == 'employee';
-    }
 
     function isHotelStaff() {
       return request.auth != null && 
              (getUserData().role == 'hotel-staff' || 
               getUserData().role == 'hotel-manager');
-    }
-    
-    function isEmployee() {
-      return request.auth != null && 
-             (getUserData().role == 'employee' || 
-              getUserData().role == 'viewer');
     }
     
     function hasPermission(module, requiredLevel) {
@@ -55,7 +42,7 @@ service cloud.firestore {
     }
     
     function isValidRole(role) {
-      return role == 'admin' || role == 'hotel-staff' || role == 'employee' || 
+      return role == 'admin' || role == 'hotel-staff' || 
              role == 'hotel-manager' || role == 'viewer';
     }
     
@@ -66,7 +53,8 @@ service cloud.firestore {
     function isValidPermissions(permissions) {
       return (permissions.contracts == null || isValidPermissionLevel(permissions.contracts)) &&
              (permissions.diveLog == null || isValidPermissionLevel(permissions.diveLog)) &&
-             (permissions.maintenance == null || isValidPermissionLevel(permissions.maintenance));
+             (permissions.maintenance == null || isValidPermissionLevel(permissions.maintenance)) &&
+             (permissions.operations == null || isValidPermissionLevel(permissions.operations));
     }
 
     // Check if user has access to a specific hotel
@@ -218,6 +206,84 @@ service cloud.firestore {
     match /technicians/{techId} {
       allow read: if canAccessModule('maintenance');
       allow write: if hasPermission('maintenance', 'edit');
+    }
+
+    // MANIFEST SYSTEM COLLECTIONS
+    
+    // Customers collection
+    match /customers/{customerId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create') && 
+                       request.resource.data.bookingReference != '' &&
+                       request.resource.data.fullName != '' &&
+                       request.resource.data.bookingReference.size() < 50 &&
+                       request.resource.data.fullName.size() < 100;
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Dive slots collection
+    match /diveSlots/{slotId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Dive assignments collection
+    match /diveAssignments/{assignmentId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Taxi assignments collection
+    match /taxiAssignments/{assignmentId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Taxis collection
+    match /taxis/{taxiId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Daily manifests collection
+    match /dailyManifests/{manifestId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Daily taxi lists collection
+    match /dailyTaxiLists/{taxiListId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Crew collection
+    match /crew/{crewId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Import jobs collection
+    match /importJobs/{jobId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
     }
   }
 }

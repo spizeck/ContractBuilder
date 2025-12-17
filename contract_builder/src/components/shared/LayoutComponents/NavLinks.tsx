@@ -29,7 +29,6 @@ export default function NavLinks() {
       <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
       <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
       <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
-      <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
       {(role === 'admin') && (
         <>
           <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
@@ -97,8 +96,8 @@ export default function NavLinks() {
           <Box>Loading...</Box>
         ) : user && (
           <>
-            {/* Dive Log Section - Admin only */}
-            {role === 'admin' && (
+            {/* Dive Log Section - Viewable by staff and above */}
+            {(role === 'admin' || role === 'hotel-manager' || role === 'hotel-staff') && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Dive Log
@@ -107,8 +106,8 @@ export default function NavLinks() {
               </Menu>
             )}
 
-            {/* Maintenance Section - Admin only */}
-            {role === 'admin' && (
+            {/* Maintenance Section - Viewable by staff and above */}
+            {(role === 'admin' || role === 'hotel-manager' || role === 'hotel-staff') && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Maintenance
@@ -179,7 +178,7 @@ export default function NavLinks() {
               <Box>
                 <Accordion allowToggle>
                   {/* Dive Log Section */}
-                  {role === 'admin' && (
+                  {(role === 'admin' || role === 'hotel-manager' || role === 'hotel-staff') && (
                     <AccordionItem>
                       <AccordionButton>
                         <Box flex="1" textAlign="left">Dive Log</Box>
@@ -188,16 +187,34 @@ export default function NavLinks() {
                     </AccordionItem>
                   )}
 
-            {/* Maintenance Section */}
-            {(role === 'admin') && (
-              <AccordionItem>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left">Maintenance</Box>
-                </AccordionButton>
-                <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
-              </AccordionItem>
-            )}
-          </Accordion>
+                  {/* Maintenance Section */}
+                  {(role === 'admin' || role === 'hotel-manager' || role === 'hotel-staff') && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Maintenance</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{maintenanceLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
+
+                  {/* Operations Section */}
+                  <AccordionItem>
+                    <AccordionButton>
+                      <Box flex="1" textAlign="left">Operations</Box>
+                    </AccordionButton>
+                    <AccordionPanel pb={2}>{manifestLinks}</AccordionPanel>
+                  </AccordionItem>
+
+                  {/* Contracts Section - Not for hotel staff */}
+                  {!(role === 'hotel-staff') && (
+                    <AccordionItem>
+                      <AccordionButton>
+                        <Box flex="1" textAlign="left">Contracts</Box>
+                      </AccordionButton>
+                      <AccordionPanel pb={2}>{contractLinks}</AccordionPanel>
+                    </AccordionItem>
+                  )}
+                </Accordion>
 
           <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
           <LogoutButton asMenuItem/>

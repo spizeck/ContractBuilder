@@ -148,7 +148,7 @@ export default function ManageCrewPage() {
 
   if (showForm) {
     return (
-      <ProtectedPage allowedRoles={["admin", "manager"]}>
+      <ProtectedPage allowedRoles={["admin", "hotel-manager"]}>
         <VStack spacing={6} align="stretch" maxW="4xl" mx="auto">
           <Heading>Crew Management</Heading>
           <AddEditCrewForm
