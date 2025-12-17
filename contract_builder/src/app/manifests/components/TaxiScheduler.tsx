@@ -70,11 +70,11 @@ const mockCustomers: Customer[] = [
   {
     id: "1",
     bookingReference: "BK001",
+    documentId: "DOC001",
     fullName: "John Doe",
     email: "john@example.com",
     phone: "+1234567890",
-    hotel: "Sea Saba Resort",
-    roomNumber: "101",
+    accommodations: "Sea Saba Resort - Room 101",
     certificationLevel: "Open Water",
     nitroxCertified: true,
     equipmentNeeded: {
@@ -91,11 +91,11 @@ const mockCustomers: Customer[] = [
   {
     id: "2",
     bookingReference: "BK002",
+    documentId: "DOC002",
     fullName: "Jane Smith",
     email: "jane@example.com",
     phone: "+1234567891",
-    hotel: "Sea Saba Resort",
-    roomNumber: "102",
+    accommodations: "Sea Saba Resort - Room 102",
     certificationLevel: "Advanced",
     nitroxCertified: false,
     equipmentNeeded: {
@@ -189,8 +189,11 @@ export default function TaxiScheduler() {
       return;
     }
 
-    const pickupTime = calculatePickupTime(diveSlot.departureTime, customer.hotel || '');
-    const pickupLocation = customer.hotel || 'Unknown Hotel';
+    const pickupTime = calculatePickupTime(
+      diveSlot.departureTime,
+      customer.accommodations || ''
+    );
+    const pickupLocation = customer.accommodations || 'Unknown Accommodations';
     const destination = `Sea Saba Dock - ${diveSlot.departureTime} departure`;
 
     const assignment: TaxiAssignment = {
@@ -321,7 +324,10 @@ export default function TaxiScheduler() {
                       .filter(item => !taxiAssignments.some(a => a.customerId === item.customer!.id))
                       .map((item) => {
                         const { customer, diveSlot } = item;
-                        const pickupTime = calculatePickupTime(diveSlot!.departureTime, customer!.hotel || '');
+                        const pickupTime = calculatePickupTime(
+                          diveSlot!.departureTime,
+                          customer!.accommodations || ''
+                        );
                         
                         return (
                           <Tr key={customer!.id}>
@@ -333,8 +339,7 @@ export default function TaxiScheduler() {
                             </Td>
                             <Td>
                               <VStack align="start" spacing={0}>
-                                <Text>{customer!.hotel}</Text>
-                                <Text fontSize="xs" color="textMuted">Room {customer!.roomNumber}</Text>
+                                <Text>{customer!.accommodations || ""}</Text>
                               </VStack>
                             </Td>
                             <Td>
@@ -415,7 +420,7 @@ export default function TaxiScheduler() {
                                 <VStack align="start" spacing={1}>
                                   <Text>{customer!.fullName}</Text>
                                   <Text fontSize="xs" color="textMuted">
-                                    {customer!.hotel} • Room {customer!.roomNumber}
+                                    {customer!.accommodations || ""}
                                   </Text>
                                 </VStack>
                                 
