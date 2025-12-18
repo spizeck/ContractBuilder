@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   Box,
   Button,
+  Checkbox,
   Heading,
   HStack,
   Spinner,
@@ -31,16 +32,17 @@ export default function ManageCrewPage() {
   const [loading, setLoading] = useState(true)
   const [editingCrew, setEditingCrew] = useState<CrewMember | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [showInactive, setShowInactive] = useState(false)
   const toast = useToast()
 
   useEffect(() => {
     fetchCrew()
-  }, [])
+  }, [showInactive])
 
   async function fetchCrew() {
     setLoading(true)
     try {
-      const data = await crewService.getAllCrew()
+      const data = await crewService.getAllCrew({ includeInactive: showInactive })
       setCrew(data.sort((a, b) => a.name.localeCompare(b.name)))
     } catch (error) {
       toast({
@@ -172,6 +174,12 @@ export default function ManageCrewPage() {
           <Button leftIcon={<FiPlus />} colorScheme="teal" onClick={handleAddNew}>
             Add Crew Member
           </Button>
+        </HStack>
+
+        <HStack justify="space-between">
+          <Checkbox isChecked={showInactive} onChange={(e) => setShowInactive(e.target.checked)}>
+            Show inactive crew
+          </Checkbox>
         </HStack>
 
         {loading ? (

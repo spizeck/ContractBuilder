@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react'
 import {
   Box,
   Button,
+  Checkbox,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   HStack,
   Input,
   Switch,
   VStack,
-  Select,
   Text,
 } from '@chakra-ui/react'
 import { CrewMember, CrewRole } from '@/types/crewTypes'
@@ -27,6 +28,27 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [active, setActive] = useState(true)
+  const [showRolesError, setShowRolesError] = useState(false)
+
+  const normalizePhone = (input: string) => {
+    let s = input.trim()
+    if (!s) return ''
+    if (s.startsWith('00')) s = `+${s.slice(2)}`
+    const hasPlus = s.startsWith('+')
+    const digitsOnly = s.replace(/\D/g, '')
+    return hasPlus ? `+${digitsOnly}` : digitsOnly
+  }
+
+  const toggleRole = (role: CrewRole, checked: boolean) => {
+    setRoles((prev) => {
+      const next: CrewRole[] = checked
+        ? (prev.includes(role) ? prev : [...prev, role])
+        : prev.filter((r) => r !== role)
+
+      if (next.length > 0) setShowRolesError(false)
+      return next
+    })
+  }
 
   useEffect(() => {
     if (crew) {
@@ -45,7 +67,7 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
       return
     }
     if (!roles.length) {
-      alert('Please select at least one role')
+      setShowRolesError(true)
       return
     }
     onSave({ name: name.trim(), roles, email: email.trim() || undefined, phone: phone.trim() || undefined, active })
@@ -53,7 +75,7 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
 
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" boxShadow="md">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <VStack spacing={4} align="stretch">
           <FormControl isRequired>
             <FormLabel>Full Name</FormLabel>
@@ -64,25 +86,35 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
             />
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={showRolesError && roles.length === 0}>
             <FormLabel>Roles</FormLabel>
-            <Select
-              value={roles}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions).map((o) => o.value as CrewRole)
-                setRoles(selected)
-              }}
-              multiple
-              height="120px"
-            >
-              <option value="captain">Captain</option>
-              <option value="instructor">Instructor</option>
-              <option value="dive_guide">Dive Guide</option>
-              <option value="surface_support">Surface Support</option>
-            </Select>
-            <Text fontSize="sm" color="textMuted" mt={1}>
-              Hold Ctrl/Cmd to select multiple roles
-            </Text>
+            <VStack align="start" spacing={2} pt={1}>
+              <Checkbox
+                isChecked={roles.includes('captain')}
+                onChange={(e) => toggleRole('captain', e.target.checked)}
+              >
+                Captain
+              </Checkbox>
+              <Checkbox
+                isChecked={roles.includes('instructor')}
+                onChange={(e) => toggleRole('instructor', e.target.checked)}
+              >
+                Instructor
+              </Checkbox>
+              <Checkbox
+                isChecked={roles.includes('dive_guide')}
+                onChange={(e) => toggleRole('dive_guide', e.target.checked)}
+              >
+                Dive Guide
+              </Checkbox>
+              <Checkbox
+                isChecked={roles.includes('surface_support')}
+                onChange={(e) => toggleRole('surface_support', e.target.checked)}
+              >
+                Surface Support
+              </Checkbox>
+            </VStack>
+            <FormErrorMessage>Please select at least one role</FormErrorMessage>
           </FormControl>
 
           <FormControl>
@@ -98,9 +130,11 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
           <FormControl>
             <FormLabel>Phone</FormLabel>
             <Input
+              type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1234567890 (optional)"
+              onBlur={() => setPhone((p) => normalizePhone(p))}
+              placeholder="+5994165328 (optional)"
             />
           </FormControl>
 
