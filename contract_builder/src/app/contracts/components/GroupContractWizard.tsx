@@ -17,7 +17,7 @@ export default function GroupContractWizard ({
   const [contractData, setContractData] = useState<any>(initialData || {})
 
   const nextStep = (data: any) => {
-    setContractData({ ...contractData, ...data })
+    setContractData((prev: any) => ({ ...prev, ...data }))
     
     // For direct hotel booking, skip room selection and meal package steps
     if (data.bookingType === 'directHotelBooking' || contractData.bookingType === 'directHotelBooking') {
@@ -108,6 +108,20 @@ export default function GroupContractWizard ({
       return (
         <TotalCostCalculation
           contractData={contractData}
+          onUpdateContractData={(patch) => {
+            setContractData((prev: any) => {
+              const next = { ...prev, ...patch }
+
+              if ('customRates' in patch && patch.customRates === undefined) {
+                delete next.customRates
+              }
+              if ('hasCustomRates' in patch && patch.hasCustomRates === undefined) {
+                delete next.hasCustomRates
+              }
+
+              return next
+            })
+          }}
           onConfirm={() => {
             // Save contract and generate PDF
             onCancel()
