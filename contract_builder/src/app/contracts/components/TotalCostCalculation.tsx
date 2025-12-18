@@ -44,12 +44,14 @@ import { getRoomTypes } from "@/services/roomTypes";
 
 export default function TotalCostCalculation({
   contractData,
+  onUpdateContractData,
   onConfirm,
   onBack,
   onEditStep,
   onCancel,
 }: {
   contractData: ContractData;
+  onUpdateContractData?: (patch: Partial<ContractData>) => void;
   onConfirm: () => void;
   onBack: () => void;
   onCancel: () => void;
@@ -68,18 +70,16 @@ export default function TotalCostCalculation({
   const [error, setError] = useState<string | null>(null);
 
   // Custom room rates state
-  const [customRates, setCustomRates] = useState<{ [key: string]: number }>({});
+  const [customRates, setCustomRates] = useState<Record<number, number>>({});
   const [isEditingRates, setIsEditingRates] = useState(false);
-  const [tempRates, setTempRates] = useState<{ [key: string]: number }>({});
-  const [originalRates, setOriginalRates] = useState<{ [key: string]: number }>(
-    {}
-  );
+  const [tempRates, setTempRates] = useState<Record<number, number | undefined>>({});
+  const [originalRates, setOriginalRates] = useState<Record<number, number>>({});
   const [focOverrideIndex, setFocOverrideIndex] = useState<number | null>(null);
 
   // Handler functions for rate editing
   const handleStartEditingRates = () => {
     if (results && results.roomCosts) {
-      const rates: { [key: string]: number } = {};
+      const rates: Record<number, number> = {};
       results.roomCosts.forEach((rc, idx) => {
         // Extract rate from description string
         const rateMatch = rc.description.match(/@ \$(\d+\.\d+)\/night/);
@@ -94,10 +94,28 @@ export default function TotalCostCalculation({
   };
 
   const handleSaveRates = () => {
-    setCustomRates(tempRates);
+    const cleanedRates = Object.fromEntries(
+      Object.entries(tempRates)
+        .map(([k, v]) => [Number(k), v] as const)
+        .filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
+    ) as Record<number, number>;
+
+    const hasValidRates = Object.keys(cleanedRates).length > 0;
+
+    setCustomRates(cleanedRates);
     setIsEditingRates(false);
-    // Recalculate costs with new rates
-    recalculateWithCustomRates(tempRates);
+
+    if (onUpdateContractData) {
+      onUpdateContractData({
+        customRates: hasValidRates ? (cleanedRates as any) : undefined,
+        hasCustomRates: hasValidRates ? true : undefined,
+      });
+    }
+
+    // Recalculate costs with new rates (or allow parent update to trigger full recalculation)
+    if (hasValidRates) {
+      recalculateWithCustomRates(cleanedRates);
+    }
   };
 
   const handleCancelEditingRates = () => {
@@ -108,10 +126,36 @@ export default function TotalCostCalculation({
   const handleRateChange = (idx: number, value: string) => {
     // Allow empty value or valid number input
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      if (value === "") {
+        setTempRates((prev) => {
+          const next = { ...prev };
+          delete next[idx];
+          return next;
+        });
+        return;
+      }
+
+      const parsed = parseFloat(value);
       setTempRates((prev) => ({
         ...prev,
-        [idx]: value === "" ? 0 : parseFloat(value) || 0,
+        [idx]: Number.isNaN(parsed) ? undefined : parsed,
       }));
+    }
+  };
+
+  const handleClearCustomRates = () => {
+    if (!window.confirm("Remove all custom room rates and revert to default rates?")) {
+      return;
+    }
+
+    setCustomRates({});
+    setTempRates({});
+    setOriginalRates({});
+    setIsEditingRates(false);
+    setFocOverrideIndex(null);
+
+    if (onUpdateContractData) {
+      onUpdateContractData({ customRates: undefined, hasCustomRates: undefined });
     }
   };
 
@@ -591,12 +635,19 @@ export default function TotalCostCalculation({
           });
 
           // Set custom rates state
-          setCustomRates(contractData.customRates);
+          const incoming = contractData.customRates as Record<string, number>;
+          const nextCustomRates = Object.fromEntries(
+            Object.entries(incoming).map(([k, v]) => [Number(k), v] as const)
+          ) as Record<number, number>;
+          setCustomRates(nextCustomRates);
         } else {
           setResults({
             ...calc,
             roomCosts: sortRoomCosts(calc.roomCosts),
           });
+
+          // No custom rates for this contract; ensure local state is cleared
+          setCustomRates({});
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -694,6 +745,11 @@ export default function TotalCostCalculation({
                 >
                   {isEditingRates ? "Cancel" : "Edit Rates"}
                 </Button>
+                {((contractData.hasCustomRates && contractData.customRates) || Object.keys(customRates).length > 0) && (
+                  <Button size="sm" variant="outline" colorScheme="red" onClick={handleClearCustomRates}>
+                    Clear Custom Rates
+                  </Button>
+                )}
                 {isEditingRates && (
                   <Button size="sm" onClick={handleSaveRates} colorScheme="green">
                     Save All Rates
