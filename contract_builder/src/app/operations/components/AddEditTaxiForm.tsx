@@ -28,14 +28,25 @@ interface AddEditTaxiFormProps {
 export default function AddEditTaxiForm({ taxi, onSave, onCancel }: AddEditTaxiFormProps) {
   const [name, setName] = useState('')
   const [capacity, setCapacity] = useState(4)
+  const [priority, setPriority] = useState(100)
   const [driverName, setDriverName] = useState('')
   const [driverContact, setDriverContact] = useState('')
   const [active, setActive] = useState(true)
+
+  const normalizePhone = (input: string) => {
+    let s = input.trim()
+    if (!s) return ''
+    if (s.startsWith('00')) s = `+${s.slice(2)}`
+    const hasPlus = s.startsWith('+')
+    const digitsOnly = s.replace(/\D/g, '')
+    return hasPlus ? `+${digitsOnly}` : digitsOnly
+  }
 
   useEffect(() => {
     if (taxi) {
       setName(taxi.name)
       setCapacity(taxi.capacity)
+      setPriority(taxi.priority ?? 100)
       setDriverName(taxi.driverName || '')
       setDriverContact(taxi.driverContact || '')
       setActive(taxi.active)
@@ -55,6 +66,7 @@ export default function AddEditTaxiForm({ taxi, onSave, onCancel }: AddEditTaxiF
     onSave({ 
       name: name.trim(), 
       capacity, 
+      priority,
       driverName: driverName.trim() || undefined, 
       driverContact: driverContact.trim() || undefined, 
       active 
@@ -72,6 +84,25 @@ export default function AddEditTaxiForm({ taxi, onSave, onCancel }: AddEditTaxiF
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter taxi name (e.g., Taxi 1, Sea Saba Shuttle)"
             />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Auto-Schedule Priority</FormLabel>
+            <NumberInput
+              value={priority}
+              onChange={(value) => setPriority(parseInt(value) || 100)}
+              min={1}
+              max={999}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="sm" color="textMuted" mt={1}>
+              Lower numbers are preferred during auto-scheduling (e.g. 1 is highest priority)
+            </Text>
           </FormControl>
 
           <FormControl isRequired>
@@ -105,8 +136,10 @@ export default function AddEditTaxiForm({ taxi, onSave, onCancel }: AddEditTaxiF
           <FormControl>
             <FormLabel>Driver Contact</FormLabel>
             <Input
+              type="tel"
               value={driverContact}
               onChange={(e) => setDriverContact(e.target.value)}
+              onBlur={() => setDriverContact((p) => normalizePhone(p))}
               placeholder="Phone number or contact info (optional)"
             />
           </FormControl>

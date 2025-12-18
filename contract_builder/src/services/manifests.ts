@@ -247,7 +247,7 @@ export const taxiAssignmentService = {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as TaxiAssignment);
   },
 
-  async getTaxiAssignmentsByTaxi(taxiId: number, date: Date): Promise<TaxiAssignment[]> {
+  async getTaxiAssignmentsByTaxi(taxiId: string, date: Date): Promise<TaxiAssignment[]> {
     const assignments = await this.getTaxiAssignmentsByDate(date);
     return assignments.filter(assignment => assignment.taxiId === taxiId);
   },
@@ -282,11 +282,11 @@ export const taxiService = {
     const q = query(
       collection(db, TAXIS_COLLECTION),
       where('active', '==', true),
-      orderBy('id')
+      orderBy('name')
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() }) as Taxi);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Taxi);
   },
 };
 

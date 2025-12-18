@@ -31,15 +31,10 @@ import {
   Customer, 
   DiveSlot, 
   DiveAssignment, 
-  TaxiAssignment,
-  Taxi 
+  TaxiAssignment
 } from "@/types/manifestTypes";
-
-// Mock data
-const mockTaxis: Taxi[] = [
-  { id: 1, name: "Taxi 1 - John", capacity: 8, driverContact: "+1234567890", active: true },
-  { id: 2, name: "Taxi 2 - Maria", capacity: 6, driverContact: "+1234567891", active: true },
-];
+import { Taxi } from "@/types/taxiTypes";
+import { taxiService } from "@/services/taxis";
 
 const mockDiveSlots: DiveSlot[] = [
   {
@@ -47,8 +42,8 @@ const mockDiveSlots: DiveSlot[] = [
     date: new Date(),
     boatId: "boat1",
     slotNumber: 1,
-    departureTime: "08:00",
-    returnTime: "10:30",
+    departureTime: "09:00",
+    returnTime: "11:30",
     maxDivers: 12,
     currentAssignments: 5,
     createdAt: new Date(),
@@ -62,6 +57,28 @@ const mockDiveSlots: DiveSlot[] = [
     returnTime: "13:30",
     maxDivers: 12,
     currentAssignments: 8,
+    createdAt: new Date(),
+  },
+  {
+    id: "slot3",
+    date: new Date(),
+    boatId: "boat1",
+    slotNumber: 3,
+    departureTime: "13:00",
+    returnTime: "15:30",
+    maxDivers: 12,
+    currentAssignments: 0,
+    createdAt: new Date(),
+  },
+  {
+    id: "slot4",
+    date: new Date(),
+    boatId: "boat1",
+    slotNumber: 4,
+    departureTime: "18:00",
+    returnTime: "20:30",
+    maxDivers: 12,
+    currentAssignments: 0,
     createdAt: new Date(),
   },
 ];
@@ -147,8 +164,27 @@ const mockAssignments: DiveAssignment[] = [
 export default function TaxiScheduler() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [taxiAssignments, setTaxiAssignments] = useState<TaxiAssignment[]>([]);
-  const [selectedTaxi, setSelectedTaxi] = useState<number>(1);
+  const [taxis, setTaxis] = useState<Taxi[]>([]);
   const toast = useToast();
+
+  useEffect(() => {
+    const fetchTaxis = async () => {
+      try {
+        const data = await taxiService.getAllTaxis();
+        setTaxis(data);
+      } catch (error) {
+        console.error('Error fetching taxis:', error);
+        toast({
+          title: 'Error loading taxis',
+          description: 'Failed to fetch taxis',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+    fetchTaxis();
+  }, [toast]);
 
   // Calculate pickup times based on dive slot departure times
   const calculatePickupTime = (departureTime: string, hotel: string): string => {
@@ -169,10 +205,10 @@ export default function TaxiScheduler() {
     return `${pickupHours.toString().padStart(2, '0')}:${pickupMins.toString().padStart(2, '0')}`;
   };
 
-  const assignTaxi = (customerId: string, diveSlotId: string, taxiId: 1 | 2) => {
+  const assignTaxi = (customerId: string, diveSlotId: string, taxiId: string) => {
     const customer = mockCustomers.find(c => c.id === customerId);
     const diveSlot = mockDiveSlots.find(s => s.id === diveSlotId);
-    const taxi = mockTaxis.find(t => t.id === taxiId);
+    const taxi = taxis.find(t => t.id === taxiId);
     
     if (!customer || !diveSlot || !taxi) return;
 
@@ -237,7 +273,7 @@ export default function TaxiScheduler() {
     }).filter(item => item.customer && item.diveSlot);
   };
 
-  const getAssignmentsByTaxi = (taxiId: number) => {
+  const getAssignmentsByTaxi = (taxiId: string) => {
     return taxiAssignments
       .filter(a => a.taxiId === taxiId)
       .map(assignment => {
@@ -255,10 +291,36 @@ export default function TaxiScheduler() {
       item => !taxiAssignments.some(a => a.customerId === item.customer!.id)
     );
 
-    // Simple auto-assignment logic - alternate between taxis
-    unassignedCustomers.forEach((item, index) => {
-      const taxiId = ((index % 2) + 1) as 1 | 2; // Alternate between taxi 1 and 2
-      assignTaxi(item.customer!.id, item.diveSlot!.id, taxiId);
+    // Auto-assignment logic:
+    // - sort taxis by priority (lower number = preferred)
+    // - then by current load
+    // - respect capacity
+    const activeTaxis = taxis.filter((t) => t.active);
+    if (activeTaxis.length === 0) {
+      toast({
+        title: 'No active taxis',
+        description: 'Add/activate taxis in Operations → Manage Taxis first',
+        status: 'warning',
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    unassignedCustomers.forEach((item) => {
+      const taxiByLoad = activeTaxis
+        .map((t) => ({
+          taxi: t,
+          priority: t.priority ?? 100,
+          load: taxiAssignments.filter((a) => a.taxiId === t.id).length,
+        }))
+        .filter((x) => x.load < x.taxi.capacity)
+        .sort((a, b) => (a.priority - b.priority) || (a.load - b.load));
+
+      const chosen = taxiByLoad[0]?.taxi;
+      if (!chosen) return;
+
+      assignTaxi(item.customer!.id, item.diveSlot!.id, chosen.id);
     });
   };
 
@@ -358,7 +420,7 @@ export default function TaxiScheduler() {
                             </Td>
                             <Td>
                               <HStack spacing={2}>
-                                {mockTaxis.map((taxi) => (
+                                {taxis.filter((t) => t.active).map((taxi) => (
                                   <Button
                                     key={taxi.id}
                                     size="sm"
@@ -385,7 +447,7 @@ export default function TaxiScheduler() {
       {/* Taxi Assignments */}
       {taxiAssignments.length > 0 && (
         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-          {mockTaxis.map((taxi) => {
+          {taxis.filter((t) => t.active).map((taxi) => {
             const assignments = getAssignmentsByTaxi(taxi.id);
             const currentLoad = assignments.length;
             const capacity = taxi.capacity;

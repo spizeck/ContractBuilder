@@ -172,6 +172,7 @@ export default function ManageTaxisPage() {
                 <Tr>
                   <Th>Name</Th>
                   <Th>Capacity</Th>
+                  <Th>Priority</Th>
                   <Th>Driver</Th>
                   <Th>Contact</Th>
                   <Th>Status</Th>
@@ -184,6 +185,9 @@ export default function ManageTaxisPage() {
                     <Td fontWeight="bold">{taxi.name}</Td>
                     <Td>
                       <Badge colorScheme="blue">{taxi.capacity} passengers</Badge>
+                    </Td>
+                    <Td>
+                      <Badge colorScheme="purple">{taxi.priority ?? 100}</Badge>
                     </Td>
                     <Td>{taxi.driverName || 'Not assigned'}</Td>
                     <Td>

@@ -17,10 +17,10 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
   // Manifest configuration fields
   const [capacity, setCapacity] = useState(12);
   const [maxDiveSlots, setMaxDiveSlots] = useState<1 | 2 | 3 | 4>(4);
-  const [slot1Time, setSlot1Time] = useState("08:00");
+  const [slot1Time, setSlot1Time] = useState("09:00");
   const [slot2Time, setSlot2Time] = useState("11:00");
-  const [slot3Time, setSlot3Time] = useState("14:00");
-  const [slot4Time, setSlot4Time] = useState("17:00");
+  const [slot3Time, setSlot3Time] = useState("13:00");
+  const [slot4Time, setSlot4Time] = useState("18:00");
 
   useEffect(() => {
     if (boat) {
@@ -28,10 +28,10 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
       setActive(boat.active);
       setCapacity(boat.capacity || 12);
       setMaxDiveSlots(boat.maxDiveSlots || 4);
-      setSlot1Time(boat.defaultDiveTimes?.slot1 || "08:00");
+      setSlot1Time(boat.defaultDiveTimes?.slot1 || "09:00");
       setSlot2Time(boat.defaultDiveTimes?.slot2 || "11:00");
-      setSlot3Time(boat.defaultDiveTimes?.slot3 || "14:00");
-      setSlot4Time(boat.defaultDiveTimes?.slot4 || "17:00");
+      setSlot3Time(boat.defaultDiveTimes?.slot3 || "13:00");
+      setSlot4Time(boat.defaultDiveTimes?.slot4 || "18:00");
     }
   }, [boat]);
 
@@ -122,15 +122,17 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
                     <FormControl>
                       <FormLabel>Slot 1</FormLabel>
                       <Input 
+                        type="time"
                         value={slot1Time}
                         onChange={(e) => setSlot1Time(e.target.value)}
-                        placeholder="08:00"
+                        placeholder="09:00"
                       />
                     </FormControl>
 
                     <FormControl>
                       <FormLabel>Slot 2</FormLabel>
                       <Input 
+                        type="time"
                         value={slot2Time}
                         onChange={(e) => setSlot2Time(e.target.value)}
                         placeholder="11:00"
@@ -140,18 +142,20 @@ export default function AddEditBoatForm({boat, onSave, onCancel}: AddEditBoatFor
                     <FormControl>
                       <FormLabel>Slot 3</FormLabel>
                       <Input 
+                        type="time"
                         value={slot3Time}
                         onChange={(e) => setSlot3Time(e.target.value)}
-                        placeholder="14:00"
+                        placeholder="13:00"
                       />
                     </FormControl>
 
                     <FormControl>
-                      <FormLabel>Slot 4</FormLabel>
+                      <FormLabel>Night Dive</FormLabel>
                       <Input 
+                        type="time"
                         value={slot4Time}
                         onChange={(e) => setSlot4Time(e.target.value)}
-                        placeholder="17:00"
+                        placeholder="18:00"
                       />
                     </FormControl>
                   </HStack>

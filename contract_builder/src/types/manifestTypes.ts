@@ -78,7 +78,7 @@ export interface TaxiAssignment {
   id: string;
   customerId: string;
   diveSlotId: string;
-  taxiId: 1 | 2; // Support for 2 taxis
+  taxiId: string;
   pickupTime: string;
   pickupLocation: string;
   destination: string;
@@ -89,10 +89,11 @@ export interface TaxiAssignment {
 
 // Taxi configuration
 export interface Taxi {
-  id: 1 | 2;
+  id: string;
   name: string;
   capacity: number;
   driverContact?: string;
+  priority?: number;
   active: boolean;
 }
 
