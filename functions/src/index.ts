@@ -140,7 +140,9 @@ export const getDivesByDate = functions.https.onRequest(
       });
 
       // Turn back into array
-      const dives = Object.values(aggregated);
+      const dives = Object.values(aggregated).filter(
+        (dive) => dive.boat.trim().toLowerCase() !== "private boat"
+      );
 
       res.json({dives});
     } catch (err) {

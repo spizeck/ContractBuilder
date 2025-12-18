@@ -1,3 +1,5 @@
+import type { CrewRole } from "@/types/crewTypes";
+
 // Customer data from booking engine
 export interface Customer {
   id: string;
@@ -50,8 +52,13 @@ export interface DiveSlot {
   createdAt: Date;
 }
 
+export interface CrewManifestAssignment {
+  crewId: string;
+  role: CrewRole;
+}
+
 export interface CrewAssignment {
-  crewIds: string[]; // Array of crew member IDs from crew collection
+  assignments: CrewManifestAssignment[];
 }
 
 // Customer assignment to dive slots

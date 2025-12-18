@@ -11,6 +11,17 @@ service cloud.firestore {
       return request.auth != null && getUserData().role == 'admin';
     }
 
+    function isManagerOrAbove() {
+      return request.auth != null &&
+             (getUserData().role == 'admin' || getUserData().role == 'hotel-manager');
+    }
+
+    function isStaffOrAbove() {
+      return request.auth != null &&
+             (getUserData().role == 'admin' ||
+              getUserData().role == 'hotel-manager' ||
+              getUserData().role == 'hotel-staff');
+    }
 
     function isHotelStaff() {
       return request.auth != null && 
@@ -179,10 +190,10 @@ service cloud.firestore {
     }
 
     match /boats/{boatId} {
-      allow read: if canAccessModule('diveLog');
-      allow write: if hasPermission('diveLog', 'edit');
+      allow read: if canAccessModule('operations') || canAccessModule('diveLog');
+      allow write: if hasPermission('operations', 'edit');
     }
-    
+
     match /guides/{guideId} {
       allow read: if canAccessModule('diveLog');
       allow write: if hasPermission('diveLog', 'edit');
@@ -218,6 +229,14 @@ service cloud.firestore {
                        request.resource.data.fullName != '' &&
                        request.resource.data.bookingReference.size() < 50 &&
                        request.resource.data.fullName.size() < 100;
+      allow update: if hasPermission('operations', 'edit');
+      allow delete: if hasPermission('operations', 'edit');
+    }
+
+    // Guests collection
+    match /guests/{guestId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
       allow update: if hasPermission('operations', 'edit');
       allow delete: if hasPermission('operations', 'edit');
     }

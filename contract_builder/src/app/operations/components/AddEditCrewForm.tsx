@@ -13,7 +13,7 @@ import {
   Select,
   Text,
 } from '@chakra-ui/react'
-import { CrewMember } from '@/types/crewTypes'
+import { CrewMember, CrewRole } from '@/types/crewTypes'
 
 interface AddEditCrewFormProps {
   crew?: CrewMember
@@ -23,7 +23,7 @@ interface AddEditCrewFormProps {
 
 export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewFormProps) {
   const [name, setName] = useState('')
-  const [role, setRole] = useState<CrewMember['role']>('crew')
+  const [roles, setRoles] = useState<CrewRole[]>([])
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [active, setActive] = useState(true)
@@ -31,7 +31,7 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
   useEffect(() => {
     if (crew) {
       setName(crew.name)
-      setRole(crew.role)
+      setRoles(crew.roles)
       setEmail(crew.email || '')
       setPhone(crew.phone || '')
       setActive(crew.active)
@@ -44,7 +44,11 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
       alert('Please enter a crew member name')
       return
     }
-    onSave({ name: name.trim(), role, email: email.trim() || undefined, phone: phone.trim() || undefined, active })
+    if (!roles.length) {
+      alert('Please select at least one role')
+      return
+    }
+    onSave({ name: name.trim(), roles, email: email.trim() || undefined, phone: phone.trim() || undefined, active })
   }
 
   return (
@@ -61,13 +65,24 @@ export default function AddEditCrewForm({ crew, onSave, onCancel }: AddEditCrewF
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Role</FormLabel>
-            <Select value={role} onChange={(e) => setRole(e.target.value as CrewMember['role'])}>
+            <FormLabel>Roles</FormLabel>
+            <Select
+              value={roles}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions).map((o) => o.value as CrewRole)
+                setRoles(selected)
+              }}
+              multiple
+              height="120px"
+            >
               <option value="captain">Captain</option>
-              <option value="dive_master">Dive Master</option>
-              <option value="deckhand">Deckhand</option>
-              <option value="crew">Crew Member</option>
+              <option value="instructor">Instructor</option>
+              <option value="dive_guide">Dive Guide</option>
+              <option value="surface_support">Surface Support</option>
             </Select>
+            <Text fontSize="sm" color="textMuted" mt={1}>
+              Hold Ctrl/Cmd to select multiple roles
+            </Text>
           </FormControl>
 
           <FormControl>

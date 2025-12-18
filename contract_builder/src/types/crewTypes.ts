@@ -1,10 +1,12 @@
 export interface CrewMember {
   id: string;
   name: string;
-  role: 'captain' | 'crew' | 'dive_master' | 'deckhand';
+  roles: CrewRole[];
   email?: string;
   phone?: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type CrewRole = 'captain' | 'instructor' | 'dive_guide' | 'surface_support';

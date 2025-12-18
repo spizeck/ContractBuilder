@@ -37,8 +37,15 @@ import {
   CrewAssignment
 } from "@/types/manifestTypes";
 import { Boat } from "@/types/diveLogTypes";
-import { CrewMember } from "@/types/crewTypes";
+import { CrewMember, CrewRole } from "@/types/crewTypes";
 import { crewService } from "@/services/crew";
+
+const ROLE_LABELS: Record<CrewRole, string> = {
+  captain: "Captain",
+  instructor: "Instructor",
+  dive_guide: "Dive Guide",
+  surface_support: "Surface Support",
+};
 
 // Mock data for demonstration
 const mockBoats: Boat[] = [
@@ -95,7 +102,7 @@ export default function ManifestBoard() {
   const [diveSlots, setDiveSlots] = useState<DiveSlot[]>([]);
   const [assignments, setAssignments] = useState<DiveAssignment[]>([]);
   const [unassignedCustomers, setUnassignedCustomers] = useState<Customer[]>(mockCustomers);
-  const [crew, setCrew] = useState<CrewAssignment>({ crewIds: [] });
+  const [crew, setCrew] = useState<CrewAssignment>({ assignments: [] });
   const [availableCrew, setAvailableCrew] = useState<CrewMember[]>([]);
   const toast = useToast();
 
@@ -243,52 +250,59 @@ export default function ManifestBoard() {
   const tankReqs = calculateTankRequirements();
   const selectedBoatData = mockBoats.find(b => b.id === selectedBoat);
 
-  // Crew management functions
-  const updateCaptain = (captainId: string) => {
-    setCrew(prev => {
-      const otherCrewIds = prev.crewIds.filter(id => {
-        const crewMember = availableCrew.find(c => c.id === id);
-        return crewMember?.role !== 'captain';
-      });
-      return { crewIds: [captainId, ...otherCrewIds] };
+  const assignedCrewIds = new Set(crew.assignments.map((a) => a.crewId));
+
+  const getAssignedForRole = (role: CrewRole): string[] => {
+    return crew.assignments.filter((a) => a.role === role).map((a) => a.crewId);
+  };
+
+  const getAvailableForRole = (role: CrewRole): CrewMember[] => {
+    return availableCrew
+      .filter((m) => m.active)
+      .filter((m) => Array.isArray(m.roles) && m.roles.includes(role));
+  };
+
+  const setSingleRole = (role: CrewRole, crewId: string) => {
+    setCrew((prev) => {
+      const withoutRole = prev.assignments.filter((a) => a.role !== role);
+      const withoutThisPerson = withoutRole.filter((a) => a.crewId !== crewId);
+
+      if (!crewId) {
+        return { assignments: withoutRole };
+      }
+
+      return {
+        assignments: [...withoutThisPerson, { crewId, role }],
+      };
     });
   };
 
-  const updateCrewMembers = (crewIds: string[]) => {
-    setCrew(prev => {
-      const captainId = prev.crewIds.find(id => {
-        const crewMember = availableCrew.find(c => c.id === id);
-        return crewMember?.role === 'captain';
-      });
-      const otherCrewIds = crewIds.filter(id => {
-        const crewMember = availableCrew.find(c => c.id === id);
-        return crewMember?.role !== 'captain';
-      });
-      return { crewIds: captainId ? [captainId, ...otherCrewIds] : crewIds };
+  const setMultiRole = (role: CrewRole, crewIds: string[]) => {
+    setCrew((prev) => {
+      const roleIds = new Set(crewIds);
+      const withoutRole = prev.assignments.filter((a) => a.role !== role);
+      const withoutSelectedPeople = withoutRole.filter((a) => !roleIds.has(a.crewId));
+      const nextAssignments = crewIds
+        .filter(Boolean)
+        .map((crewId) => ({ crewId, role }));
+
+      return {
+        assignments: [...withoutSelectedPeople, ...nextAssignments],
+      };
     });
   };
 
-  // Validate crew requirements
   const validateCrew = (): boolean => {
-    const assignedCrew = crew.crewIds.map(id => availableCrew.find(c => c.id === id)).filter(Boolean) as CrewMember[];
-    const hasCaptain = assignedCrew.some(member => member.role === 'captain');
-    const hasCrew = assignedCrew.some(member => member.role === 'crew' || member.role === 'dive_master' || member.role === 'deckhand');
-    return hasCaptain && hasCrew;
+    return getAssignedForRole('captain').length === 1;
   };
 
-  // Get assigned crew members
-  const getAssignedCrew = (): CrewMember[] => {
-    return crew.crewIds.map(id => availableCrew.find(c => c.id === id)).filter(Boolean) as CrewMember[];
-  };
-
-  // Get available captains
-  const getAvailableCaptains = (): CrewMember[] => {
-    return availableCrew.filter(member => member.role === 'captain');
-  };
-
-  // Get available crew members (non-captains)
-  const getAvailableCrewMembers = (): CrewMember[] => {
-    return availableCrew.filter(member => member.role !== 'captain');
+  const getAssignedCrewDisplay = () => {
+    return crew.assignments
+      .map((a) => {
+        const member = availableCrew.find((c) => c.id === a.crewId);
+        return member ? { member, role: a.role } : null;
+      })
+      .filter(Boolean) as Array<{ member: CrewMember; role: CrewRole }>;
   };
 
   return (
@@ -339,65 +353,107 @@ export default function ManifestBoard() {
                   <FormLabel>Captain (Required)</FormLabel>
                   <Select
                     placeholder="Select captain"
-                    value={crew.crewIds.find(id => {
-                      const crewMember = availableCrew.find(c => c.id === id);
-                      return crewMember?.role === 'captain';
-                    }) || ''}
-                    onChange={(e) => updateCaptain(e.target.value)}
+                    value={getAssignedForRole('captain')[0] || ''}
+                    onChange={(e) => setSingleRole('captain', e.target.value)}
                   >
-                    {getAvailableCaptains().map(captain => (
-                      <option key={captain.id} value={captain.id}>
+                    {getAvailableForRole('captain').map((captain) => (
+                      <option
+                        key={captain.id}
+                        value={captain.id}
+                        disabled={assignedCrewIds.has(captain.id) && getAssignedForRole('captain')[0] !== captain.id}
+                      >
                         {captain.name}
                       </option>
                     ))}
                   </Select>
                 </FormControl>
 
-                {/* Crew Members Selection */}
-                <FormControl isRequired>
-                  <FormLabel>Crew Members (Required)</FormLabel>
+                <FormControl>
+                  <FormLabel>Instructor</FormLabel>
                   <Select
-                    placeholder="Select crew members"
-                    value={crew.crewIds.filter(id => {
-                      const crewMember = availableCrew.find(c => c.id === id);
-                      return crewMember?.role !== 'captain';
-                    })}
+                    placeholder="Select instructor"
+                    value={getAssignedForRole('instructor')[0] || ''}
+                    onChange={(e) => setSingleRole('instructor', e.target.value)}
+                  >
+                    {getAvailableForRole('instructor').map((member) => (
+                      <option
+                        key={member.id}
+                        value={member.id}
+                        disabled={assignedCrewIds.has(member.id) && getAssignedForRole('instructor')[0] !== member.id}
+                      >
+                        {member.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Dive Guide(s)</FormLabel>
+                  <Select
+                    value={getAssignedForRole('dive_guide')}
                     onChange={(e) => {
-                      const selectedIds = Array.isArray(e.target.value) ? e.target.value : [e.target.value];
-                      updateCrewMembers(selectedIds);
+                      const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
+                      setMultiRole('dive_guide', selected);
                     }}
                     multiple
                     height="120px"
                   >
-                    {getAvailableCrewMembers().map(crewMember => (
-                      <option key={crewMember.id} value={crewMember.id}>
-                        {crewMember.name} ({crewMember.role === 'dive_master' ? 'Dive Master' : 
-                                           crewMember.role === 'deckhand' ? 'Deckhand' : 'Crew'})
+                    {getAvailableForRole('dive_guide').map((member) => (
+                      <option
+                        key={member.id}
+                        value={member.id}
+                        disabled={assignedCrewIds.has(member.id) && !getAssignedForRole('dive_guide').includes(member.id)}
+                      >
+                        {member.name}
                       </option>
                     ))}
                   </Select>
                   <Text fontSize="sm" color="textMuted" mt={1}>
-                    Hold Ctrl/Cmd to select multiple crew members
+                    Hold Ctrl/Cmd to select multiple
+                  </Text>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Surface Support</FormLabel>
+                  <Select
+                    value={getAssignedForRole('surface_support')}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
+                      setMultiRole('surface_support', selected);
+                    }}
+                    multiple
+                    height="120px"
+                  >
+                    {getAvailableForRole('surface_support').map((member) => (
+                      <option
+                        key={member.id}
+                        value={member.id}
+                        disabled={assignedCrewIds.has(member.id) && !getAssignedForRole('surface_support').includes(member.id)}
+                      >
+                        {member.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Text fontSize="sm" color="textMuted" mt={1}>
+                    Hold Ctrl/Cmd to select multiple
                   </Text>
                 </FormControl>
 
                 {/* Assigned Crew Display */}
-                {getAssignedCrew().length > 0 && (
+                {getAssignedCrewDisplay().length > 0 && (
                   <Box>
                     <Text fontWeight="bold" mb={2}>Assigned Crew:</Text>
                     <VStack align="stretch" spacing={1}>
-                      {getAssignedCrew().map(crewMember => (
-                        <HStack key={crewMember.id} spacing={2} p={2} bg="bgSecondary" borderRadius="md">
+                      {getAssignedCrewDisplay().map(({ member, role }) => (
+                        <HStack key={`${member.id}-${role}`} spacing={2} p={2} bg="bgSecondary" borderRadius="md">
                           <Text flex={1}>
-                            {crewMember.name} 
+                            {member.name} 
                             <Text as="span" fontSize="sm" color="textMuted" ml={2}>
-                              ({crewMember.role === 'captain' ? 'Captain' : 
-                                crewMember.role === 'dive_master' ? 'Dive Master' : 
-                                crewMember.role === 'deckhand' ? 'Deckhand' : 'Crew'})
+                              ({ROLE_LABELS[role]})
                             </Text>
                           </Text>
-                          {crewMember.email && (
-                            <Text fontSize="sm" color="textMuted">{crewMember.email}</Text>
+                          {member.email && (
+                            <Text fontSize="sm" color="textMuted">{member.email}</Text>
                           )}
                         </HStack>
                       ))}
@@ -408,7 +464,7 @@ export default function ManifestBoard() {
                 {/* Validation Message */}
                 {!validateCrew() && (
                   <Text color="red.500" fontSize="sm">
-                    Please assign at least 1 captain and 1 crew member
+                    Please assign exactly 1 captain
                   </Text>
                 )}
               </VStack>

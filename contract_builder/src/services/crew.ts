@@ -1,6 +1,6 @@
 import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { CrewMember } from '@/types/crewTypes';
+import { CrewMember, CrewRole } from '@/types/crewTypes';
 
 const CREW_COLLECTION = 'crew';
 
@@ -12,12 +12,23 @@ export const crewService = {
       const q = query(collection(db, CREW_COLLECTION), where('active', '==', true), orderBy('name'));
       const querySnapshot = await getDocs(q);
       console.log('Query successful, found', querySnapshot.docs.length, 'crew members');
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate()
-      })) as CrewMember[];
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data() as any;
+        const roles: CrewRole[] = Array.isArray(data.roles)
+          ? data.roles
+          : (data.role ? [data.role] : []);
+
+        return {
+          id: doc.id,
+          name: data.name,
+          roles,
+          email: data.email,
+          phone: data.phone,
+          active: data.active,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
+        } as CrewMember;
+      });
     } catch (error) {
       console.error('Crew service error:', error);
       if (error instanceof Error) {
@@ -36,31 +47,51 @@ export const crewService = {
     const docRef = doc(db, CREW_COLLECTION, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
+      const data = docSnap.data() as any;
+      const roles: CrewRole[] = Array.isArray(data.roles)
+        ? data.roles
+        : (data.role ? [data.role] : []);
+
       return {
         id: docSnap.id,
-        ...docSnap.data(),
-        createdAt: docSnap.data().createdAt?.toDate(),
-        updatedAt: docSnap.data().updatedAt?.toDate()
+        name: data.name,
+        roles,
+        email: data.email,
+        phone: data.phone,
+        active: data.active,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
       } as CrewMember;
     }
     return null;
   },
 
   // Get crew by role
-  async getCrewByRole(role: CrewMember['role']): Promise<CrewMember[]> {
+  async getCrewByRole(role: CrewRole): Promise<CrewMember[]> {
     const q = query(
-      collection(db, CREW_COLLECTION), 
-      where('role', '==', role),
+      collection(db, CREW_COLLECTION),
+      where('roles', 'array-contains', role),
       where('active', '==', true),
       orderBy('name')
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    })) as CrewMember[];
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data() as any;
+      const roles: CrewRole[] = Array.isArray(data.roles)
+        ? data.roles
+        : (data.role ? [data.role] : []);
+
+      return {
+        id: doc.id,
+        name: data.name,
+        roles,
+        email: data.email,
+        phone: data.phone,
+        active: data.active,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
+      } as CrewMember;
+    });
   },
 
   // Add new crew member

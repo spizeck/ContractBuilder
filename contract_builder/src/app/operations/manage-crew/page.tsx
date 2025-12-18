@@ -21,7 +21,7 @@ import {
   IconButton
 } from '@chakra-ui/react'
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
-import { CrewMember } from '@/types/crewTypes'
+import { CrewMember, CrewRole } from '@/types/crewTypes'
 import { crewService } from '@/services/crew'
 import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 import AddEditCrewForm from '../components/AddEditCrewForm'
@@ -126,22 +126,22 @@ export default function ManageCrewPage() {
     setShowForm(true)
   }
 
-  function getRoleColor(role: CrewMember['role']) {
+  function getRoleColor(role: CrewRole) {
     switch (role) {
       case 'captain': return 'red'
-      case 'dive_master': return 'blue'
-      case 'deckhand': return 'green'
-      case 'crew': return 'gray'
+      case 'instructor': return 'blue'
+      case 'dive_guide': return 'green'
+      case 'surface_support': return 'gray'
       default: return 'gray'
     }
   }
 
-  function getRoleLabel(role: CrewMember['role']) {
+  function getRoleLabel(role: CrewRole) {
     switch (role) {
       case 'captain': return 'Captain'
-      case 'dive_master': return 'Dive Master'
-      case 'deckhand': return 'Deckhand'
-      case 'crew': return 'Crew'
+      case 'instructor': return 'Instructor'
+      case 'dive_guide': return 'Dive Guide'
+      case 'surface_support': return 'Surface Support'
       default: return role
     }
   }
@@ -191,7 +191,7 @@ export default function ManageCrewPage() {
               <Thead>
                 <Tr>
                   <Th>Name</Th>
-                  <Th>Role</Th>
+                  <Th>Roles</Th>
                   <Th>Contact</Th>
                   <Th>Status</Th>
                   <Th>Actions</Th>
@@ -202,9 +202,13 @@ export default function ManageCrewPage() {
                   <Tr key={crewMember.id}>
                     <Td fontWeight="bold">{crewMember.name}</Td>
                     <Td>
-                      <Badge colorScheme={getRoleColor(crewMember.role)}>
-                        {getRoleLabel(crewMember.role)}
-                      </Badge>
+                      <HStack spacing={2} flexWrap="wrap">
+                        {crewMember.roles.map((role) => (
+                          <Badge key={role} colorScheme={getRoleColor(role)}>
+                            {getRoleLabel(role)}
+                          </Badge>
+                        ))}
+                      </HStack>
                     </Td>
                     <Td>
                       <VStack align="start" spacing={0}>
