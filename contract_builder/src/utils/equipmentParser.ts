@@ -254,6 +254,15 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
     console.log('Available CSV columns:', Object.keys(csvData[0]));
   }
 
+  const getFirst = (row: Record<string, any>, keys: string[]): string => {
+    for (const k of keys) {
+      const v = row[k];
+      if (typeof v === 'string' && v.trim() !== '') return v;
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v);
+    }
+    return '';
+  };
+
   return csvData.map((row, index) => {
     try {
       console.log(`Processing row ${index + 1}:`, row);
@@ -268,23 +277,26 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
       // Map actual Checkfront columns to Customer fields with normalization
       const customerData = {
         id: `import-${Date.now()}-${index}`, // Generate unique ID
-        bookingReference: row.Booking || '', // From "Booking" column - useful for API
-        documentId: row.Document || '', // From "Document" column - waiver ID
-        fullName: normalizeName(row.Name || ''), // From "Name" column - normalized
-        age: row.Age || '',
-        email: normalizeEmail(row.Email || ''), // Normalized email
-        phone: normalizePhone(row['Phone Number'] || ''), // Normalized phone
-        accommodations: row.Accomodations || row.Accommodations || '', // Note: CSV has "Accomodations" (misspelled)
-        certificationLevel: row['Certification Level'] || 'Unknown',
-        certificationAgency: row['Certification Agency and Number'] || '',
+        bookingReference: getFirst(row, ['Booking', 'booking_id', 'Booking ID']),
+        documentId: getFirst(row, ['Document', 'document_id', 'Document ID']),
+        fullName: normalizeName(getFirst(row, ['Name', 'Full Name', 'Participants Name', 'Participant Name'])),
+        age: getFirst(row, ['Age']),
+        email: normalizeEmail(getFirst(row, ['Email', 'Primary Email', 'Email Address'])),
+        phone: normalizePhone(getFirst(row, ['Phone Number', 'Phone'])),
+        accommodations: getFirst(row, ['Accomodations', 'Accommodations', 'Accommodation Details']),
+        certificationLevel: getFirst(row, ['Certification Level']) || 'Unknown',
+        certificationAgency: getFirst(row, ['Certification Agency and Number']),
         nitroxCertified: parseNitroxCertified(row),
         equipmentNeeded: parseEquipmentNeeds(row),
-        specialRequirements: parseSpecialRequirements(row),
-        lastDiveDate: row['Date of Last Dive'] || '',
-        totalDives: row['Number of Dives in your Lifetime'] || '',
+        specialRequirements: getFirst(row, [
+          'Is there anything else you would like for us to know?',
+          'Are you a comfortable swimmer? Anything else we need to know?',
+        ]),
+        lastDiveDate: getFirst(row, ['Date of Last Dive']),
+        totalDives: getFirst(row, ['Number of Dives in your Lifetime']),
         createdAt: new Date(),
         updatedAt: new Date(),
-        csvCreatedDate: row['Created Date'] || row.Created || '', // For duplicate comparison
+        csvCreatedDate: getFirst(row, ['Created Date', 'Created']),
       };
 
       const customer: Customer = {

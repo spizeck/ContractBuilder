@@ -47,3 +47,7 @@ next-env.d.ts
 # Ignore Visual Studio Code settings which include launch and tasks
 .vscode-test/
 firestore-debug.log
+
+# Checkfront waiver export automation
+/tools/checkfront/storageState.json
+/tools/checkfront/downloads/
