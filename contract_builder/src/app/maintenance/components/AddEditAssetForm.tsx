@@ -20,7 +20,8 @@ import {
 import { useEffect, useState } from "react";
 import { addAsset, updateAsset, getAssets } from "@/services/assets";
 import { Asset, ServiceTracking, AssetCategory } from "@/types/maintenance";
-import { toInputDate } from "@/utils/formatters";
+import { toInputDate, parseDateOnly } from "@/utils/formatters";
+import CustomDatePicker from "@/components/DatePicker";
 
 // Props
 interface Props {
@@ -363,21 +364,15 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
                 />
                 <FormControl>
                   <FormLabel>Next Service Due (date)</FormLabel>
-                  <Input
-                    type="date"
-                    value={
-                      form.nextServiceDueDate
-                        ? toInputDate(new Date(form.nextServiceDueDate))
-                        : ""
-                    }
-                    onChange={(e) =>
+                  <CustomDatePicker
+                    selected={form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : null}
+                    onChange={(date) => {
                       setForm({
                         ...form,
-                        nextServiceDueDate: e.target.value
-                          ? new Date(e.target.value)
-                          : undefined,
-                      })
-                    }
+                        nextServiceDueDate: date || undefined,
+                      });
+                    }}
+                    placeholder="Select next service due date"
                   />
                 </FormControl>
               </>
@@ -386,21 +381,15 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
             {/* Last service date */}
             <FormControl>
               <FormLabel>Last Service Date</FormLabel>
-              <Input
-                type="date"
-                value={
-                  form.lastServiceDate
-                    ? toInputDate(new Date(form.lastServiceDate))
-                    : ""
-                }
-                onChange={(e) =>
+              <CustomDatePicker
+                selected={form.lastServiceDate ? new Date(form.lastServiceDate) : null}
+                onChange={(date) => {
                   setForm({
                     ...form,
-                    lastServiceDate: e.target.value
-                      ? new Date(e.target.value)
-                      : undefined,
-                  })
-                }
+                    lastServiceDate: date || undefined,
+                  });
+                }}
+                placeholder="Select last service date"
               />
             </FormControl>
 

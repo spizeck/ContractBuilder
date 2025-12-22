@@ -22,7 +22,7 @@ export function parseFocRule(rule?: string): { paid: number; free: number } {
   };
 }
 
-function parseDateOnly(dateStr: string): Date {
+export function parseDateOnly(dateStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day); // Local midnight, no UTC shift
 }
