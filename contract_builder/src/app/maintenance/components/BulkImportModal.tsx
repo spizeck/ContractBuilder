@@ -28,7 +28,7 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import Papa from "papaparse";
-import { addAsset, linkAssets } from "@/services/assets";
+import { addAsset, linkAssets, getAssets } from "@/services/assets";
 import type { Asset } from "@/types/maintenance";
 
 interface ImportRow {
@@ -60,6 +60,26 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
+
+  // Parse various date formats (M-D-YY, MM-DD-YYYY, etc.) to Date object
+  const parseDateString = (dateStr: string): Date => {
+    if (!dateStr) return new Date();
+    
+    // Handle M-D-YY format (e.g., "3-12-18")
+    const mdyyMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
+    if (mdyyMatch) {
+      const month = parseInt(mdyyMatch[1]) - 1; // JS months are 0-indexed
+      const day = parseInt(mdyyMatch[2]);
+      let year = parseInt(mdyyMatch[3]);
+      // Convert 2-digit year to 4-digit year (assuming 2000s)
+      year += year < 50 ? 2000 : 1900;
+      return new Date(year, month, day);
+    }
+    
+    // Handle standard format or let Date constructor handle it
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? new Date() : date;
+  };
 
   const generateTemplate = () => {
     const template = [
@@ -296,6 +316,21 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
     setImportProgress(0);
 
     try {
+      // Fetch all existing assets to handle linking to existing parents
+      const existingAssets = await getAssets();
+      const existingParentMap: Map<string, string> = new Map();
+      
+      // Build name-to-id map for existing assets (prioritize parent assets)
+      existingAssets.forEach(asset => {
+        if (!asset.parentAssetId) { // Only consider root assets as potential parents
+          if (existingParentMap.has(asset.name)) {
+            console.warn(`Duplicate parent asset name found: "${asset.name}". Using first occurrence.`);
+          } else {
+            existingParentMap.set(asset.name, asset.id);
+          }
+        }
+      });
+
       // First pass: create all parent assets
       const parentAssets: Map<string, string> = new Map(); // name -> id
       const childAssets: ImportRow[] = [];
@@ -329,10 +364,10 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
             (assetData as any).serviceIntervalKilometers = row.serviceIntervalKilometers;
           }
           if (row.lastServiceDate) {
-            (assetData as any).lastServiceDate = new Date(row.lastServiceDate);
+            (assetData as any).lastServiceDate = parseDateString(row.lastServiceDate);
           }
           if (row.nextServiceDueDate) {
-            (assetData as any).nextServiceDueDate = new Date(row.nextServiceDueDate);
+            (assetData as any).nextServiceDueDate = parseDateString(row.nextServiceDueDate);
           }
           if (row.metadata) {
             try {
@@ -368,7 +403,8 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
           continue;
         }
         
-        const parentId = parentAssets.get(row.parentAssetName ?? "");
+        const parentId = parentAssets.get(row.parentAssetName ?? "") || 
+                     existingParentMap.get(row.parentAssetName ?? "");
         
         if (!parentId) {
           console.warn(`Parent asset "${row.parentAssetName}" not found for child "${row.name}"`);
@@ -398,10 +434,10 @@ export default function BulkImportModal({ isOpen, onClose, onImportComplete }: B
           (assetData as any).serviceIntervalKilometers = row.serviceIntervalKilometers;
         }
         if (row.lastServiceDate) {
-          (assetData as any).lastServiceDate = new Date(row.lastServiceDate);
+          (assetData as any).lastServiceDate = parseDateString(row.lastServiceDate);
         }
         if (row.nextServiceDueDate) {
-          (assetData as any).nextServiceDueDate = new Date(row.nextServiceDueDate);
+          (assetData as any).nextServiceDueDate = parseDateString(row.nextServiceDueDate);
         }
         if (row.metadata) {
           try {

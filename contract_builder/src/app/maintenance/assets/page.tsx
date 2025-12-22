@@ -53,6 +53,7 @@ export default function AssetsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [collapsedParents, setCollapsedParents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadAssets();
@@ -62,7 +63,6 @@ export default function AssetsPage() {
     setLoading(true);
     try {
       const data = await getAssets();
-      console.log('Loaded assets:', data.length, data.map(a => ({ id: a.id, name: a.name, category: a.category, active: a.active })));
       setAssets(data);
     } finally {
       setLoading(false);
@@ -81,7 +81,32 @@ export default function AssetsPage() {
     return list;
   }, [assets, categoryFilter, searchQuery]);
 
-  // Group by parentAssetId to restore parent/child rendering and markers
+  // Natural sort function for numeric strings like "Air 11", "Air 156"
+const naturalSort = (a: string, b: string): number => {
+  const regex = /(\d+)|(\D+)/g;
+  const aParts = a.match(regex) || [];
+  const bParts = b.match(regex) || [];
+  
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || '';
+    const bPart = bParts[i] || '';
+    
+    if (aPart === bPart) continue;
+    
+    const aNum = parseInt(aPart, 10);
+    const bNum = parseInt(bPart, 10);
+    
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
+    }
+    
+    return aPart.localeCompare(bPart);
+  }
+  
+  return 0;
+};
+
+// Group by parentAssetId to restore parent/child rendering and markers
   const groupedAssets = useMemo(() => {
     const map: Record<string, Asset[]> = {};
     for (const a of filtered) {
@@ -89,8 +114,8 @@ export default function AssetsPage() {
       if (!map[key]) map[key] = [];
       map[key].push(a);
     }
-    // Sort siblings by name for stable ordering
-    Object.keys(map).forEach((k) => map[k].sort((a, b) => a.name.localeCompare(b.name)));
+    // Sort siblings by name for stable ordering using natural sort
+    Object.keys(map).forEach((k) => map[k].sort((a, b) => naturalSort(a.name, b.name)));
     return map;
   }, [filtered]);
 
@@ -101,7 +126,7 @@ export default function AssetsPage() {
       const ca = CATEGORY_ORDER[a.category];
       const cb = CATEGORY_ORDER[b.category];
       if (ca !== cb) return ca - cb;
-      return a.name.localeCompare(b.name);
+      return naturalSort(a.name, b.name);
     });
   }, [groupedAssets]);
 
@@ -110,6 +135,18 @@ export default function AssetsPage() {
     await deleteAsset(id);
     loadAssets();
   }
+
+  const toggleParentCollapse = (parentId: string) => {
+    setCollapsedParents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(parentId)) {
+        newSet.delete(parentId);
+      } else {
+        newSet.add(parentId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <Box display="flex" flexDirection="column" height="100%" p={6} overflow="hidden">
@@ -204,6 +241,8 @@ export default function AssetsPage() {
                     onDelete={handleDelete}
                     level={0}
                     inheritedCategory={undefined}
+                    collapsedParents={collapsedParents}
+                    onToggleCollapse={toggleParentCollapse}
                   />
                 ))}
               </Tbody>
@@ -242,6 +281,8 @@ function ParentRow({
   onDelete,
   level = 0,
   inheritedCategory,
+  collapsedParents,
+  onToggleCollapse,
 }: {
   asset: Asset;
   groupedAssets: Record<string, Asset[]>;
@@ -249,15 +290,33 @@ function ParentRow({
   onDelete: (id: string) => void;
   level?: number;
   inheritedCategory?: AssetCategory;
+  collapsedParents: Set<string>;
+  onToggleCollapse: (parentId: string) => void;
 }) {
   const displayCategory: AssetCategory = inheritedCategory ?? asset.category;
+  const hasChildren = groupedAssets[asset.id]?.length > 0;
+  const isCollapsed = collapsedParents.has(asset.id);
 
   return (
     <>
       <Tr>
         <Td style={{ paddingLeft: `${level * 20}px` }}>
-          {level > 0 && "↳ "}
-          {asset.name}
+          <Box display="flex" alignItems="center" gap={1}>
+            {hasChildren && (
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={() => onToggleCollapse(asset.id)}
+                p={1}
+                minW={4}
+                h={4}
+              >
+                {isCollapsed ? "▶" : "▼"}
+              </Button>
+            )}
+            {!hasChildren && level > 0 && <span style={{ marginRight: "4px" }}>↳</span>}
+            <span>{asset.name}</span>
+          </Box>
         </Td>
         <Td>{displayCategory}</Td>
         <Td>{asset.active ? "Yes" : "No"}</Td>
@@ -274,7 +333,7 @@ function ParentRow({
         </Td>
       </Tr>
 
-      {(groupedAssets[asset.id] || []).map((child) => (
+      {!isCollapsed && (groupedAssets[asset.id] || []).map((child) => (
         <ParentRow
           key={child.id}
           asset={child}
@@ -283,6 +342,8 @@ function ParentRow({
           onDelete={onDelete}
           level={level + 1}
           inheritedCategory={displayCategory}
+          collapsedParents={collapsedParents}
+          onToggleCollapse={onToggleCollapse}
         />
       ))}
     </>
