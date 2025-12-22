@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -43,6 +43,30 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("30days");
   const [periodTrends, setPeriodTrends] = useState<TemperatureTrend[]>(trends);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          setContainerReady(true);
+          resizeObserver.disconnect();
+        }
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [mounted]);
 
   useEffect(() => {
     const fetchPeriodData = async () => {
@@ -259,7 +283,7 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
   };
 
   return (
-    <Card>
+    <Card minH="500px">
       <CardHeader>
         <ChartHeader
           title="Temperature Trends"
@@ -306,13 +330,14 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
         </HStack>
 
         {/* Line Chart */}
-        <Box h="300px" w="full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+        <Box h="300px" w="full" minW="0" position="relative" mb={8} ref={containerRef}>
+          {mounted && containerReady ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
+              >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chakra-colors-border)" />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 12 }}
@@ -337,17 +362,22 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
                 yAxisId="celsius"
                 type="monotone"
                 dataKey="temperature"
-                stroke="#ed8936"
+                stroke="var(--chakra-colors-orange-500)"
                 strokeWidth={3}
                 dot={false}
                 activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
+          ) : (
+            <Box display="flex" justifyContent="center" alignItems="center" h="300px">
+              <Spinner color="warning" />
+            </Box>
+          )}
         </Box>
 
         {/* Temperature Insights */}
-        <Box mt={6} p={4} bg="temperatureInsights" borderRadius="md">
+        <Box mt={8} p={4} bg="temperatureInsights" borderRadius="md">
           <Text fontSize="sm" fontWeight="medium" color="textPrimary" mb={2}>
             Temperature Insights
           </Text>
