@@ -45,6 +45,7 @@ import { MaintenanceLog, Asset } from "@/types/maintenance";
 import { Technician } from "@/types/maintenance";
 import { formatDate, formatNumber, formatCurrency } from "@/utils/formatters";
 import { useAuth } from "@/context/AuthContext"; // << added
+import BulkImportLogModal from "@/app/maintenance/components/BulkImportLogModal";
 
 export default function MaintenanceLogsPage() {
   const [logs, setLogs] = useState<MaintenanceLog[]>([]);
@@ -61,6 +62,7 @@ export default function MaintenanceLogsPage() {
     onClose: onCloseDelete,
   } = useDisclosure();
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
   const toast = useToast();
   const router = useRouter();
@@ -154,6 +156,9 @@ export default function MaintenanceLogsPage() {
       <HStack mb={4}>
         <Button colorScheme="blue" onClick={() => openAddForAsset(null)}>
           Add Log
+        </Button>
+        <Button colorScheme="teal" onClick={() => setIsBulkImportOpen(true)}>
+          Bulk Import Logs
         </Button>
       </HStack>
 
@@ -377,6 +382,12 @@ export default function MaintenanceLogsPage() {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
+      
+      <BulkImportLogModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        onImportComplete={() => window.location.reload()}
+      />
     </Box>
   );
 }

@@ -34,11 +34,14 @@ export default function CustomDatePicker({
       calendarClassName="chakra-datepicker-calendar"
       withPortal
       portalId="date-picker-portal"
+      showYearDropdown
+      scrollableYearDropdown
+      yearDropdownItemNumber={15}
     />
   );
 }
 
-// Simple Chakra-compatible styles
+// Simple Chakra-compatible styles using proper semantic tokens
 const chakraDatePickerStyles = `
   .chakra-input {
     width: 100%;
@@ -85,6 +88,7 @@ const chakraDatePickerStyles = `
   
   .chakra-datepicker-calendar .react-datepicker__day:hover {
     background-color: var(--chakra-colors-chakra-subtle-bg);
+    color: var(--chakra-colors-chakra-body-text);
   }
   
   .chakra-datepicker-calendar .react-datepicker__day--selected {
@@ -99,6 +103,7 @@ const chakraDatePickerStyles = `
   
   .chakra-datepicker-calendar .react-datepicker__day--today {
     background-color: var(--chakra-colors-chakra-muted-bg);
+    color: var(--chakra-colors-chakra-body-text);
     font-weight: var(--chakra-fontWeights-semibold);
   }
   
@@ -108,6 +113,32 @@ const chakraDatePickerStyles = `
   
   .chakra-datepicker-calendar .react-datepicker__navigation:hover {
     color: var(--chakra-colors-chakra-body-text);
+  }
+  
+  /* Dark mode fixes - use actual Chakra color variables */
+  [data-theme="dark"] .chakra-datepicker-calendar .react-datepicker__day,
+  .dark .chakra-datepicker-calendar .react-datepicker__day {
+    color: var(--chakra-colors-gray-200) !important;
+  }
+  
+  [data-theme="dark"] .chakra-datepicker-calendar .react-datepicker__day:hover,
+  .dark .chakra-datepicker-calendar .react-datepicker__day:hover {
+    color: var(--chakra-colors-gray-200) !important;
+  }
+  
+  [data-theme="dark"] .chakra-datepicker-calendar .react-datepicker__day--today,
+  .dark .chakra-datepicker-calendar .react-datepicker__day--today {
+    color: var(--chakra-colors-gray-100) !important;
+  }
+  
+  [data-theme="dark"] .chakra-datepicker-calendar .react-datepicker__navigation,
+  .dark .chakra-datepicker-calendar .react-datepicker__navigation {
+    color: var(--chakra-colors-gray-400) !important;
+  }
+  
+  [data-theme="dark"] .chakra-datepicker-calendar .react-datepicker__navigation:hover,
+  .dark .chakra-datepicker-calendar .react-datepicker__navigation:hover {
+    color: var(--chakra-colors-gray-200) !important;
   }
 `;
 

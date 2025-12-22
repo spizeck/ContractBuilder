@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { naturalSort } from "../dashboard/hooks/useMaintenanceSearch";
 import {
   Box,
   Spinner,
@@ -80,31 +81,6 @@ export default function AssetsPage() {
     }
     return list;
   }, [assets, categoryFilter, searchQuery]);
-
-  // Natural sort function for numeric strings like "Air 11", "Air 156"
-const naturalSort = (a: string, b: string): number => {
-  const regex = /(\d+)|(\D+)/g;
-  const aParts = a.match(regex) || [];
-  const bParts = b.match(regex) || [];
-  
-  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-    const aPart = aParts[i] || '';
-    const bPart = bParts[i] || '';
-    
-    if (aPart === bPart) continue;
-    
-    const aNum = parseInt(aPart, 10);
-    const bNum = parseInt(bPart, 10);
-    
-    if (!isNaN(aNum) && !isNaN(bNum)) {
-      return aNum - bNum;
-    }
-    
-    return aPart.localeCompare(bPart);
-  }
-  
-  return 0;
-};
 
 // Group by parentAssetId to restore parent/child rendering and markers
   const groupedAssets = useMemo(() => {

@@ -13,8 +13,7 @@ import {
 import { db } from "@/lib/firebase";
 import type { Asset, Technician, MaintenanceLog } from "@/types/maintenance";
 
-// Natural sort function for numeric strings like "Air 11", "Air 156"
-const naturalSort = (a: string, b: string): number => {
+export const naturalSort = (a: string, b: string): number => {
   const regex = /(\d+)|(\D+)/g;
   const aParts = a.match(regex) || [];
   const bParts = b.match(regex) || [];
@@ -91,7 +90,7 @@ export function useMaintenanceData(params: {
       (snap) => {
         const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Technician[];
         setTechnicians(
-          items.sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          items.sort((a, b) => naturalSort(a.name || "", b.name || ""))
         );
         setLoading(false);
       },

@@ -32,7 +32,6 @@ coverage/
 *.lcov
 
 # Logs - SECURITY RISK
-logs
 *.log
 
 # Cache

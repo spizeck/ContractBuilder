@@ -13,6 +13,7 @@ import {
   Button,
   HStack,
 } from "@chakra-ui/react";
+import { naturalSort } from "../hooks/useMaintenanceSearch";
 import type { Asset, AssetCategory } from "@/types/maintenance";
 import {
   getTrackingLabel,
@@ -65,7 +66,7 @@ export default function CategoryPanels({
       map[key].push(a);
     }
     // Sort siblings by name for stable display
-    Object.keys(map).forEach((k) => map[k].sort((a, b) => a.name.localeCompare(b.name)));
+    Object.keys(map).forEach((k) => map[k].sort((a, b) => naturalSort(a.name, b.name)));
     return map;
   }, [assets]);
 
@@ -76,7 +77,7 @@ export default function CategoryPanels({
       const ca = CATEGORY_ORDER[a.category];
       const cb = CATEGORY_ORDER[b.category];
       if (ca !== cb) return ca - cb;
-      return a.name.localeCompare(b.name);
+      return naturalSort(a.name, b.name);
     });
   }, [grouped]);
 
