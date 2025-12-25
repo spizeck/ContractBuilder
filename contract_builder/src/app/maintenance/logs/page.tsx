@@ -43,7 +43,8 @@ import { getAssets } from "@/services/assets";
 import { getTechnicians } from "@/services/technicians";
 import { MaintenanceLog, Asset } from "@/types/maintenance";
 import { Technician } from "@/types/maintenance";
-import { formatDate, formatNumber, formatCurrency } from "@/utils/formatters";
+import { formatNumber, formatCurrency } from "@/utils/formatters";
+import { formatDate } from "@/utils/datetime";
 import { useAuth } from "@/context/AuthContext"; // << added
 
 export default function MaintenanceLogsPage() {

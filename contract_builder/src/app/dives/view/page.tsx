@@ -40,7 +40,7 @@ import { formatDiveValue } from '@/utils/formatDiveValue'
 import { useAuth } from '@/context/AuthContext'
 import { getSpecies } from '@/services/species'
 import DiveActions from '../components/diveForm/DiveActions'
-import { formatDiveDate } from '@/utils/dateUtils'
+import { formatDiveDate } from "@/utils/datetime";
 
 export default function ViewDivesPage () {
   const { user, role } = useAuth()

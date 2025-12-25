@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { addSeason, updateSeason } from "@/services/seasons";
-import { parseDateStringAsUTC } from "@/utils/dateUtils";
+import { parseDateStringAsUTC } from "@/utils/datetime";
 import { Season } from "@/types/contractTypes";
 import { ensureRatesForSeason } from "@/services/rateSync";
 

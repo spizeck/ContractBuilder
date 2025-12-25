@@ -22,7 +22,7 @@ import {
   deleteContractNote,
 } from "@/services/payments";
 import { ContractNote } from "@/types/contractTypes";
-import { formatDateTime } from "@/utils/dateHelpers";
+import { formatDateTime } from "@/utils/datetime";
 
 interface ContractNotesProps {
   contractId: string;

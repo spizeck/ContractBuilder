@@ -21,7 +21,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import type { SiteVisitationData } from "@/types/dashboard";
-import { formatDiveDate } from "@/utils/dateUtils";
+import { formatDiveDate } from "@/utils/datetime";
 import { getSiteVisitation } from "@/services/diveDashboard";
 import ChartHeader from "./ChartHeader";
 

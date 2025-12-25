@@ -12,7 +12,7 @@ import { getTechnicians } from "@/services/technicians"
 import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
 import { MaintenanceLogForm } from '@/types/formTypes'
 import { useAuth } from '@/context/AuthContext'
-import { toInputDate } from '@/utils/formatters'
+import { toInputDate } from "@/utils/datetime";
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()

@@ -17,7 +17,7 @@ import {
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
 import { Payment } from '@/types/contractTypes'
 import { getPayments, deletePayment } from '@/services/payments'
-import { formatDateTime } from '@/utils/dateHelpers'
+import { formatDateTime } from "@/utils/datetime";
 import { formatCurrency, roundToCents } from '@/utils/formatters'
 
 interface PaymentHistoryProps {

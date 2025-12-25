@@ -20,7 +20,7 @@ import { ChevronDownIcon } from '@chakra-ui/icons'
 import { getRoomCategories } from '@/services/roomCategories'
 import { getRates } from '@/services/rates'
 import { getSeasons } from '@/services/seasons'
-import { parseDateStringAsUTC } from '@/utils/dateUtils'
+import { parseDateStringAsUTC } from "@/utils/datetime";
 import { getRoomTypes } from '@/services/roomTypes'
 import { Rate, RoomCategory, RoomType, Season } from '@/types/contractTypes'
 

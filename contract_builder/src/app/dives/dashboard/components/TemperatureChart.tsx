@@ -19,7 +19,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import type { TemperatureTrend } from "@/types/dashboard";
-import { formatDiveDate } from "@/utils/dateUtils";
+import { formatDiveDate } from "@/utils/datetime";
 import {
   LineChart,
   Line,

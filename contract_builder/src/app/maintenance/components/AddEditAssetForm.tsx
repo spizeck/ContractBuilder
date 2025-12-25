@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { addAsset, updateAsset, getAssets } from "@/services/assets";
 import { Asset, ServiceTracking, AssetCategory } from "@/types/maintenance";
-import { toInputDate } from "@/utils/formatters";
+import { toInputDate } from "@/utils/datetime";
 
 // Props
 interface Props {

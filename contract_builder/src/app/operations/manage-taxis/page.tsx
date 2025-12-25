@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -18,112 +18,114 @@ import {
   useToast,
   Badge,
   Text,
-  IconButton
-} from '@chakra-ui/react'
-import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
-import { Taxi } from '@/types/taxiTypes'
-import { taxiService } from '@/services/taxis'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
-import AddEditTaxiForm from '../components/AddEditTaxiForm'
+  IconButton,
+} from "@chakra-ui/react";
+import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { Taxi } from "@/types/taxiTypes";
+import { taxiService } from "@/services/taxis";
+import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
+import AddEditTaxiForm from "../components/AddEditTaxiForm";
 
 export default function ManageTaxisPage() {
-  const [taxis, setTaxis] = useState<Taxi[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editingTaxi, setEditingTaxi] = useState<Taxi | null>(null)
-  const [showForm, setShowForm] = useState(false)
-  const toast = useToast()
+  const [taxis, setTaxis] = useState<Taxi[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingTaxi, setEditingTaxi] = useState<Taxi | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
-    fetchTaxis()
-  }, [])
+    fetchTaxis();
+  }, []);
 
   async function fetchTaxis() {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await taxiService.getAllTaxis()
-      setTaxis(data.sort((a, b) => a.name.localeCompare(b.name)))
+      const data = await taxiService.getAllTaxis();
+      setTaxis(data.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       toast({
-        title: 'Error loading taxis',
-        description: 'Failed to fetch taxis',
-        status: 'error',
+        title: "Error loading taxis",
+        description: "Failed to fetch taxis",
+        status: "error",
         duration: 3000,
         isClosable: true,
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  async function handleSave(data: Omit<Taxi, 'id' | 'createdAt' | 'updatedAt'>) {
+  async function handleSave(
+    data: Omit<Taxi, "id" | "createdAt" | "updatedAt">
+  ) {
     try {
       if (editingTaxi) {
-        await taxiService.updateTaxi(editingTaxi.id, data)
+        await taxiService.updateTaxi(editingTaxi.id, data);
         toast({
-          title: 'Taxi updated',
+          title: "Taxi updated",
           description: `${data.name} has been updated successfully`,
-          status: 'success',
+          status: "success",
           duration: 3000,
           isClosable: true,
-        })
+        });
       } else {
-        await taxiService.addTaxi(data)
+        await taxiService.addTaxi(data);
         toast({
-          title: 'Taxi added',
+          title: "Taxi added",
           description: `${data.name} has been added successfully`,
-          status: 'success',
+          status: "success",
           duration: 3000,
           isClosable: true,
-        })
+        });
       }
-      setShowForm(false)
-      setEditingTaxi(null)
-      await fetchTaxis()
+      setShowForm(false);
+      setEditingTaxi(null);
+      await fetchTaxis();
     } catch (error) {
       toast({
-        title: 'Error saving taxi',
-        description: 'Failed to save taxi',
-        status: 'error',
+        title: "Error saving taxi",
+        description: "Failed to save taxi",
+        status: "error",
         duration: 3000,
         isClosable: true,
-      })
+      });
     }
   }
 
   async function handleDelete(taxi: Taxi) {
     if (!confirm(`Are you sure you want to remove ${taxi.name}?`)) {
-      return
+      return;
     }
 
     try {
-      await taxiService.deleteTaxi(taxi.id)
+      await taxiService.deleteTaxi(taxi.id);
       toast({
-        title: 'Taxi removed',
+        title: "Taxi removed",
         description: `${taxi.name} has been removed`,
-        status: 'success',
+        status: "success",
         duration: 3000,
         isClosable: true,
-      })
-      await fetchTaxis()
+      });
+      await fetchTaxis();
     } catch (error) {
       toast({
-        title: 'Error removing taxi',
-        description: 'Failed to remove taxi',
-        status: 'error',
+        title: "Error removing taxi",
+        description: "Failed to remove taxi",
+        status: "error",
         duration: 3000,
         isClosable: true,
-      })
+      });
     }
   }
 
   function handleEdit(taxi: Taxi) {
-    setEditingTaxi(taxi)
-    setShowForm(true)
+    setEditingTaxi(taxi);
+    setShowForm(true);
   }
 
   function handleAddNew() {
-    setEditingTaxi(null)
-    setShowForm(true)
+    setEditingTaxi(null);
+    setShowForm(true);
   }
 
   if (showForm) {
@@ -135,13 +137,13 @@ export default function ManageTaxisPage() {
             taxi={editingTaxi || undefined}
             onSave={handleSave}
             onCancel={() => {
-              setShowForm(false)
-              setEditingTaxi(null)
+              setShowForm(false);
+              setEditingTaxi(null);
             }}
           />
         </VStack>
       </ProtectedPage>
-    )
+    );
   }
 
   return (
@@ -149,7 +151,11 @@ export default function ManageTaxisPage() {
       <VStack spacing={6} align="stretch">
         <HStack justify="space-between" align="center">
           <Heading>Taxi Management</Heading>
-          <Button leftIcon={<FiPlus />} colorScheme="teal" onClick={handleAddNew}>
+          <Button
+            leftIcon={<FiPlus />}
+            colorScheme="teal"
+            onClick={handleAddNew}
+          >
             Add Taxi
           </Button>
         </HStack>
@@ -161,7 +167,12 @@ export default function ManageTaxisPage() {
         ) : taxis.length === 0 ? (
           <Box textAlign="center" py={8}>
             <Text color="textMuted">No taxis found</Text>
-            <Button mt={4} leftIcon={<FiPlus />} colorScheme="teal" onClick={handleAddNew}>
+            <Button
+              mt={4}
+              leftIcon={<FiPlus />}
+              colorScheme="teal"
+              onClick={handleAddNew}
+            >
               Add First Taxi
             </Button>
           </Box>
@@ -184,22 +195,26 @@ export default function ManageTaxisPage() {
                   <Tr key={taxi.id}>
                     <Td fontWeight="bold">{taxi.name}</Td>
                     <Td>
-                      <Badge colorScheme="blue">{taxi.capacity} passengers</Badge>
+                      <Badge colorScheme="blue">
+                        {taxi.capacity} passengers
+                      </Badge>
                     </Td>
                     <Td>
                       <Badge colorScheme="purple">{taxi.priority ?? 100}</Badge>
                     </Td>
-                    <Td>{taxi.driverName || 'Not assigned'}</Td>
+                    <Td>{taxi.driverName || "Not assigned"}</Td>
                     <Td>
                       {taxi.driverContact ? (
                         <Text fontSize="sm">{taxi.driverContact}</Text>
                       ) : (
-                        <Text fontSize="sm" color="textMuted">No contact</Text>
+                        <Text fontSize="sm" color="textMuted">
+                          No contact
+                        </Text>
                       )}
                     </Td>
                     <Td>
-                      <Badge colorScheme={taxi.active ? 'green' : 'red'}>
-                        {taxi.active ? 'Active' : 'Inactive'}
+                      <Badge colorScheme={taxi.active ? "green" : "red"}>
+                        {taxi.active ? "Active" : "Inactive"}
                       </Badge>
                     </Td>
                     <Td>
@@ -229,5 +244,5 @@ export default function ManageTaxisPage() {
         )}
       </VStack>
     </ProtectedPage>
-  )
+  );
 }

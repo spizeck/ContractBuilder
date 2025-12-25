@@ -39,7 +39,8 @@ import {
   getCommissionRate,
   getOccupancyNumber,
 } from "@/utils/contractCalculations";
-import { formatCurrency, formatDate, parseFocRule } from "@/utils/formatters";
+import { formatCurrency, parseFocRule } from "@/utils/formatters";
+import { formatDate } from "@/utils/datetime";
 import { getRoomTypes } from "@/services/roomTypes";
 
 export default function TotalCostCalculation({

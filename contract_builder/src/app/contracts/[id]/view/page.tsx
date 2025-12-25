@@ -19,9 +19,9 @@ import { getHotelById } from '@/services/hotels'
 import { GroupContract, Hotel } from '@/types/contractTypes'
 import {
   formatCurrency,
-  formatDateRange,
   formatFocRule
 } from '@/utils/formatters'
+import { formatDateRange } from '@/utils/datetime'
 import { getCommissionRate } from '@/utils/contractCalculations'
 import SignedContractUpload from '../../components/SignedContractUpload'
 import { useAuth } from '@/context/AuthContext'

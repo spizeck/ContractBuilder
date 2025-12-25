@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Customer } from '@/types/manifestTypes';
+import { processBatchImport, type CustomerWithCsvDate } from '@/utils/parsers';
 
 const CUSTOMERS_COLLECTION = 'customers';
 
@@ -90,67 +91,23 @@ export const customerService = {
   },
 
   // Batch import customers with duplicate prevention (for CSV import)
-  async batchImportCustomers(customers: Array<Omit<Customer, 'id' | 'createdAt' | 'updatedAt'> & { csvCreatedDate?: string }>): Promise<{ created: number, updated: number, duplicates: number }> {
+  async batchImportCustomers(customers: Array<CustomerWithCsvDate>): Promise<{ created: number, updated: number, duplicates: number }> {
     try {
       console.log('Starting batch import of', customers.length, 'customers with deduplication');
-      let created = 0;
-      let updated = 0;
-      let duplicates = 0;
       
       // Get all existing customers for duplicate checking
       const existingCustomers = await this.getAllCustomers();
-      const existingByDocumentId = new Map(existingCustomers.map(c => [c.documentId, c]));
       
-      for (const customerData of customers) {
-        const { csvCreatedDate, ...customerFields } = customerData;
-        
-        // Check for duplicates by documentId ONLY (booking refs can have multiple customers)
-        const existingCustomer = existingByDocumentId.get(customerFields.documentId);
-        
-        if (existingCustomer) {
-          // Compare dates to determine which is more recent
-          const existingDate = existingCustomer.createdAt;
-          const csvDate = csvCreatedDate ? new Date(csvCreatedDate) : null;
-          
-          let shouldUpdate = false;
-          
-          if (csvDate && existingDate) {
-            // Use CSV date if it's newer than existing
-            shouldUpdate = csvDate > existingDate;
-          } else if (csvDate) {
-            // If we have CSV date but no existing date, use CSV
-            shouldUpdate = true;
-          } else {
-            // If no CSV date, don't update existing
-            shouldUpdate = false;
-            duplicates++;
-          }
-          
-          if (shouldUpdate) {
-            await this.updateCustomer(existingCustomer.id, {
-              ...customerFields,
-              // Keep the original ID but update everything else
-            });
-            updated++;
-            console.log(`Updated existing customer: ${customerFields.fullName} (newer date: ${csvDate})`);
-          } else {
-            duplicates++;
-            console.log(`Skipped duplicate customer: ${customerFields.fullName} (existing record is newer)`);
-          }
-        } else {
-          // Create new customer
-          await addDoc(collection(db, CUSTOMERS_COLLECTION), {
-            ...customerFields,
-            createdAt: csvCreatedDate ? new Date(csvCreatedDate) : serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-          created++;
-          console.log(`Created new customer: ${customerFields.fullName}`);
-        }
-      }
+      // Use the centralized batch import logic
+      const result = await processBatchImport(
+        customers,
+        existingCustomers,
+        (id: string, data: Partial<Customer>) => this.updateCustomer(id, data),
+        (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => this.addCustomer(data)
+      );
       
-      console.log(`Batch import completed: ${created} created, ${updated} updated, ${duplicates} skipped duplicates`);
-      return { created, updated, duplicates };
+      console.log(`Batch import completed: ${result.created} created, ${result.updated} updated, ${result.duplicates} duplicates skipped`);
+      return result;
     } catch (error) {
       console.error('Error in batch import:', error);
       throw error;

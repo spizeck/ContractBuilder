@@ -1,4 +1,4 @@
-import { parseDateStringAsUTC } from '@/utils/dateUtils'
+import { formatDiveDate, parseDateStringAsUTC } from "@/utils/datetime";
 import {
   ContractData,
   DivePackage,

@@ -22,7 +22,7 @@ import {
 import { getHotels } from "@/services/hotels";
 import { GroupContract, Hotel } from "@/types/contractTypes";
 import PaymentStatusBadge from "./PaymentStatusBadge";
-import { parseDate } from "@/utils/dateHelpers";
+import { formatDateTime, parseDate } from "@/utils/datetime";
 import PaymentDashboard from "./PaymentDashboard";
 import { formatCurrency } from "@/utils/formatters";
 

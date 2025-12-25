@@ -36,7 +36,7 @@ import {
   ImportJob, 
   EquipmentNeeds 
 } from "@/types/manifestTypes";
-import { parseCheckfrontCSV } from "@/utils/equipmentParser";
+import { parseCheckfrontCSV } from "@/utils/parsers";
 import { customerService } from "@/services/customers";
 import { normalizeName, normalizeEmail, normalizePhone } from "@/utils/stringUtils";
 

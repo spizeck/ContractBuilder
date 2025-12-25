@@ -3,7 +3,7 @@ import {formatInTimeZone} from "date-fns-tz";
 import {Button, HStack, Table, Tbody, Td, Th, Thead, Tr, VStack, Text} from "@chakra-ui/react";
 import {deleteSeason, getSeasons} from "@/services/seasons";
 import AddEditSeasonForm from "./AddEditSeasonForm";
-import { parseDateStringAsUTC } from "@/utils/dateUtils";
+import { parseDateStringAsUTC } from "@/utils/datetime";
 import {Season} from "@/types/contractTypes";
 
 export default function SeasonsList({

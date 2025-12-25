@@ -21,7 +21,7 @@ import {
   AlertIcon
 } from '@chakra-ui/react'
 import type { DailySiteMatrix } from '@/types/dashboard'
-import { formatDiveDate } from '@/utils/dateUtils'
+import { formatDiveDate } from "@/utils/datetime";
 
 interface SiteMatrixProps {
   siteMatrix: DailySiteMatrix[]

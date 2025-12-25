@@ -1,5 +1,6 @@
 import { EquipmentNeeds, EquipmentItem, Customer } from '@/types/manifestTypes';
 import { normalizeName, normalizeEmail, normalizePhone } from '@/utils/stringUtils';
+import { getFirstValue, calculateSimilarity } from './csvHelpers';
 
 // Equipment mapping objects for precise parsing
 const BCD_MAPPINGS: Record<string, string> = {
@@ -254,15 +255,6 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
     console.log('Available CSV columns:', Object.keys(csvData[0]));
   }
 
-  const getFirst = (row: Record<string, any>, keys: string[]): string => {
-    for (const k of keys) {
-      const v = row[k];
-      if (typeof v === 'string' && v.trim() !== '') return v;
-      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v);
-    }
-    return '';
-  };
-
   return csvData.map((row, index) => {
     try {
       console.log(`Processing row ${index + 1}:`, row);
@@ -277,26 +269,26 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
       // Map actual Checkfront columns to Customer fields with normalization
       const customerData = {
         id: `import-${Date.now()}-${index}`, // Generate unique ID
-        bookingReference: getFirst(row, ['Booking', 'booking_id', 'Booking ID']),
-        documentId: getFirst(row, ['Document', 'document_id', 'Document ID']),
-        fullName: normalizeName(getFirst(row, ['Name', 'Full Name', 'Participants Name', 'Participant Name'])),
-        age: getFirst(row, ['Age']),
-        email: normalizeEmail(getFirst(row, ['Email', 'Primary Email', 'Email Address'])),
-        phone: normalizePhone(getFirst(row, ['Phone Number', 'Phone'])),
-        accommodations: getFirst(row, ['Accomodations', 'Accommodations', 'Accommodation Details']),
-        certificationLevel: getFirst(row, ['Certification Level']) || 'Unknown',
-        certificationAgency: getFirst(row, ['Certification Agency and Number']),
+        bookingReference: getFirstValue(row, ['Booking', 'booking_id', 'Booking ID']),
+        documentId: getFirstValue(row, ['Document', 'document_id', 'Document ID']),
+        fullName: normalizeName(getFirstValue(row, ['Name', 'Full Name', 'Participants Name', 'Participant Name'])),
+        age: getFirstValue(row, ['Age']),
+        email: normalizeEmail(getFirstValue(row, ['Email', 'Primary Email', 'Email Address'])),
+        phone: normalizePhone(getFirstValue(row, ['Phone Number', 'Phone'])),
+        accommodations: getFirstValue(row, ['Accomodations', 'Accommodations', 'Accommodation Details']),
+        certificationLevel: getFirstValue(row, ['Certification Level']) || 'Unknown',
+        certificationAgency: getFirstValue(row, ['Certification Agency and Number']),
         nitroxCertified: parseNitroxCertified(row),
         equipmentNeeded: parseEquipmentNeeds(row),
-        specialRequirements: getFirst(row, [
+        specialRequirements: getFirstValue(row, [
           'Is there anything else you would like for us to know?',
           'Are you a comfortable swimmer? Anything else we need to know?',
         ]),
-        lastDiveDate: getFirst(row, ['Date of Last Dive']),
-        totalDives: getFirst(row, ['Number of Dives in your Lifetime']),
+        lastDiveDate: getFirstValue(row, ['Date of Last Dive']),
+        totalDives: getFirstValue(row, ['Number of Dives in your Lifetime']),
         createdAt: new Date(),
         updatedAt: new Date(),
-        csvCreatedDate: getFirst(row, ['Created Date', 'Created']),
+        csvCreatedDate: getFirstValue(row, ['Created Date', 'Created']),
       };
 
       const customer: Customer = {
