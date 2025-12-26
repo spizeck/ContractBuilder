@@ -1,30 +1,34 @@
 "use client";
 
+import { FiCalendar, FiTruck, FiUsers, FiExternalLink } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import {
   Box,
-  VStack,
-  HStack,
-  Heading,
-  Text,
   Button,
   Card,
   CardBody,
   SimpleGrid,
-  useToast,
-  Alert,
-  AlertIcon,
+  Text,
+  HStack,
+  Icon,
+  VStack,
+  Heading,
+  useToast
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { FiUpload, FiCalendar, FiUsers, FiTruck } from "react-icons/fi";
 import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
-import CustomerImport from "@/app/manifests/components/CustomerImport";
 import ManifestBoard from "@/app/manifests/components/ManifestBoard";
 import TaxiScheduler from "@/app/manifests/components/TaxiScheduler";
 import ManifestExport from "@/app/manifests/components/ManifestExport";
 
 export default function ManifestsPage() {
-  const [activeView, setActiveView] = useState<'import' | 'manifest' | 'taxi' | 'export'>('import');
+  const [activeView, setActiveView] = useState<'manifest' | 'taxi' | 'export'>('manifest');
   const toast = useToast();
+  const router = useRouter();
+
+  const handleGoToGuestManagement = () => {
+    router.push('/operations/guests');
+  };
 
   return (
     <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff']}>
@@ -36,22 +40,36 @@ export default function ManifestsPage() {
               Boat Manifests & Taxi Lists
             </Heading>
             <Text color="textMuted">
-              Import customer data, create dive assignments, and generate manifests with taxi schedules
+              Create dive assignments and generate manifests with taxi schedules
             </Text>
           </Box>
+
+          {/* Guest Management Link */}
+          <Card bg="cardBg">
+            <CardBody>
+              <HStack justify="space-between">
+                <Box>
+                  <Text fontWeight="bold">Guest Management</Text>
+                  <Text fontSize="sm" color="textMuted">
+                    Import and manage guest data, handle duplicates, and reconcile records
+                  </Text>
+                </Box>
+                <Button
+                  rightIcon={<FiExternalLink />}
+                  colorScheme="blue"
+                  variant="outline"
+                  onClick={handleGoToGuestManagement}
+                >
+                  Open Guest Management
+                </Button>
+              </HStack>
+            </CardBody>
+          </Card>
 
           {/* Navigation */}
           <Card bg="cardBg">
             <CardBody>
-              <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4}>
-                <Button
-                  leftIcon={<FiUpload />}
-                  variant={activeView === 'import' ? 'solid' : 'outline'}
-                  colorScheme="blue"
-                  onClick={() => setActiveView('import')}
-                >
-                  Import Customers
-                </Button>
+              <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={4}>
                 <Button
                   leftIcon={<FiCalendar />}
                   variant={activeView === 'manifest' ? 'solid' : 'outline'}
@@ -82,9 +100,6 @@ export default function ManifestsPage() {
 
           {/* Content Area */}
           <Box>
-            {activeView === 'import' && (
-              <CustomerImport />
-            )}
             {activeView === 'manifest' && (
               <ManifestBoard />
             )}

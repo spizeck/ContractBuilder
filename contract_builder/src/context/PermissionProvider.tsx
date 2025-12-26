@@ -65,6 +65,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           // Map legacy roles to new role system
           let mappedRole: UserRole = 'viewer';
           if (userData.role === 'admin') mappedRole = 'admin';
+          else if (userData.role === 'employee') mappedRole = 'employee';
           else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
           else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
           else if (userData.role === 'viewer') mappedRole = 'viewer';

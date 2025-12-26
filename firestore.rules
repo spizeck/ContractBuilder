@@ -7,54 +7,65 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    function isAdmin() {
-      return request.auth != null && getUserData().role == 'admin';
-    }
-
-    function isManagerOrAbove() {
-      return request.auth != null &&
-             (getUserData().role == 'admin' || getUserData().role == 'hotel-manager');
-    }
-
-    function isStaffOrAbove() {
-      return request.auth != null &&
-             (getUserData().role == 'admin' ||
-              getUserData().role == 'hotel-manager' ||
-              getUserData().role == 'hotel-staff');
-    }
-
-    function isHotelStaff() {
+    function isActiveUser() {
       return request.auth != null && 
+             (getUserData().archived == null || getUserData().archived != true);
+    }
+    
+    function isAdmin() {
+      return isActiveUser() && getUserData().role == 'admin';
+    }
+
+    // Internal employees (you and your staff)
+    function isInternalEmployee() {
+      return isActiveUser() && 
+             (getUserData().role == 'admin' || 
+              getUserData().role == 'employee');
+    }
+
+    // Hotel portal users
+    function isHotelStaff() {
+      return isActiveUser() && 
              (getUserData().role == 'hotel-staff' || 
               getUserData().role == 'hotel-manager');
     }
+
+    function isManagerOrAbove() {
+      return isActiveUser() &&
+             (getUserData().role == 'admin' || 
+              getUserData().role == 'hotel-manager');
+    }
     
+    // Module permission check for internal employees
     function hasPermission(module, requiredLevel) {
-      return isAdmin() ? true : (
-        getUserData().permissions == null ? false : (
-          getUserData().permissions[module] == null ? false : (
-            // Permission hierarchy: edit > create > view
-            getUserData().permissions[module] == 'edit' ? true : (
-              getUserData().permissions[module] == 'create' ? (
-                requiredLevel == 'view' || requiredLevel == 'create'
-              ) : (
-                getUserData().permissions[module] == 'view' && requiredLevel == 'view'
-              )
-            )
+      return isInternalEmployee() && (
+        isAdmin() || (
+          getUserData().permissions != null &&
+          getUserData().permissions[module] != null && (
+            getUserData().permissions[module] == 'edit' ||
+            (getUserData().permissions[module] == 'create' && 
+             (requiredLevel == 'view' || requiredLevel == 'create')) ||
+            (getUserData().permissions[module] == 'view' && requiredLevel == 'view')
           )
         )
       );
     }
     
     function canAccessModule(module) {
-      return isAdmin() ? true : (
-        getUserData().permissions == null ? false : getUserData().permissions[module] != null
+      return isInternalEmployee() && (
+        isAdmin() || (
+          getUserData().permissions != null && 
+          getUserData().permissions[module] != null
+        )
       );
     }
     
     function isValidRole(role) {
-      return role == 'admin' || role == 'hotel-staff' || 
-             role == 'hotel-manager' || role == 'viewer';
+      return role == 'admin' || 
+             role == 'employee' ||
+             role == 'hotel-staff' || 
+             role == 'hotel-manager' || 
+             role == 'viewer';
     }
     
     function isValidPermissionLevel(level) {
@@ -62,247 +73,331 @@ service cloud.firestore {
     }
     
     function isValidPermissions(permissions) {
-      return (permissions.contracts == null || isValidPermissionLevel(permissions.contracts)) &&
-             (permissions.diveLog == null || isValidPermissionLevel(permissions.diveLog)) &&
-             (permissions.maintenance == null || isValidPermissionLevel(permissions.maintenance)) &&
-             (permissions.operations == null || isValidPermissionLevel(permissions.operations));
+      return permissions == null || (
+        (permissions.contracts == null || isValidPermissionLevel(permissions.contracts)) &&
+        (permissions.diveLog == null || isValidPermissionLevel(permissions.diveLog)) &&
+        (permissions.maintenance == null || isValidPermissionLevel(permissions.maintenance)) &&
+        (permissions.operations == null || isValidPermissionLevel(permissions.operations))
+      );
     }
 
     // Check if user has access to a specific hotel
     function hasHotelAccess(hotelId) {
-      return getUserData().role == 'admin' ? true : (
-        getUserData().hotelId != null && getUserData().hotelId == hotelId
+      return isAdmin() || (
+        isHotelStaff() && getUserData().hotelId != null && getUserData().hotelId == hotelId
       );
     }
 
-    // Users collection - only admins can create/update, authenticated users can read their own
+    // ========================================
+    // USERS COLLECTION
+    // ========================================
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow list: if isAdmin();
       allow create: if isAdmin() && 
                      isValidRole(request.resource.data.role) &&
-                     (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
+                     isValidPermissions(request.resource.data.permissions) &&
+                     (request.resource.data.role in ['hotel-staff', 'hotel-manager'] ? 
+                       request.resource.data.hotelId != null : true);
       allow update: if isAdmin() && 
                      (isValidRole(request.resource.data.role) || request.resource.data.role == null) &&
-                     (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
+                     isValidPermissions(request.resource.data.permissions) &&
+                     (resource.data.role in ['hotel-staff', 'hotel-manager'] ? 
+                       request.resource.data.hotelId != null : true);
       allow delete: if isAdmin();
     }
 
-    // Hotels collection - combine hotel access with module permissions
+    // ========================================
+    // CONTRACTS MODULE (Both Internal & Hotel Staff)
+    // ========================================
+    
+    // Hotels collection
     match /hotels/{hotelId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(hotelId) && canAccessModule('contracts'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(hotelId));
+      
       allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Contracts collection - combine hotel access with module permissions
+    // Contracts collection
     match /groupContracts/{contractId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
       allow create: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(request.resource.data.hotelId) && hasPermission('contracts', 'create'));
+        || (isInternalEmployee() && hasPermission('contracts', 'create'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(request.resource.data.hotelId));
+      
       allow update: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && hasPermission('contracts', 'edit'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(resource.data.hotelId));
+        
       allow delete: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && hasPermission('contracts', 'edit'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(resource.data.hotelId));
       
       // Contract notes subcollection
       match /notes/{noteId} {
         allow read: if isAdmin() 
-          || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId) && canAccessModule('contracts'));
+          || (isInternalEmployee() && canAccessModule('contracts'))
+          || (isHotelStaff() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
+        
         allow write: if isAdmin() 
-          || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+          || (isInternalEmployee() && hasPermission('contracts', 'edit'))
+          || (getUserData().role == 'hotel-manager' && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(contractId)).data.hotelId));
       }
     }
 
-    // Payments collection - combine hotel access with module permissions
+    // Payments collection
     match /payments/{paymentId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && canAccessModule('contracts'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
+      
       allow create: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'create'));
+        || (isInternalEmployee() && hasPermission('contracts', 'create'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(request.resource.data.contractId)).data.hotelId));
+      
       allow update: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && hasPermission('contracts', 'edit'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
+        
       allow delete: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && hasPermission('contracts', 'edit'))
+        || (getUserData().role == 'hotel-manager' && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId));
     }
 
+    // Dive packages - visible to anyone with contracts access (internal or hotel)
     match /divePackages/{packageId} {
-      allow read: if canAccessModule('contracts');
-      allow write: if hasPermission('contracts', 'edit');
+      allow read: if isAdmin() 
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || isHotelStaff();
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Meal packages - combine hotel access with module permissions
+    // Meal packages - hotel-specific, visible to hotel staff for their hotel
     match /mealPackages/{packageId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Rates - combine hotel access with module permissions
+    // Rates - hotel-specific
     match /rates/{rateId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Room categories - combine hotel access with module permissions
+    // Room categories - hotel-specific
     match /roomCategories/{categoryId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Room types - combine hotel access with module permissions
+    // Room types - hotel-specific
     match /roomTypes/{roomTypeId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
-    // Seasons - combine hotel access with module permissions
+    // Seasons - hotel-specific
     match /seasons/{seasonId} {
       allow read: if isAdmin() 
-        || (isStaffOrAbove() && hasHotelAccess(resource.data.hotelId) && canAccessModule('contracts'));
-      allow write: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(resource.data.hotelId) && hasPermission('contracts', 'edit'));
+        || (isInternalEmployee() && canAccessModule('contracts'))
+        || (isHotelStaff() && hasHotelAccess(resource.data.hotelId));
+      
+      allow write: if isAdmin() || (isInternalEmployee() && hasPermission('contracts', 'edit'));
     }
 
+    // ========================================
+    // DIVE LOG MODULE (Internal Employees Only)
+    // ========================================
+    
     match /dives/{diveId} {
-      allow read: if canAccessModule('diveLog');
-      allow create: if hasPermission('diveLog', 'create');
-      allow update, delete: if hasPermission('diveLog', 'edit') || request.auth.uid == resource.data.createdBy;
+      allow read: if isInternalEmployee() && canAccessModule('diveLog');
+      allow create: if isInternalEmployee() && hasPermission('diveLog', 'create');
+      allow update: if isInternalEmployee() && 
+                       (hasPermission('diveLog', 'edit') || request.auth.uid == resource.data.createdBy);
+      allow delete: if isInternalEmployee() && 
+                       (hasPermission('diveLog', 'edit') || request.auth.uid == resource.data.createdBy);
     }
 
     match /species/{speciesId} {
-      allow read: if canAccessModule('diveLog');
-      allow write: if hasPermission('diveLog', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('diveLog');
+      allow write: if isInternalEmployee() && hasPermission('diveLog', 'edit');
     }
 
     match /sites/{siteId} {
-      allow read: if canAccessModule('diveLog');
-      allow write: if hasPermission('diveLog', 'edit');
-    }
-
-    match /boats/{boatId} {
-      allow read: if canAccessModule('operations') || canAccessModule('diveLog');
-      allow write: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('diveLog');
+      allow write: if isInternalEmployee() && hasPermission('diveLog', 'edit');
     }
 
     match /guides/{guideId} {
-      allow read: if canAccessModule('diveLog');
-      allow write: if hasPermission('diveLog', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('diveLog');
+      allow write: if isInternalEmployee() && hasPermission('diveLog', 'edit');
     }
 
     match /diveNumber/{diveNumberId} {
-      allow read: if canAccessModule('diveLog');
-      allow write: if hasPermission('diveLog', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('diveLog');
+      allow write: if isInternalEmployee() && hasPermission('diveLog', 'edit');
     }
 
+    // ========================================
+    // MAINTENANCE MODULE (Internal Employees Only)
+    // ========================================
+    
     match /maintenanceLogs/{logId} {
-      allow read: if canAccessModule('maintenance');
-      allow write: if hasPermission('maintenance', 'create');
+      allow read: if isInternalEmployee() && canAccessModule('maintenance');
+      allow write: if isInternalEmployee() && hasPermission('maintenance', 'create');
     }
 
     match /assets/{assetId} {
-      allow read: if canAccessModule('maintenance');
-      allow write: if hasPermission('maintenance', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('maintenance');
+      allow write: if isInternalEmployee() && hasPermission('maintenance', 'edit');
     }
 
     match /technicians/{techId} {
-      allow read: if canAccessModule('maintenance');
-      allow write: if hasPermission('maintenance', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('maintenance');
+      allow write: if isInternalEmployee() && hasPermission('maintenance', 'edit');
     }
 
-    // MANIFEST SYSTEM COLLECTIONS
+    // ========================================
+    // OPERATIONS MODULE (Internal Employees Only)
+    // ========================================
     
+    // Boats - shared between operations and dive log
+    match /boats/{boatId} {
+      allow read: if isInternalEmployee() && 
+                     (canAccessModule('operations') || canAccessModule('diveLog'));
+      allow write: if isInternalEmployee() && hasPermission('operations', 'edit');
+    }
+
+    // Guests - waiver imports and guest management
+    match /guests/{guestId} {
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create') &&
+                       request.resource.data.fullName is string &&
+                       request.resource.data.fullName.size() > 0 &&
+                       request.resource.data.source in ['waiver_import', 'manual', 'checkfront'] &&
+                       request.resource.data.duplicateStatus in ['clean', 'potential_duplicate', 'confirmed_unique', 'merged'] &&
+                       request.resource.data.dataPriority in ['high', 'medium', 'low'] &&
+                       request.resource.data.createdBy == request.auth.uid;
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
+    }
+
+    // Import batches - track CSV imports
+    match /importBatches/{batchId} {
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isAdmin();
+    }
+
+    // Duplicate groups - for duplicate resolution workflow
+    match /duplicateGroups/{groupId} {
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
+    }
+
+    // Checkfront bookings - synced from API
+    match /checkfrontBookings/{bookingId} {
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isAdmin();
+    }
+
+    // Manifest runs - daily reconciliation snapshots
+    match /manifestRuns/{runId} {
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isAdmin();
+    }
+
     // Customers collection
     match /customers/{customerId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create') && 
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create') && 
+                       request.resource.data.bookingReference != null &&
                        request.resource.data.bookingReference != '' &&
-                       request.resource.data.fullName != '' &&
-                       request.resource.data.bookingReference.size() < 50 &&
-                       request.resource.data.fullName.size() < 100;
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
-    }
-
-    // Guests collection
-    match /guests/{guestId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
-    }
-
-    // Dive slots collection
-    match /diveSlots/{slotId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+                       request.resource.data.fullName is string;
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Dive assignments collection
     match /diveAssignments/{assignmentId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Taxi assignments collection
     match /taxiAssignments/{assignmentId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Taxis collection
     match /taxis/{taxiId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Daily manifests collection
     match /dailyManifests/{manifestId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Daily taxi lists collection
     match /dailyTaxiLists/{taxiListId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Crew collection
     match /crew/{crewId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
 
     // Import jobs collection
     match /importJobs/{jobId} {
-      allow read: if canAccessModule('operations');
-      allow create: if hasPermission('operations', 'create');
-      allow update: if hasPermission('operations', 'edit');
-      allow delete: if hasPermission('operations', 'edit');
+      allow read: if isInternalEmployee() && canAccessModule('operations');
+      allow create: if isInternalEmployee() && hasPermission('operations', 'create');
+      allow update: if isInternalEmployee() && hasPermission('operations', 'edit');
+      allow delete: if isInternalEmployee() && hasPermission('operations', 'edit');
     }
   }
 }

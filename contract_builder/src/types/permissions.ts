@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'hotel-manager' | 'hotel-staff' | 'viewer'
+export type UserRole = 'admin' | 'employee' | 'hotel-manager' | 'hotel-staff' | 'viewer'
 
 export type PermissionLevel = 'view' | 'create' | 'edit' | null
 
@@ -42,6 +42,12 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
     diveLog: 'edit',
     maintenance: 'edit',
     operations: 'edit',
+  },
+  employee: {
+    contracts: null,
+    diveLog: null,
+    maintenance: null,
+    operations: null,
   },
   'hotel-manager': {
     contracts: 'edit',

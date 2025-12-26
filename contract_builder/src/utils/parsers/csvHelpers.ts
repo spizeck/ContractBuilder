@@ -1,4 +1,4 @@
-import Papa from "papaparse";
+import * as Papa from "papaparse";
 
 export interface CSVParseError {
   row: number;
@@ -175,14 +175,30 @@ export const COMMON_HEADER_MAPPINGS = {
   // Guest/Contact headers
   guest: {
     "full name": "fullName",
-    name: "fullName",
+    "name": "fullName",
     "email address": "email",
     "phone number": "phone",
+    "primary email": "email",
+    "email": "email",
+    "phone": "phone",
+    "date of birth": "dateOfBirth",
+    "arrival date": "arrivalDate",
+    "departure date": "departureDate",
     hotel: "accommodations",
     accommodation: "accommodations",
+    accommodations: "accommodations",
+    "accomodations": "accommodations",
     "booking id": "bookingId",
     booking_id: "bookingId",
+    "booking": "bookingCode",
     "booking code": "bookingCode",
+    "certification level": "certificationLevel",
+    "certification agency and number": "certificationNumber",
+    "date of last dive": "lastDiveDate",
+    "number of dives in your lifetime": "totalDives",
+    "is there anything else you would like for us to know?": "notes",
+    "created date": "createdAt",
+    "status": "status",
   },
   // Equipment headers (Checkfront-specific)
   equipment: {

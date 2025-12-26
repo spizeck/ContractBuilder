@@ -243,34 +243,58 @@ src/
 3. Role and permissions loaded into context
 4. Real-time listeners update permissions dynamically
 
+### User Roles & Access Control
+
+**User Types**:
+1. **Internal Employees** - Have module permissions granular access
+   - `admin` - Full system access, all modules
+   - Internal staff with specific module permissions (contracts, diveLog, maintenance, operations)
+   
+2. **Hotel Staff** - Hotel-specific access, no module permissions
+   - `hotel-manager` - Full access to their hotel's contracts and data
+   - `hotel-staff` - View/edit access to their hotel's contracts and data
+   
+3. **Special Roles**:
+   - `viewer` - Read-only access (default for internal employees without permissions)
+   - `archived` - Disabled access (data preserved)
+
 ### Permission Structure
 
-**Roles**:
-- `admin` - Full system access
-- `hotel-manager` - Hotel-specific management
-- `hotel-staff` - Hotel-specific operations
-- `viewer` - Read-only access (default)
-
-**Modules**:
+**Modules** (Internal Employees only):
 - `diveLog` - Dive logging operations
-- `maintenance` - Maintenance tracking
+- `maintenance` - Maintenance tracking  
 - `contracts` - Contract management
-- `operations` - Operations management
+- `operations` - Operations management (including guest management)
 
 **Permission Levels** (hierarchical):
 - `edit` - Full read/write access
 - `create` - Can view and create new records
 - `view` - Read-only access
 
+**Access Patterns**:
+- **Internal Employees**: Access based on module permissions
+- **Hotel Staff**: Access to their assigned hotel's data only
+- **Admins**: Access to everything, including user management
+
 **Permission Checking**:
 ```typescript
 // In components
 import { usePermissions } from '@/context/PermissionProvider';
-const { hasPermission, canAccessModule } = usePermissions();
+const { hasPermission, canAccessModule, isInternalEmployee, isHotelStaff } = usePermissions();
 
-// Check access
+// Check module access (internal employees)
 if (hasPermission('contracts', 'edit')) {
-  // Allow editing
+  // Allow editing contracts
+}
+
+// Check hotel access (hotel staff)
+if (isHotelStaff && hasHotelAccess(hotelId)) {
+  // Allow access to hotel data
+}
+
+// Check if user is internal employee
+if (isInternalEmployee && canAccessModule('operations')) {
+  // Allow operations access
 }
 ```
 
@@ -302,10 +326,12 @@ if (hasPermission('contracts', 'edit')) {
 - `customers` - Customer database
 
 **Security Rules**: `@/firestore.rules`
-- Role-based access control
-- Module permission enforcement
-- Hotel-specific data isolation
+- Role-based access control with internal employee vs hotel staff distinction
+- Module permission enforcement for internal employees
+- Hotel-specific data isolation for hotel staff
 - User archiving support
+- Internal employee collections (operations, maintenance, diveLog) restricted to internal staff
+- Contract collections accessible by both internal employees (with permissions) and hotel staff (for their hotel)
 
 **Indexes**: `@/firestore.indexes.json`
 - Optimized queries for dashboard analytics

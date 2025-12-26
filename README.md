@@ -84,12 +84,26 @@ The Sea Saba Business App is an integrated management system that combines multi
 
 ## User Roles & Permissions
 
-### **Granular Permission System**
-The application uses a sophisticated permission system with module-based access control:
+### **User Types & Access Control**
 
-- **Modules**: `diveLog`, `maintenance`, `contracts`
-- **Permission Levels**: `view`, `create`, `edit`
-- **Permission Hierarchy**: `edit` > `create` > `view`
+The application distinguishes between two main types of users:
+
+#### **1. Internal Employees**
+Internal employees have granular module-based permissions:
+- **Modules**: `diveLog`, `maintenance`, `contracts`, `operations`
+- **Permission Levels**: `view`, `create`, `edit` (hierarchical: `edit` > `create` > `view`)
+- **Access Pattern**: Based on assigned module permissions
+- **Roles**:
+  - `admin` - Full system access, all modules, user management
+  - Internal staff with specific module permissions
+  - `viewer` - Read-only access (default for internal employees without permissions)
+
+#### **2. Hotel Staff**
+Hotel staff have hotel-specific access without module permissions:
+- **Access Pattern**: Restricted to their assigned hotel only
+- **Roles**:
+  - `hotel-manager` - Full access to their hotel's contracts and data
+  - `hotel-staff` - View/edit access to their hotel's contracts and data
 
 ### **Admin Role**
 - **Full Access**: All modules with `edit` permissions
@@ -99,18 +113,17 @@ The application uses a sophisticated permission system with module-based access 
 - **Hotel Management**: Full control over all hotels and properties
 
 ### **Hotel Staff Role**
-- **Hotel-Specific Access**: Assigned to specific hotel properties
+- **Hotel-Specific Access**: Assigned to specific hotel properties only
 - **Contract Operations**: View/create/edit contracts for assigned hotel
-- **Dive Logging**: Full dive log access and management
-- **Maintenance**: View and create maintenance logs
-- **Limited Admin**: Manage hotel-specific assets and configurations
+- **No Module Permissions**: Access is not controlled by module permissions
+- **Data Isolation**: Can only access data from their assigned hotel
 
-### **Employee Role**
-- **Basic Access**: Default permissions (configurable per user)
-- **Dive History**: View dive logs and historical data
-- **Maintenance Logs**: View and create maintenance entries
-- **Limited Contract Access**: Based on assigned permissions
-- **Profile Management**: Personal profile and preferences
+### **Internal Employee Role**
+- **Module-Based Access**: Access determined by assigned module permissions
+- **Operations Module**: Access to guest management, manifests, and operations
+- **Dive Log Module**: Access to dive logging and analytics
+- **Maintenance Module**: Access to maintenance tracking
+- **Contracts Module**: Access to contract management (all hotels)
 
 ### **User Archiving**
 - **Archive Status**: Users can be archived to disable all access
@@ -132,6 +145,12 @@ src/app/
 ├── contracts/
 │   ├── page.tsx       # Contract listing and management
 │   └── [id]/view/     # Individual contract viewing
+├── operations/
+│   ├── guests/        # Guest management and CSV import
+│   ├── manage-boats/  # Boat scheduling
+│   ├── manage-crew/   # Crew management
+│   └── manage-taxis/  # Taxi coordination
+├── manifests/         # Dive manifest generation
 ├── hotels/            # Hotel and room management
 ├── dive-packages/     # Dive package configuration
 ├── maintenance/

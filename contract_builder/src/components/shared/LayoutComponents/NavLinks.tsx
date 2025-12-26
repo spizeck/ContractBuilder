@@ -69,6 +69,7 @@ export default function NavLinks() {
   const manifestLinks = (
     <>
       <MenuItem as={NextLink} href="/manifests">Manifests & Taxis</MenuItem>
+      <MenuItem as={NextLink} href="/operations/guests">Guest Management</MenuItem>
       {(role === 'admin') && (
         <>
           <MenuItem as={NextLink} href="/operations/manage-crew">Manage Crew</MenuItem>
