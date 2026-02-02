@@ -21,6 +21,7 @@ export async function parseCustomerImportFile(
       totalRecords: 0,
       processedRecords: 0,
       errors: [],
+      fileName: file.name,
       createdAt: new Date(),
     };
 

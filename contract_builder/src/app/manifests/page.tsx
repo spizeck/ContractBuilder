@@ -13,21 +13,27 @@ import {
   Icon,
   VStack,
   Heading,
-  useToast
+  useToast,
+  Input,
+  Divider,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { Boat } from "@/types/diveLogTypes";
 import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
 import ManifestBoard from "@/app/manifests/components/ManifestBoard";
 import TaxiScheduler from "@/app/manifests/components/TaxiScheduler";
+import TaxiSchedulerNew from "@/app/manifests/components/TaxiSchedulerNew";
+import DayManifestEditor from "@/app/manifests/components/DayManifestEditor";
 import ManifestExport from "@/app/manifests/components/ManifestExport";
 
 export default function ManifestsPage() {
-  const [activeView, setActiveView] = useState<'manifest' | 'taxi' | 'export'>('manifest');
+  const [activeView, setActiveView] = useState<'manifest' | 'day-manifest' | 'taxi' | 'taxi-schedule' | 'export'>('day-manifest');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const toast = useToast();
   const router = useRouter();
 
   const handleGoToGuestManagement = () => {
-    router.push('/operations/guests');
+    router.push('/operations/customers');
   };
 
   return (
@@ -43,6 +49,26 @@ export default function ManifestsPage() {
               Create dive assignments and generate manifests with taxi schedules
             </Text>
           </Box>
+
+          {/* Date Selection */}
+          <Card bg="cardBg">
+            <CardBody>
+              <HStack spacing={4}>
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold">Select Date</Text>
+                  <Text fontSize="sm" color="textMuted">
+                    Choose the date for manifest planning
+                  </Text>
+                </VStack>
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  maxW="200px"
+                />
+              </HStack>
+            </CardBody>
+          </Card>
 
           {/* Guest Management Link */}
           <Card bg="cardBg">
@@ -69,37 +95,73 @@ export default function ManifestsPage() {
           {/* Navigation */}
           <Card bg="cardBg">
             <CardBody>
-              <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={4}>
-                <Button
-                  leftIcon={<FiCalendar />}
-                  variant={activeView === 'manifest' ? 'solid' : 'outline'}
-                  colorScheme="green"
-                  onClick={() => setActiveView('manifest')}
-                >
-                  Create Manifests
-                </Button>
-                <Button
-                  leftIcon={<FiTruck />}
-                  variant={activeView === 'taxi' ? 'solid' : 'outline'}
-                  colorScheme="orange"
-                  onClick={() => setActiveView('taxi')}
-                >
-                  Schedule Taxis
-                </Button>
-                <Button
-                  leftIcon={<FiUsers />}
-                  variant={activeView === 'export' ? 'solid' : 'outline'}
-                  colorScheme="purple"
-                  onClick={() => setActiveView('export')}
-                >
-                  Export Documents
-                </Button>
-              </SimpleGrid>
+              <VStack spacing={4}>
+                <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={4}>
+                  <Button
+                    leftIcon={<FiCalendar />}
+                    variant={activeView === 'day-manifest' ? 'solid' : 'outline'}
+                    colorScheme="green"
+                    onClick={() => setActiveView('day-manifest')}
+                  >
+                    Day Manifest
+                  </Button>
+                  <Button
+                    leftIcon={<FiTruck />}
+                    variant={activeView === 'taxi-schedule' ? 'solid' : 'outline'}
+                    colorScheme="orange"
+                    onClick={() => setActiveView('taxi-schedule')}
+                  >
+                    Taxi Schedule
+                  </Button>
+                  <Button
+                    leftIcon={<FiUsers />}
+                    variant={activeView === 'export' ? 'solid' : 'outline'}
+                    colorScheme="purple"
+                    onClick={() => setActiveView('export')}
+                  >
+                    Export Documents
+                  </Button>
+                </SimpleGrid>
+                
+                <Divider />
+                
+                <Text fontWeight="bold" color="textMuted">Legacy Components</Text>
+                <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
+                  <Button
+                    leftIcon={<FiCalendar />}
+                    variant={activeView === 'manifest' ? 'solid' : 'outline'}
+                    colorScheme="gray"
+                    onClick={() => setActiveView('manifest')}
+                  >
+                    Old Manifest Board
+                  </Button>
+                  <Button
+                    leftIcon={<FiTruck />}
+                    variant={activeView === 'taxi' ? 'solid' : 'outline'}
+                    colorScheme="gray"
+                    onClick={() => setActiveView('taxi')}
+                  >
+                    Old Taxi Scheduler
+                  </Button>
+                </SimpleGrid>
+              </VStack>
             </CardBody>
           </Card>
 
           {/* Content Area */}
           <Box>
+            {activeView === 'day-manifest' && (
+              <DayManifestEditor 
+                selectedDate={selectedDate} 
+                boats={[
+                  { id: "boat1", name: "Sea Saba I", capacity: 12, maxDiveSlots: 4, active: true },
+                  { id: "boat2", name: "Sea Saba II", capacity: 10, maxDiveSlots: 4, active: true },
+                ]} 
+              />
+            )}
+            {activeView === 'taxi-schedule' && (
+              <TaxiSchedulerNew selectedDate={selectedDate} />
+            )}
             {activeView === 'manifest' && (
               <ManifestBoard />
             )}

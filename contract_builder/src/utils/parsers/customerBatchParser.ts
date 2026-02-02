@@ -18,23 +18,23 @@ export function findDuplicateCustomers(
   newCustomer: CustomerWithCsvDate,
   existingCustomers: Customer[]
 ): Customer | null {
-  // Priority 1: Exact booking reference match
-  if (newCustomer.bookingReference) {
-    const bookingMatch = existingCustomers.find(
-      (c) => c.bookingReference === newCustomer.bookingReference
-    );
-    if (bookingMatch) {
-      return bookingMatch;
-    }
-  }
-
-  // Priority 2: Exact email match
-  if (newCustomer.email) {
+  // Priority 1: Exact email match
+  if (newCustomer.emailLower) {
     const emailMatch = existingCustomers.find(
-      (c) => c.email && normalizeEmail(c.email) === normalizeEmail(newCustomer.email!)
+      (c) => c.emailLower && normalizeEmail(c.emailLower) === normalizeEmail(newCustomer.emailLower!)
     );
     if (emailMatch) {
       return emailMatch;
+    }
+  }
+
+  // Priority 2: Exact phone match
+  if (newCustomer.phoneE164) {
+    const phoneMatch = existingCustomers.find(
+      (c) => c.phoneE164 && normalizePhone(c.phoneE164) === normalizePhone(newCustomer.phoneE164!)
+    );
+    if (phoneMatch) {
+      return phoneMatch;
     }
   }
 
@@ -50,13 +50,13 @@ export function findDuplicateCustomers(
   for (const match of nameMatches) {
     // Check if email or phone also matches
     const emailMatches =
-      newCustomer.email &&
-      match.email &&
-      normalizeEmail(newCustomer.email) === normalizeEmail(match.email);
+      newCustomer.emailLower &&
+      match.emailLower &&
+      normalizeEmail(newCustomer.emailLower) === normalizeEmail(match.emailLower);
     const phoneMatches =
-      newCustomer.phone &&
-      match.phone &&
-      normalizePhone(newCustomer.phone) === normalizePhone(match.phone);
+      newCustomer.phoneE164 &&
+      match.phoneE164 &&
+      normalizePhone(newCustomer.phoneE164) === normalizePhone(match.phoneE164);
 
     if (emailMatches || phoneMatches) {
       return match;

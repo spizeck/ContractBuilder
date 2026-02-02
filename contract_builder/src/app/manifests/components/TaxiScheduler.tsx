@@ -86,43 +86,65 @@ const mockDiveSlots: DiveSlot[] = [
 const mockCustomers: Customer[] = [
   {
     id: "1",
-    bookingReference: "BK001",
-    documentId: "DOC001",
     fullName: "John Doe",
-    email: "john@example.com",
-    phone: "+1234567890",
-    accommodations: "Sea Saba Resort - Room 101",
-    certificationLevel: "Open Water",
+    emailLower: "john@example.com",
+    phoneE164: "+1234567890",
+    dob: null,
+    notesGeneral: null,
+    certLevel: "Open Water",
+    certAgencyNumber: "PADI-123456",
+    certVerified: false,
+    certVerifiedAt: null,
+    certVerifiedBy: null,
     nitroxCertified: true,
-    equipmentNeeded: {
-      bcd: { needed: true, size: "M/L", abbreviation: "BCD-M/L" },
-      regulator: { needed: true, size: "M/L", abbreviation: "REG-M/L" },
-      mask: { needed: false, abbreviation: "OWN" },
-      fins: { needed: false, abbreviation: "OWN" },
-      wetsuit: { needed: true, size: "M", abbreviation: "WET-M" },
-      computer: { needed: false, abbreviation: "OWN" },
+    nitroxCertAgencyNumber: "PADI-NITROX-123",
+    nitroxVerified: false,
+    nitroxVerifiedAt: null,
+    nitroxVerifiedBy: null,
+    lastDiveDate: "2024-01-15",
+    lifetimeDives: 50,
+    lastDiveDateSourceAt: null,
+    gearDefault: {
+      bcd: { needRental: true, sizeText: "M/L", sourceText: "Rental BCD M/L" },
+      regulator: { needRental: true, sizeText: "M/L", sourceText: "Rental Regulator M/L" },
+      mask: { needRental: false, sourceText: "Own mask" },
+      fins: { needRental: false, sourceText: "Own fins" },
+      wetsuit: { needRental: true, sizeText: "M", sourceText: "Rental Wetsuit M" },
+      computer: { needRental: false, sourceText: "Own computer" },
     },
+    gearLastUpdatedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "2",
-    bookingReference: "BK002",
-    documentId: "DOC002",
     fullName: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1234567891",
-    accommodations: "Sea Saba Resort - Room 102",
-    certificationLevel: "Advanced",
+    emailLower: "jane@example.com",
+    phoneE164: "+1234567891",
+    dob: null,
+    notesGeneral: null,
+    certLevel: "Advanced",
+    certAgencyNumber: "PADI-789012",
+    certVerified: false,
+    certVerifiedAt: null,
+    certVerifiedBy: null,
     nitroxCertified: false,
-    equipmentNeeded: {
-      bcd: { needed: true, size: "S", abbreviation: "BCD-S" },
-      regulator: { needed: true, size: "S", abbreviation: "REG-S" },
-      mask: { needed: true, size: "M", abbreviation: "MASK-M" },
-      fins: { needed: true, size: "M", abbreviation: "FINS-M" },
-      wetsuit: { needed: true, size: "S", abbreviation: "WET-S" },
-      computer: { needed: false, abbreviation: "OWN" },
+    nitroxCertAgencyNumber: null,
+    nitroxVerified: false,
+    nitroxVerifiedAt: null,
+    nitroxVerifiedBy: null,
+    lastDiveDate: "2024-01-10",
+    lifetimeDives: 75,
+    lastDiveDateSourceAt: null,
+    gearDefault: {
+      bcd: { needRental: true, sizeText: "S", sourceText: "Rental BCD S" },
+      regulator: { needRental: true, sizeText: "S", sourceText: "Rental Regulator S" },
+      mask: { needRental: true, sizeText: "M", sourceText: "Rental Mask M" },
+      fins: { needRental: true, sizeText: "M", sourceText: "Rental Fins M" },
+      wetsuit: { needRental: true, sizeText: "S", sourceText: "Rental Wetsuit S" },
+      computer: { needRental: true, sizeText: "S", sourceText: "Rental Computer S" },
     },
+    gearLastUpdatedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -141,7 +163,8 @@ const mockAssignments: DiveAssignment[] = [
       regulator: { needed: false, abbreviation: "NONE" },
       mask: { needed: false, abbreviation: "NONE" },
       fins: { needed: false, abbreviation: "NONE" },
-      wetsuit: { needed: false, abbreviation: "NONE" }
+      wetsuit: { needed: false, abbreviation: "NONE" },
+      computer: { needed: false, abbreviation: "NONE" }
     } 
   },
   { 
@@ -156,7 +179,8 @@ const mockAssignments: DiveAssignment[] = [
       regulator: { needed: false, abbreviation: "NONE" },
       mask: { needed: false, abbreviation: "NONE" },
       fins: { needed: false, abbreviation: "NONE" },
-      wetsuit: { needed: false, abbreviation: "NONE" }
+      wetsuit: { needed: false, abbreviation: "NONE" },
+      computer: { needed: false, abbreviation: "NONE" }
     } 
   },
 ];
@@ -227,21 +251,22 @@ export default function TaxiScheduler() {
 
     const pickupTime = calculatePickupTime(
       diveSlot.departureTime,
-      customer.accommodations || ''
+      'Sea Saba Resort' // Default since accommodations is no longer in Customer
     );
-    const pickupLocation = customer.accommodations || 'Unknown Accommodations';
+    const pickupLocation = 'Sea Saba Resort'; // Default
     const destination = `Sea Saba Dock - ${diveSlot.departureTime} departure`;
 
     const assignment: TaxiAssignment = {
       id: Date.now().toString(),
       customerId,
-      diveSlotId,
       taxiId,
       pickupTime,
       pickupLocation,
-      destination,
-      numberOfPassengers: 1, // Could be extended for group bookings
-      scheduledAt: new Date(),
+      dropoffTime: diveSlot.returnTime,
+      dropoffLocation: `Sea Saba Dock - ${diveSlot.departureTime} departure`,
+      assignedAt: new Date(),
+      assignedBy: "current-user",
+      notes: `Dive slot ${diveSlot.slotNumber}`,
     };
 
     setTaxiAssignments(prev => [...prev, assignment]);
@@ -278,10 +303,14 @@ export default function TaxiScheduler() {
       .filter(a => a.taxiId === taxiId)
       .map(assignment => {
         const customer = mockCustomers.find(c => c.id === assignment.customerId);
-        const diveSlot = mockDiveSlots.find(s => s.id === assignment.diveSlotId);
+        // Find dive slot based on assignment notes or pickup time
+        const diveSlot = mockDiveSlots.find(s => 
+          assignment.notes?.includes(`Dive slot ${s.slotNumber}`) ||
+          s.departureTime === assignment.pickupTime
+        );
         return { assignment, customer, diveSlot };
       })
-      .filter(item => item.customer && item.diveSlot)
+      .filter(item => item.customer)
       .sort((a, b) => a.assignment.pickupTime.localeCompare(b.assignment.pickupTime));
   };
 
@@ -388,7 +417,7 @@ export default function TaxiScheduler() {
                         const { customer, diveSlot } = item;
                         const pickupTime = calculatePickupTime(
                           diveSlot!.departureTime,
-                          customer!.accommodations || ''
+                          'Sea Saba Resort' // Default
                         );
                         
                         return (
@@ -396,15 +425,10 @@ export default function TaxiScheduler() {
                             <Td>
                               <VStack align="start" spacing={0}>
                                 <Text fontWeight="bold">{customer!.fullName}</Text>
-                                <Text fontSize="xs" color="textMuted">{customer!.bookingReference}</Text>
+                                <Text fontSize="xs" color="textMuted">{customer!.emailLower}</Text>
                               </VStack>
                             </Td>
-                            <Td>
-                              <VStack align="start" spacing={0}>
-                                <Text>{customer!.accommodations || ""}</Text>
-                              </VStack>
-                            </Td>
-                            <Td>
+                                                        <Td>
                               <VStack spacing={1}>
                                 <Badge colorScheme="blue">Dive {diveSlot!.slotNumber}</Badge>
                                 <Text fontSize="xs" color="textMuted">
@@ -482,7 +506,7 @@ export default function TaxiScheduler() {
                                 <VStack align="start" spacing={1}>
                                   <Text>{customer!.fullName}</Text>
                                   <Text fontSize="xs" color="textMuted">
-                                    {customer!.accommodations || ""}
+                                    {customer!.emailLower}
                                   </Text>
                                 </VStack>
                                 

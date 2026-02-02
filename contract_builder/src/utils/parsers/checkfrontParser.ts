@@ -8,9 +8,9 @@ const BCD_MAPPINGS: Record<string, string> = {
   "I have my own BCD": "Own",
   
   // Wing style
-  "Rental – One Size (Backplate/Wing Style, Weight-Integrated)": "Wing",
+  "Rental – One Size (Backplate/Wing Style, Weight-Integrated)": "ONE SIZE",
   
-  // Old format rentals
+  // Jacket style rentals
   "I need a XXS Rental": "XXS",
   "I need a XS Rental": "XS",
   "I need a Small Rental": "S",
@@ -18,74 +18,77 @@ const BCD_MAPPINGS: Record<string, string> = {
   "I need a Large Rental": "L",
   "I need a XL Rental": "XL",
   "I need a XXL Rental": "XXL",
-  
-  // New format rentals
   "Rental – XXS (Jacket Style, Weight-Belt)": "XXS",
   "Rental – XS (Jacket Style, Weight-Belt)": "XS",
   "Rental – Small (Jacket Style, Weight-Belt)": "S",
   "Rental – Medium (Jacket Style, Weight-Belt)": "M",
   "Rental – Large (Jacket Style, Weight-Belt)": "L",
   "Rental – XL (Jacket Style, Weight-Belt)": "XL",
-  "Rental – XXL (Jacket Style, Weight-Belt)": "XXL"
+  "Rental – XXL (Jacket Style, Weight-Belt)": "XXL",
 };
 
 const REGULATOR_MAPPINGS: Record<string, string> = {
-  "I have my Own Regulator": "Own",
-  "I need a rental Regulator": "NEED",
-  "Rental - Regulator Set": "NEED"
+  'STANDARD': 'STANDARD',
+  'RENTAL – REGULATOR SET': 'STANDARD',
+  'I NEED A RENTAL REGULATOR': 'STANDARD',
 };
 
 const WETSUIT_MAPPINGS: Record<string, string> = {
-  // Own equipment
-  "I have my own Wetsuit": "Own",
-  
-  // Unisex sizes
-  "I need a XS Rental": "XS",
-  "I need a Small Rental": "S",
-  "I need a Medium Rental": "M",
-  "I need a Large Rental": "L",
-  "I need a XL Rental": "XL",
-  "I need a XXL Rental": "XXL",
-  
-  // Women's sizes
-  "Rental – Women's XS": "WXS",
-  "Rental – Women's Small": "WS",
-  "Rental – Women's Medium": "WM",
-  "Rental – Women's Large": "WL",
-  "Rental – Women's XL": "WXL",
-  "Rental - Women's XXL": "WXXL",
-  
-  // Men's sizes
-  "Rental – Men's Small": "MS",
-  "Rental – Men's Medium": "MM",
-  "Rental – Men's Large": "ML",
-  "Rental – Men's XL": "MXL",
-  "Rental – Men's XXL": "MXXL",
-  "Rental – Men's XXXL": "M3XL"
+  'XS': 'XS',
+  'S': 'S',
+  'M': 'M',
+  'L': 'L',
+  'XL': 'XL',
+  'XXL': 'XXL',
+  'XXXL': 'XXXL',
+  '4XL': '4XL',
+  '5XL': '5XL',
+  'I NEED A XS RENTAL': 'XS',
+  'I NEED A SMALL RENTAL': 'S',
+  'I NEED A MEDIUM RENTAL': 'M',
+  'I NEED A LARGE RENTAL': 'L',
+  'I NEED A XL RENTAL': 'XL',
+  'I NEED A XXL RENTAL': 'XXL',
+  'RENTAL – WOMEN\'S XS': 'W-XS',
+  'RENTAL – WOMEN\'S SMALL': 'W-S',
+  'RENTAL – WOMEN\'S MEDIUM': 'W-M',
+  'RENTAL – WOMEN\'S LARGE': 'W-L',
+  'RENTAL – WOMEN\'S XL': 'W-XL',
+  'RENTAL - WOMEN\'S XXL': 'W-XXL',
+  'RENTAL – MEN\'S SMALL': 'M-S',
+  'RENTAL – MEN\'S MEDIUM': 'M-M',
+  'RENTAL – MEN\'S LARGE': 'M-L',
+  'RENTAL – MEN\'S XL': 'M-XL',
+  'RENTAL – MEN\'S XXL': 'M-XXL',
+  'RENTAL – MEN\'S XXXL': 'M-XXXL',
 };
 
 const FINS_MAPPINGS: Record<string, string> = {
-  "I have my Own Fins": "Own",
-  "I need XS/S Fins": "XS/S",
-  "I need M/L Fins": "M/L",
-  "I need XL Fins": "XL",
-  "Rental – XXS": "XXS",
-  "Rental – XS/S": "XS/S",
-  "Rental – M/L": "M/L",
-  "Rental – XL": "XL",
-  "Rental – XXL": "XXL"
+  'XXS': 'XXS',
+  'XS/S': 'XS/S',
+  'M/L': 'M/L',
+  'XL': 'XL',
+  'XXL': 'XXL',
+  'I NEED XS/S FINS': 'XS/S',
+  'I NEED M/L FINS': 'M/L',
+  'I NEED XL FINS': 'XL',
+  'RENTAL – XXS': 'XXS',
+  'RENTAL – XS/S': 'XS/S',
+  'RENTAL – M/L': 'M/L',
+  'RENTAL – XL': 'XL',
+  'RENTAL – XXL': 'XXL',
 };
 
 const MASK_MAPPINGS: Record<string, string> = {
-  "I have my own Mask": "Own",
-  "I need a rental Mask": "NEED",
-  "Rental – Mask": "NEED"
+  'STANDARD': 'STANDARD',
+  'I NEED A RENTAL MASK': 'STANDARD',
+  'RENTAL – MASK': 'STANDARD',
 };
 
 const COMPUTER_MAPPINGS: Record<string, string> = {
-  "I have my own Dive Computer": "Own",
-  "I need a rental Dive Computer": "NEED",
-  "Rental – Dive Computer": "NEED"
+  'STANDARD': 'STANDARD',
+  'I NEED A RENTAL DIVE COMPUTER': 'STANDARD',
+  'RENTAL – DIVE COMPUTER': 'STANDARD',
 };
 
 /**
@@ -275,7 +278,7 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
         age: getFirstValue(row, ['Age']),
         email: normalizeEmail(getFirstValue(row, ['Email', 'Primary Email', 'Email Address'])),
         phone: normalizePhone(getFirstValue(row, ['Phone Number', 'Phone'])),
-        accommodations: getFirstValue(row, ['Accomodations', 'Accommodations', 'Accommodation Details']),
+        accommodations: getFirstValue(row, ['Accommodations', 'Accommodation Details']),
         certificationLevel: getFirstValue(row, ['Certification Level']) || 'Unknown',
         certificationAgency: getFirstValue(row, ['Certification Agency and Number']),
         nitroxCertified: parseNitroxCertified(row),
@@ -292,19 +295,71 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
       };
 
       const customer: Customer = {
-        ...customerData,
+        id: customerData.id || `import-${Date.now()}-${index}`,
+        fullName: customerData.fullName,
+        emailLower: customerData.email?.toLowerCase() || null,
+        phoneE164: customerData.phone || null,
+        dob: customerData.age || null, // Using age field as placeholder for DOB
+        notesGeneral: customerData.specialRequirements || null,
+        certLevel: customerData.certificationLevel || null,
+        certAgencyNumber: customerData.certificationAgency || null,
+        certVerified: false,
+        certVerifiedAt: null,
+        certVerifiedBy: null,
+        nitroxCertified: customerData.nitroxCertified || false,
+        nitroxCertAgencyNumber: null,
+        nitroxVerified: false,
+        nitroxVerifiedAt: null,
+        nitroxVerifiedBy: null,
+        lastDiveDate: customerData.lastDiveDate || null,
+        lifetimeDives: customerData.totalDives ? parseInt(customerData.totalDives) || null : null,
+        lastDiveDateSourceAt: null,
+        gearDefault: {
+          bcd: customerData.equipmentNeeded?.bcd ? {
+            needRental: customerData.equipmentNeeded.bcd.needed,
+            ...(customerData.equipmentNeeded.bcd.size && { sizeText: customerData.equipmentNeeded.bcd.size }),
+            sourceText: customerData.equipmentNeeded.bcd.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+          regulator: customerData.equipmentNeeded?.regulator ? {
+            needRental: customerData.equipmentNeeded.regulator.needed,
+            ...(customerData.equipmentNeeded.regulator.size && { sizeText: customerData.equipmentNeeded.regulator.size }),
+            sourceText: customerData.equipmentNeeded.regulator.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+          mask: customerData.equipmentNeeded?.mask ? {
+            needRental: customerData.equipmentNeeded.mask.needed,
+            sourceText: customerData.equipmentNeeded.mask.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+          fins: customerData.equipmentNeeded?.fins ? {
+            needRental: customerData.equipmentNeeded.fins.needed,
+            sourceText: customerData.equipmentNeeded.fins.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+          wetsuit: customerData.equipmentNeeded?.wetsuit ? {
+            needRental: customerData.equipmentNeeded.wetsuit.needed,
+            sourceText: customerData.equipmentNeeded.wetsuit.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+          computer: customerData.equipmentNeeded?.computer ? {
+            needRental: customerData.equipmentNeeded.computer.needed,
+            sourceText: customerData.equipmentNeeded.computer.abbreviation || ''
+          } : { needRental: false, sourceText: '' },
+        },
+        gearLastUpdatedAt: null,
         createdAt: customerData.csvCreatedDate ? new Date(customerData.csvCreatedDate) : new Date(),
+        updatedAt: new Date(),
       };
 
       console.log(`Parsed customer ${index + 1}:`, {
-        bookingReference: customer.bookingReference,
-        documentId: customer.documentId,
         fullName: customer.fullName,
-        email: customer.email,
-        accommodations: customer.accommodations,
-        certificationLevel: customer.certificationLevel,
+        email: customer.emailLower,
+        certLevel: customer.certLevel,
         nitroxCertified: customer.nitroxCertified,
-        equipmentCount: countRentalItems(customer.equipmentNeeded)
+        equipmentCount: countRentalItems({
+          bcd: { needed: customer.gearDefault.bcd?.needRental || false, abbreviation: '' },
+          regulator: { needed: customer.gearDefault.regulator?.needRental || false, abbreviation: '' },
+          mask: { needed: customer.gearDefault.mask?.needRental || false, abbreviation: '' },
+          fins: { needed: customer.gearDefault.fins?.needRental || false, abbreviation: '' },
+          wetsuit: { needed: customer.gearDefault.wetsuit?.needRental || false, abbreviation: '' },
+          computer: { needed: customer.gearDefault.computer?.needRental || false, abbreviation: '' },
+        })
       });
 
       return customer;
@@ -317,8 +372,8 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
     return customer !== null;
   }).filter(customer => {
     // Filter out rows with missing essential data
-    const isValid = customer.bookingReference && customer.fullName;
-    console.log(`Filtering customer - Valid: ${isValid}, BookingRef: "${customer.bookingReference}", FullName: "${customer.fullName}"`);
+    const isValid = customer.fullName;
+    console.log(`Filtering customer - Valid: ${isValid}, FullName: "${customer.fullName}"`);
     if (!isValid) {
       console.warn('Filtered out invalid customer:', customer);
     }

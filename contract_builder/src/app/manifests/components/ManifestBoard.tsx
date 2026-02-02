@@ -56,41 +56,65 @@ const mockBoats: Boat[] = [
 const mockCustomers: Customer[] = [
   {
     id: "1",
-    bookingReference: "BK001",
-    documentId: "DOC001",
     fullName: "John Doe",
-    email: "john@example.com",
-    accommodations: "Sea Saba Resort",
-    certificationLevel: "Open Water",
+    emailLower: "john@example.com",
+    phoneE164: "+1234567890",
+    dob: null,
+    notesGeneral: null,
+    certLevel: "Open Water",
+    certAgencyNumber: "PADI-123456",
+    certVerified: false,
+    certVerifiedAt: null,
+    certVerifiedBy: null,
     nitroxCertified: true,
-    equipmentNeeded: {
-      bcd: { needed: true, size: "M/L", abbreviation: "BCD-M/L" },
-      regulator: { needed: true, size: "M/L", abbreviation: "REG-M/L" },
-      mask: { needed: false, abbreviation: "OWN" },
-      fins: { needed: false, abbreviation: "OWN" },
-      wetsuit: { needed: true, size: "M", abbreviation: "WET-M" },
-      computer: { needed: false, abbreviation: "OWN" },
+    nitroxCertAgencyNumber: "PADI-NITROX-123",
+    nitroxVerified: false,
+    nitroxVerifiedAt: null,
+    nitroxVerifiedBy: null,
+    lastDiveDate: "2024-01-15",
+    lifetimeDives: 50,
+    lastDiveDateSourceAt: null,
+    gearDefault: {
+      bcd: { needRental: true, sizeText: "M/L", sourceText: "Rental BCD M/L" },
+      regulator: { needRental: true, sizeText: "M/L", sourceText: "Rental Regulator M/L" },
+      mask: { needRental: false, sourceText: "Own mask" },
+      fins: { needRental: false, sourceText: "Own fins" },
+      wetsuit: { needRental: true, sizeText: "M", sourceText: "Rental Wetsuit M" },
+      computer: { needRental: false, sourceText: "Own computer" },
     },
+    gearLastUpdatedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "2",
-    bookingReference: "BK002",
-    documentId: "DOC002",
     fullName: "Jane Smith",
-    email: "jane@example.com",
-    accommodations: "Sea Saba Resort",
-    certificationLevel: "Advanced",
+    emailLower: "jane@example.com",
+    phoneE164: "+1234567891",
+    dob: null,
+    notesGeneral: null,
+    certLevel: "Advanced",
+    certAgencyNumber: "PADI-789012",
+    certVerified: false,
+    certVerifiedAt: null,
+    certVerifiedBy: null,
     nitroxCertified: false,
-    equipmentNeeded: {
-      bcd: { needed: true, size: "S", abbreviation: "BCD-S" },
-      regulator: { needed: true, size: "S", abbreviation: "REG-S" },
-      mask: { needed: true, size: "M", abbreviation: "MASK-M" },
-      fins: { needed: true, size: "M", abbreviation: "FINS-M" },
-      wetsuit: { needed: true, size: "S", abbreviation: "WET-S" },
-      computer: { needed: false, abbreviation: "OWN" },
+    nitroxCertAgencyNumber: null,
+    nitroxVerified: false,
+    nitroxVerifiedAt: null,
+    nitroxVerifiedBy: null,
+    lastDiveDate: "2024-01-10",
+    lifetimeDives: 75,
+    lastDiveDateSourceAt: null,
+    gearDefault: {
+      bcd: { needRental: true, sizeText: "S", sourceText: "Rental BCD S" },
+      regulator: { needRental: true, sizeText: "S", sourceText: "Rental Regulator S" },
+      mask: { needRental: true, sizeText: "M", sourceText: "Rental Mask M" },
+      fins: { needRental: true, sizeText: "M", sourceText: "Rental Fins M" },
+      wetsuit: { needRental: true, sizeText: "S", sourceText: "Rental Wetsuit S" },
+      computer: { needRental: true, sizeText: "S", sourceText: "Rental Computer S" },
     },
+    gearLastUpdatedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -193,7 +217,14 @@ export default function ManifestBoard() {
       assignedAt: new Date(),
       assignedBy: "current-user", // Would come from auth context
       tankType,
-      equipmentProvided: customer.equipmentNeeded,
+      equipmentProvided: {
+      bcd: { needed: customer.gearDefault.bcd?.needRental || false, abbreviation: customer.gearDefault.bcd?.needRental ? 'BCD-RENTAL' : 'OWN' },
+      regulator: { needed: customer.gearDefault.regulator?.needRental || false, abbreviation: customer.gearDefault.regulator?.needRental ? 'REG-RENTAL' : 'OWN' },
+      mask: { needed: customer.gearDefault.mask?.needRental || false, abbreviation: customer.gearDefault.mask?.needRental ? 'MASK-RENTAL' : 'OWN' },
+      fins: { needed: customer.gearDefault.fins?.needRental || false, abbreviation: customer.gearDefault.fins?.needRental ? 'FINS-RENTAL' : 'OWN' },
+      wetsuit: { needed: customer.gearDefault.wetsuit?.needRental || false, abbreviation: customer.gearDefault.wetsuit?.needRental ? 'WET-RENTAL' : 'OWN' },
+      computer: { needed: customer.gearDefault.computer?.needRental || false, abbreviation: customer.gearDefault.computer?.needRental ? 'COMP-RENTAL' : 'OWN' },
+    },
     };
 
     setAssignments(prev => [...prev, assignment]);
@@ -508,7 +539,7 @@ export default function ManifestBoard() {
                                   <VStack align="start" spacing={0}>
                                     <Text fontWeight="bold">{customer.fullName}</Text>
                                     <Text fontSize="xs" color="textMuted">
-                                      {customer.bookingReference} • {customer.accommodations}
+                                      {customer.emailLower}
                                     </Text>
                                   </VStack>
                                   <IconButton
@@ -525,7 +556,7 @@ export default function ManifestBoard() {
                                     {customer.nitroxCertified ? "Nitrox" : "Air"}
                                   </Badge>
                                   <Badge colorScheme="blue" size="sm">
-                                    {customer.certificationLevel}
+                                    {customer.certLevel}
                                   </Badge>
                                 </HStack>
                               </Box>
@@ -570,17 +601,12 @@ export default function ManifestBoard() {
                         <Td>
                           <VStack align="start" spacing={0}>
                             <Text fontWeight="bold">{customer.fullName}</Text>
-                            <Text fontSize="xs" color="textMuted">{customer.bookingReference}</Text>
-                          </VStack>
-                        </Td>
-                        <Td>
-                          <VStack align="start" spacing={0}>
-                            <Text>{customer.accommodations}</Text>
+                            <Text fontSize="xs" color="textMuted">{customer.emailLower}</Text>
                           </VStack>
                         </Td>
                         <Td>
                           <VStack spacing={1}>
-                            <Badge colorScheme="blue">{customer.certificationLevel}</Badge>
+                            <Badge colorScheme="blue">{customer.certLevel}</Badge>
                             <Badge colorScheme={customer.nitroxCertified ? "green" : "gray"}>
                               {customer.nitroxCertified ? "Nitrox" : "Air"}
                             </Badge>
@@ -588,8 +614,8 @@ export default function ManifestBoard() {
                         </Td>
                         <Td>
                           <Text fontSize="sm">
-                            {Object.entries(customer.equipmentNeeded)
-                              .filter(([_, value]) => value)
+                            {Object.entries(customer.gearDefault)
+                              .filter(([_, value]) => value && typeof value === 'object' && (value as any).needRental)
                               .map(([key]) => key)
                               .join(', ')}
                           </Text>

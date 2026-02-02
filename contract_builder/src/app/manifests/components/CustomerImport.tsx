@@ -29,7 +29,8 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useState, useRef, useMemo } from "react";
-import { FiUpload, FiDownload, FiTrash2, FiCheck, FiX, FiEdit2, FiSave, FiSearch } from "react-icons/fi";
+import { FiUpload, FiDownload, FiTrash2, FiCheck, FiX, FiEdit2, FiSave, FiSearch, FiArrowLeft } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import Papa, { ParseResult } from "papaparse";
 import { 
   Customer, 
@@ -41,6 +42,7 @@ import { customerService } from "@/services/customers";
 import { normalizeName, normalizeEmail, normalizePhone } from "@/utils/stringUtils";
 
 export default function CustomerImport() {
+  const router = useRouter();
   const [importJob, setImportJob] = useState<ImportJob | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -50,6 +52,7 @@ export default function CustomerImport() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<string | null>(null);
   const [editedCustomer, setEditedCustomer] = useState<Customer | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -57,43 +60,65 @@ export default function CustomerImport() {
   const mockCustomers: Customer[] = [
     {
       id: "1",
-      bookingReference: "BK001",
-      documentId: "DOC001",
       fullName: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      accommodations: "Sea Saba Resort",
-      certificationLevel: "Open Water",
+      emailLower: "john@example.com",
+      phoneE164: "+1234567890",
+      dob: null,
+      notesGeneral: null,
+      certLevel: "Open Water",
+      certAgencyNumber: "PADI-123456",
+      certVerified: false,
+      certVerifiedAt: null,
+      certVerifiedBy: null,
       nitroxCertified: true,
-      equipmentNeeded: {
-        bcd: { needed: true, size: "M/L", abbreviation: "BCD-M/L" },
-        regulator: { needed: true, size: "M/L", abbreviation: "REG-M/L" },
-        mask: { needed: false, abbreviation: "OWN" },
-        fins: { needed: false, abbreviation: "OWN" },
-        wetsuit: { needed: true, size: "M", abbreviation: "WET-M" },
-        computer: { needed: false, abbreviation: "OWN" },
+      nitroxCertAgencyNumber: "PADI-NITROX-123",
+      nitroxVerified: false,
+      nitroxVerifiedAt: null,
+      nitroxVerifiedBy: null,
+      lastDiveDate: "2024-01-15",
+      lifetimeDives: 50,
+      lastDiveDateSourceAt: null,
+      gearDefault: {
+        bcd: { needRental: true, sizeText: "M/L", sourceText: "Rental BCD M/L" },
+        regulator: { needRental: true, sizeText: "M/L", sourceText: "Rental Regulator M/L" },
+        mask: { needRental: false, sourceText: "Own mask" },
+        fins: { needRental: false, sourceText: "Own fins" },
+        wetsuit: { needRental: true, sizeText: "M", sourceText: "Rental Wetsuit M" },
+        computer: { needRental: false, sourceText: "Own computer" },
       },
+      gearLastUpdatedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: "2",
-      bookingReference: "BK002",
-      documentId: "DOC002",
       fullName: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1234567891",
-      accommodations: "Sea Saba Resort",
-      certificationLevel: "Advanced",
+      emailLower: "jane@example.com",
+      phoneE164: "+1234567891",
+      dob: null,
+      notesGeneral: null,
+      certLevel: "Advanced",
+      certAgencyNumber: "PADI-789012",
+      certVerified: false,
+      certVerifiedAt: null,
+      certVerifiedBy: null,
       nitroxCertified: false,
-      equipmentNeeded: {
-        bcd: { needed: true, size: "S", abbreviation: "BCD-S" },
-        regulator: { needed: true, size: "S", abbreviation: "REG-S" },
-        mask: { needed: true, size: "M", abbreviation: "MASK-M" },
-        fins: { needed: true, size: "M", abbreviation: "FINS-M" },
-        wetsuit: { needed: true, size: "S", abbreviation: "WET-S" },
-        computer: { needed: false, abbreviation: "OWN" },
+      nitroxCertAgencyNumber: null,
+      nitroxVerified: false,
+      nitroxVerifiedAt: null,
+      nitroxVerifiedBy: null,
+      lastDiveDate: "2024-01-10",
+      lifetimeDives: 75,
+      lastDiveDateSourceAt: null,
+      gearDefault: {
+        bcd: { needRental: true, sizeText: "S", sourceText: "Rental BCD S" },
+        regulator: { needRental: true, sizeText: "S", sourceText: "Rental Regulator S" },
+        mask: { needRental: true, sizeText: "M", sourceText: "Rental Mask M" },
+        fins: { needRental: true, sizeText: "M", sourceText: "Rental Fins M" },
+        wetsuit: { needRental: true, sizeText: "S", sourceText: "Rental Wetsuit S" },
+        computer: { needRental: true, sizeText: "S", sourceText: "Rental Computer S" },
       },
+      gearLastUpdatedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -109,6 +134,7 @@ export default function CustomerImport() {
     const newJob: ImportJob = {
       id: Date.now().toString(),
       status: 'processing',
+      fileName: file.name,
       totalRecords: 0,
       processedRecords: 0,
       errors: [],
@@ -242,18 +268,59 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
     });
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        // Trigger file upload
+        const event = {
+          target: { files: [file] }
+        } as any;
+        handleFileUpload(event);
+      } else {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a CSV file",
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+  };
+
   // Filter customers based on search query
   const filteredCustomers = useMemo(() => {
     if (!searchQuery.trim()) return customers;
     
     const query = searchQuery.toLowerCase();
     return customers.filter(customer => 
-      customer.bookingReference.toLowerCase().includes(query) ||
-      customer.documentId.toLowerCase().includes(query) ||
       customer.fullName.toLowerCase().includes(query) ||
-      customer.email?.toLowerCase().includes(query) ||
-      customer.accommodations?.toLowerCase().includes(query) ||
-      customer.certificationLevel.toLowerCase().includes(query)
+      (customer.emailLower && customer.emailLower.includes(query)) ||
+      (customer.phoneE164 && customer.phoneE164.includes(query)) ||
+      (customer.certLevel && customer.certLevel.toLowerCase().includes(query))
     );
   }, [customers, searchQuery]);
 
@@ -274,8 +341,8 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
         await customerService.updateCustomer(editedCustomer.id, editedCustomer);
       } else {
         // Create new customer in Firestore
-        const { id, createdAt, updatedAt, ...customerData } = editedCustomer;
-        await customerService.addCustomer(customerData);
+        const { createdAt, updatedAt, ...customerData } = editedCustomer;
+        await customerService.createCustomer(customerData);
         setSavedCustomers(prev => new Set([...prev, editedCustomer.id]));
       }
       
@@ -325,22 +392,19 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
       }
       
       // Prepare customer data with CSV created dates for duplicate comparison
-      const customerData = unsavedCustomers.map(({ id, createdAt, updatedAt, ...data }) => ({
+      const customerData = unsavedCustomers.map(({ createdAt, updatedAt, ...data }) => ({
         ...data,
         csvCreatedDate: createdAt instanceof Date ? createdAt.toISOString() : createdAt,
       }));
       
-      const result = await customerService.batchImportCustomers(customerData);
+      const result = await customerService.bulkCreateCustomers(customerData);
       
       // Mark all customers as saved
       const newSavedCustomers = new Set([...savedCustomers, ...unsavedCustomers.map(c => c.id)]);
       setSavedCustomers(newSavedCustomers);
       
-      // Show detailed results including duplicate handling
-      let message = `Successfully processed ${unsavedCustomers.length} customers:\n`;
-      message += `• ${result.created} new customers created\n`;
-      message += `• ${result.updated} existing customers updated\n`;
-      message += `• ${result.duplicates} duplicates skipped (older records)`;
+      // Show results
+      const message = `Successfully saved ${result.length} customers to Firestore`;
       
       toast({
         title: "Import Complete with Duplicate Prevention",
@@ -380,10 +444,10 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
       case 'fullName':
         normalizedValue = normalizeName(value);
         break;
-      case 'email':
+      case 'emailLower':
         normalizedValue = normalizeEmail(value);
         break;
-      case 'phone':
+      case 'phoneE164':
         normalizedValue = normalizePhone(value);
         break;
       default:
@@ -394,40 +458,66 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
     setEditedCustomer(prev => prev ? { ...prev, [field]: normalizedValue } : null);
   };
 
-  const getEquipmentBadge = (equipment: EquipmentNeeds) => {
-    const items = Object.entries(equipment)
-      .filter(([key, value]) => value && key !== 'other')
+  const getEquipmentBadge = (gear: any) => {
+    if (!gear) return <Badge colorScheme="gray">No gear</Badge>;
+    const items = Object.entries(gear)
+      .filter(([key, value]) => value && (value as any).needRental)
       .length;
-    return <Badge colorScheme="blue">{items} items</Badge>;
+    return <Badge colorScheme="blue">{items} rentals</Badge>;
   };
 
   return (
     <VStack spacing={6} align="stretch">
+      {/* Header with back button */}
+      <HStack justify="space-between">
+        <Button
+          leftIcon={<FiArrowLeft />}
+          variant="ghost"
+          onClick={() => router.back()}
+        >
+          Back
+        </Button>
+        <Heading size="lg">Import Customer Data</Heading>
+        <Box w="40px" /> {/* Spacer for centering */}
+      </HStack>
+
       {/* Import Section */}
       <Card>
         <CardBody>
           <VStack spacing={4} align="stretch">
-            <Heading size="md">Import Customer Data</Heading>
             <Text color="textMuted">
               Upload customer data from your booking engine (CSV format recommended)
             </Text>
             
-            <HStack spacing={4}>
-              <Button
-                leftIcon={<FiDownload />}
-                variant="outline"
-                onClick={downloadTemplate}
-              >
-                Download Template
-              </Button>
-              <Button
-                leftIcon={<FiUpload />}
-                colorScheme="blue"
-                isLoading={isUploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Upload File
-              </Button>
+            {/* Drag and Drop Area */}
+            <Box
+              border="2px dashed"
+              borderColor={isDragging ? "info" : "border"}
+              borderRadius="md"
+              p={8}
+              textAlign="center"
+              bg={isDragging ? "infoBg" : "cardBgAlt"}
+              transition="all 0.2s"
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              cursor="pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <VStack spacing={2}>
+                <Box
+                  as={FiUpload}
+                  size={48}
+                  color={isDragging ? "info" : "textMuted"}
+                />
+                <Text fontSize="lg" fontWeight="medium">
+                  {isDragging ? "Drop your CSV file here" : "Drag and drop your CSV file here"}
+                </Text>
+                <Text fontSize="sm" color="textMuted">
+                  or click to browse
+                </Text>
+              </VStack>
               <Input
                 ref={fileInputRef}
                 type="file"
@@ -435,6 +525,16 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                 onChange={handleFileUpload}
                 display="none"
               />
+            </Box>
+            
+            <HStack spacing={4} justify="center">
+              <Button
+                leftIcon={<FiDownload />}
+                variant="outline"
+                onClick={downloadTemplate}
+              >
+                Download Template
+              </Button>
               {customers.length > 0 && (
                 <Button
                   leftIcon={<FiTrash2 />}
@@ -512,10 +612,7 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                 <Table variant="simple">
                   <Thead>
                     <Tr>
-                      <Th>Booking Ref</Th>
-                      <Th>Document ID</Th>
                       <Th>Name</Th>
-                      <Th>Accommodations</Th>
                       <Th>Certification</Th>
                       <Th>Nitrox</Th>
                       <Th>Equipment</Th>
@@ -525,29 +622,7 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                   <Tbody>
                     {filteredCustomers.map((customer) => (
                       <Tr key={customer.id}>
-                        <Td fontWeight="bold">
-                          {editingCustomer === customer.id ? (
-                            <Input
-                              value={editedCustomer?.bookingReference || ''}
-                              onChange={(e) => updateEditedField('bookingReference', e.target.value)}
-                              size="sm"
-                            />
-                          ) : (
-                            customer.bookingReference
-                          )}
-                        </Td>
-                        <Td fontWeight="bold">
-                          {editingCustomer === customer.id ? (
-                            <Input
-                              value={editedCustomer?.documentId || ''}
-                              onChange={(e) => updateEditedField('documentId', e.target.value)}
-                              size="sm"
-                            />
-                          ) : (
-                            customer.documentId
-                          )}
-                        </Td>
-                        <Td>
+                                                <Td>
                           {editingCustomer === customer.id ? (
                             <VStack align="start" spacing={2}>
                               <Input
@@ -557,14 +632,14 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                                 size="sm"
                               />
                               <Input
-                                value={editedCustomer?.email || ''}
-                                onChange={(e) => updateEditedField('email', e.target.value)}
+                                value={editedCustomer?.emailLower || ''}
+                                onChange={(e) => updateEditedField('emailLower', e.target.value)}
                                 placeholder="Email"
                                 size="sm"
                               />
                               <Input
-                                value={editedCustomer?.phone || ''}
-                                onChange={(e) => updateEditedField('phone', e.target.value)}
+                                value={editedCustomer?.phoneE164 || ''}
+                                onChange={(e) => updateEditedField('phoneE164', e.target.value)}
                                 placeholder="Phone"
                                 size="sm"
                               />
@@ -572,39 +647,29 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                           ) : (
                             <VStack align="start" spacing={0}>
                               <Text>{customer.fullName}</Text>
-                              <Text fontSize="xs" color="textMuted">{customer.email}</Text>
-                              <Text fontSize="xs" color="textMuted">{customer.phone}</Text>
+                              <Text fontSize="xs" color="textMuted">{customer.emailLower}</Text>
+                              <Text fontSize="xs" color="textMuted">{customer.phoneE164}</Text>
                             </VStack>
                           )}
                         </Td>
                         <Td>
                           {editingCustomer === customer.id ? (
-                            <Input
-                              value={editedCustomer?.accommodations || ''}
-                              onChange={(e) => updateEditedField('accommodations', e.target.value)}
-                              placeholder="Accommodations"
-                              size="sm"
-                            />
-                          ) : (
-                            <Text>{customer.accommodations}</Text>
-                          )}
-                        </Td>
-                        <Td>
-                          {editingCustomer === customer.id ? (
                             <Select
-                              value={editedCustomer?.certificationLevel || ''}
-                              onChange={(e) => updateEditedField('certificationLevel', e.target.value)}
+                              value={editedCustomer?.certLevel || ''}
+                              onChange={(e) => updateEditedField('certLevel', e.target.value)}
                               size="sm"
                             >
+                              <option value="">None</option>
                               <option value="Open Water">Open Water</option>
                               <option value="Advanced">Advanced</option>
-                              <option value="Rescue Diver">Rescue Diver</option>
+                              <option value="Rescue">Rescue</option>
                               <option value="Divemaster">Divemaster</option>
                               <option value="Instructor">Instructor</option>
-                              <option value="Unknown">Unknown</option>
                             </Select>
                           ) : (
-                            customer.certificationLevel
+                            <Badge variant="outline">
+                              {customer.certLevel || 'None'}
+                            </Badge>
                           )}
                         </Td>
                         <Td>
@@ -625,157 +690,11 @@ BK002,Jane,Smith,jane@example.com,+1234567891,Sea Saba Resort,102,Advanced,No,Ye
                         </Td>
                         <Td>
                           {editingCustomer === customer.id ? (
-                            <VStack align="start" spacing={1}>
-                              <HStack spacing={2}>
-                                <Text fontSize="xs">BCD:</Text>
-                                <Select
-                                  value={editedCustomer?.equipmentNeeded?.bcd?.needed ? 'rental' : 'own'}
-                                  onChange={(e) => {
-                                    const isRental = e.target.value === 'rental';
-                                    updateEditedField('equipmentNeeded', {
-                                      ...editedCustomer?.equipmentNeeded,
-                                      bcd: {
-                                        needed: isRental,
-                                        size: isRental ? 'M/L' : undefined,
-                                        abbreviation: isRental ? 'BCD-M/L' : 'OWN'
-                                      }
-                                    });
-                                  }}
-                                  size="xs"
-                                  width="80px"
-                                >
-                                  <option value="own">Own</option>
-                                  <option value="rental">Rental</option>
-                                </Select>
-                                {editedCustomer?.equipmentNeeded?.bcd?.needed && (
-                                  <Select
-                                    value={editedCustomer?.equipmentNeeded?.bcd?.size || 'M'}
-                                    onChange={(e) => {
-                                      updateEditedField('equipmentNeeded', {
-                                        ...editedCustomer?.equipmentNeeded,
-                                        bcd: {
-                                          ...editedCustomer?.equipmentNeeded?.bcd!,
-                                          size: e.target.value,
-                                          abbreviation: `BCD-${e.target.value}`
-                                        }
-                                      });
-                                    }}
-                                    size="xs"
-                                    width="80px"
-                                  >
-                                    <option value="Wing">Wing</option>
-                                    <option value="XXS">XXS</option>
-                                    <option value="XS">XS</option>
-                                    <option value="S">S</option>
-                                    <option value="M">M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                    <option value="XXL">XXL</option>
-                                  </Select>
-                                )}
-                              </HStack>
-                              <HStack spacing={2}>
-                                <Text fontSize="xs">Reg:</Text>
-                                <Select
-                                  value={editedCustomer?.equipmentNeeded?.regulator?.needed ? 'rental' : 'own'}
-                                  onChange={(e) => {
-                                    const isRental = e.target.value === 'rental';
-                                    updateEditedField('equipmentNeeded', {
-                                      ...editedCustomer?.equipmentNeeded,
-                                      regulator: {
-                                        needed: isRental,
-                                        size: isRental ? 'M/L' : undefined,
-                                        abbreviation: isRental ? 'REG-M/L' : 'OWN'
-                                      }
-                                    });
-                                  }}
-                                  size="xs"
-                                  width="80px"
-                                >
-                                  <option value="own">Own</option>
-                                  <option value="rental">Rental</option>
-                                </Select>
-                                {editedCustomer?.equipmentNeeded?.regulator?.needed && (
-                                  <Select
-                                    value={editedCustomer?.equipmentNeeded?.regulator?.size || 'NEED'}
-                                    onChange={(e) => {
-                                      updateEditedField('equipmentNeeded', {
-                                        ...editedCustomer?.equipmentNeeded,
-                                        regulator: {
-                                          ...editedCustomer?.equipmentNeeded?.regulator!,
-                                          size: e.target.value,
-                                          abbreviation: e.target.value === 'NEED' ? 'REG-NEED' : `REG-${e.target.value}`
-                                        }
-                                      });
-                                    }}
-                                    size="xs"
-                                    width="80px"
-                                  >
-                                    <option value="NEED">NEED</option>
-                                  </Select>
-                                )}
-                              </HStack>
-                              <HStack spacing={2}>
-                                <Text fontSize="xs">Wet:</Text>
-                                <Select
-                                  value={editedCustomer?.equipmentNeeded?.wetsuit?.needed ? 'rental' : 'own'}
-                                  onChange={(e) => {
-                                    const isRental = e.target.value === 'rental';
-                                    updateEditedField('equipmentNeeded', {
-                                      ...editedCustomer?.equipmentNeeded,
-                                      wetsuit: {
-                                        needed: isRental,
-                                        size: isRental ? 'M' : undefined,
-                                        abbreviation: isRental ? 'WET-M' : 'OWN'
-                                      }
-                                    });
-                                  }}
-                                  size="xs"
-                                  width="80px"
-                                >
-                                  <option value="own">Own</option>
-                                  <option value="rental">Rental</option>
-                                </Select>
-                                {editedCustomer?.equipmentNeeded?.wetsuit?.needed && (
-                                  <Select
-                                    value={editedCustomer?.equipmentNeeded?.wetsuit?.size || 'M'}
-                                    onChange={(e) => {
-                                      updateEditedField('equipmentNeeded', {
-                                        ...editedCustomer?.equipmentNeeded,
-                                        wetsuit: {
-                                          ...editedCustomer?.equipmentNeeded?.wetsuit!,
-                                          size: e.target.value,
-                                          abbreviation: `WET-${e.target.value}`
-                                        }
-                                      });
-                                    }}
-                                    size="xs"
-                                    width="80px"
-                                  >
-                                    <option value="XS">XS</option>
-                                    <option value="S">S</option>
-                                    <option value="M">M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                    <option value="XXL">XXL</option>
-                                    <option value="WXS">WXS</option>
-                                    <option value="WS">WS</option>
-                                    <option value="WM">WM</option>
-                                    <option value="WL">WL</option>
-                                    <option value="WXL">WXL</option>
-                                    <option value="WXXL">WXXL</option>
-                                    <option value="MS">MS</option>
-                                    <option value="MM">MM</option>
-                                    <option value="ML">ML</option>
-                                    <option value="MXL">MXL</option>
-                                    <option value="MXXL">MXXL</option>
-                                    <option value="M3XL">M3XL</option>
-                                  </Select>
-                                )}
-                              </HStack>
-                            </VStack>
+                            <Text fontSize="sm" color="textMuted">
+                              Equipment editing not available in this view
+                            </Text>
                           ) : (
-                            getEquipmentBadge(customer.equipmentNeeded)
+                            getEquipmentBadge(customer.gearDefault)
                           )}
                         </Td>
                         <Td>

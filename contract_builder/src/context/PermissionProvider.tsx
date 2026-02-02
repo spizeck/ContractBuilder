@@ -39,28 +39,18 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log('=== PERMISSION PROVIDER DEBUG ===');
-    console.log('User:', user?.email);
-    
     if (!user) {
-      console.log('No user - setting permissions to null');
       setUserPermissions(null);
       setLoading(false);
       return;
     }
-
-    console.log('Setting up Firestore listener for user:', user.uid);
     
     // Set up real-time listener for user document
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-      console.log('=== FIRESTORE SNAPSHOT ===');
-      console.log('Doc exists:', docSnapshot.exists());
-      
       try {
         if (docSnapshot.exists()) {
           const userData = docSnapshot.data();
-          console.log('User data from Firestore:', userData);
           
           // Map legacy roles to new role system
           let mappedRole: UserRole = 'viewer';
@@ -70,12 +60,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
           else if (userData.role === 'viewer') mappedRole = 'viewer';
           
-          console.log('Mapped role:', mappedRole);
-          console.log('User permissions from Firestore:', userData.permissions);
-          
           // Use actual permissions from Firestore, or fall back to defaults for legacy users
           const permissions = userData.permissions || DEFAULT_PERMISSIONS[mappedRole];
-          console.log('Final permissions:', permissions);
           
           const finalPermissions = {
             role: mappedRole,
@@ -83,10 +69,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
             archived: userData.archived || false
           };
           
-          console.log('Setting userPermissions:', finalPermissions);
           setUserPermissions(finalPermissions);
         } else {
-          console.log('User document does not exist - using defaults');
           // User document doesn't exist, use default permissions
           setUserPermissions({
             role: 'viewer',
@@ -103,7 +87,6 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }, (error) => {
-      console.error('=== FIRESTORE LISTENER ERROR ===');
       console.error('Error setting up user listener:', error);
       setUserPermissions({
         role: 'viewer',
