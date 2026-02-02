@@ -133,6 +133,12 @@ export default function EditCustomerPage() {
     try {
       const updateData = {
         ...formData,
+        certVerified: customer.certVerified,
+        certVerifiedAt: customer.certVerifiedAt,
+        certVerifiedBy: customer.certVerifiedBy,
+        nitroxVerified: customer.nitroxVerified,
+        nitroxVerifiedAt: customer.nitroxVerifiedAt,
+        nitroxVerifiedBy: customer.nitroxVerifiedBy,
         lifetimeDives: formData.lifetimeDives ? parseInt(formData.lifetimeDives) || null : null,
         gearDefault: customer.gearDefault,
         gearLastUpdatedAt: Timestamp.now(),
@@ -297,12 +303,38 @@ export default function EditCustomerPage() {
                     />
                   </FormControl>
                   
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb="0">Nitrox Certified</FormLabel>
-                    <Switch
-                      isChecked={formData.nitroxCertified}
-                      onChange={(e) => handleInputChange('nitroxCertified', e.target.checked)}
-                    />
+                  {formData.certLevel && formData.certLevel !== "I am not certified" && (
+                    <Box>
+                      <HStack justify="space-between" mb={2}>
+                        <FormLabel mb="0">Certification Verified</FormLabel>
+                        <Switch
+                          isChecked={customer?.certVerified || false}
+                          onChange={(e) => {
+                            setCustomer(prev => prev ? {
+                              ...prev,
+                              certVerified: e.target.checked,
+                              certVerifiedAt: e.target.checked ? Timestamp.now() : null,
+                              certVerifiedBy: e.target.checked ? "current_user" : null
+                            } : null);
+                          }}
+                        />
+                      </HStack>
+                      {customer?.certVerified && (
+                        <Text fontSize="sm" color="green.600">
+                          Verified on {customer.certVerifiedAt?.toDate?.().toLocaleDateString() || 'Unknown'}
+                        </Text>
+                      )}
+                    </Box>
+                  )}
+                  
+                  <FormControl>
+                    <HStack justify="space-between" mb={2}>
+                      <FormLabel mb="0">Nitrox Certified</FormLabel>
+                      <Switch
+                        isChecked={formData.nitroxCertified}
+                        onChange={(e) => handleInputChange('nitroxCertified', e.target.checked)}
+                      />
+                    </HStack>
                   </FormControl>
                   
                   <FormControl>
@@ -312,6 +344,30 @@ export default function EditCustomerPage() {
                       onChange={(e) => handleInputChange('nitroxCertAgencyNumber', e.target.value)}
                     />
                   </FormControl>
+                  
+                  {formData.nitroxCertified && (
+                    <Box>
+                      <HStack justify="space-between" mb={2}>
+                        <FormLabel mb="0">Nitrox Verified</FormLabel>
+                        <Switch
+                          isChecked={customer?.nitroxVerified || false}
+                          onChange={(e) => {
+                            setCustomer(prev => prev ? {
+                              ...prev,
+                              nitroxVerified: e.target.checked,
+                              nitroxVerifiedAt: e.target.checked ? Timestamp.now() : null,
+                              nitroxVerifiedBy: e.target.checked ? "current_user" : null
+                            } : null);
+                          }}
+                        />
+                      </HStack>
+                      {customer?.nitroxVerified && (
+                        <Text fontSize="sm" color="green.600">
+                          Verified on {customer.nitroxVerifiedAt?.toDate?.().toLocaleDateString() || 'Unknown'}
+                        </Text>
+                      )}
+                    </Box>
+                  )}
                 </VStack>
               </Box>
 
@@ -334,11 +390,11 @@ export default function EditCustomerPage() {
                               sizeText: e.target.checked ? (customer?.gearDefault?.bcd?.sizeText || 'M') : '',
                               sourceText: e.target.checked ? `BCD-${customer?.gearDefault?.bcd?.sizeText || 'M'}` : ''
                             },
-                            regulator: { needRental: false, sourceText: '' },
-                            wetsuit: { needRental: false, sourceText: '' },
-                            fins: { needRental: false, sourceText: '' },
-                            mask: { needRental: false, sourceText: '' },
-                            computer: { needRental: false, sourceText: '' },
+                            regulator: customer?.gearDefault?.regulator || { needRental: false, sourceText: '' },
+                            wetsuit: customer?.gearDefault?.wetsuit || { needRental: false, sourceText: '' },
+                            fins: customer?.gearDefault?.fins || { needRental: false, sourceText: '' },
+                            mask: customer?.gearDefault?.mask || { needRental: false, sourceText: '' },
+                            computer: customer?.gearDefault?.computer || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
@@ -386,11 +442,11 @@ export default function EditCustomerPage() {
                               sizeText: e.target.checked ? (customer?.gearDefault?.wetsuit?.sizeText || 'M') : '',
                               sourceText: e.target.checked ? `WET-${customer?.gearDefault?.wetsuit?.sizeText || 'M'}` : ''
                             },
-                            bcd: { needRental: false, sizeText: '', sourceText: '' },
-                            regulator: { needRental: false, sourceText: '' },
-                            fins: { needRental: false, sourceText: '' },
-                            mask: { needRental: false, sourceText: '' },
-                            computer: { needRental: false, sourceText: '' },
+                            bcd: customer?.gearDefault?.bcd || { needRental: false, sizeText: '', sourceText: '' },
+                            regulator: customer?.gearDefault?.regulator || { needRental: false, sourceText: '' },
+                            fins: customer?.gearDefault?.fins || { needRental: false, sourceText: '' },
+                            mask: customer?.gearDefault?.mask || { needRental: false, sourceText: '' },
+                            computer: customer?.gearDefault?.computer || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
@@ -448,11 +504,11 @@ export default function EditCustomerPage() {
                               sizeText: e.target.checked ? (customer?.gearDefault?.fins?.sizeText || 'M/L') : '',
                               sourceText: e.target.checked ? `FINS-${customer?.gearDefault?.fins?.sizeText || 'M/L'}` : ''
                             },
-                            bcd: { needRental: false, sizeText: '', sourceText: '' },
-                            regulator: { needRental: false, sourceText: '' },
-                            wetsuit: { needRental: false, sourceText: '' },
-                            mask: { needRental: false, sourceText: '' },
-                            computer: { needRental: false, sourceText: '' },
+                            bcd: customer?.gearDefault?.bcd || { needRental: false, sizeText: '', sourceText: '' },
+                            regulator: customer?.gearDefault?.regulator || { needRental: false, sourceText: '' },
+                            wetsuit: customer?.gearDefault?.wetsuit || { needRental: false, sourceText: '' },
+                            mask: customer?.gearDefault?.mask || { needRental: false, sourceText: '' },
+                            computer: customer?.gearDefault?.computer || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
@@ -496,11 +552,11 @@ export default function EditCustomerPage() {
                               needRental: e.target.checked,
                               sourceText: e.target.checked ? 'REG-RENT' : ''
                             },
-                            bcd: { needRental: false, sizeText: '', sourceText: '' },
-                            wetsuit: { needRental: false, sourceText: '' },
-                            fins: { needRental: false, sourceText: '' },
-                            mask: { needRental: false, sourceText: '' },
-                            computer: { needRental: false, sourceText: '' },
+                            bcd: customer?.gearDefault?.bcd || { needRental: false, sizeText: '', sourceText: '' },
+                            wetsuit: customer?.gearDefault?.wetsuit || { needRental: false, sourceText: '' },
+                            fins: customer?.gearDefault?.fins || { needRental: false, sourceText: '' },
+                            mask: customer?.gearDefault?.mask || { needRental: false, sourceText: '' },
+                            computer: customer?.gearDefault?.computer || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
@@ -522,11 +578,11 @@ export default function EditCustomerPage() {
                               needRental: e.target.checked,
                               sourceText: e.target.checked ? 'MASK-RENT' : ''
                             },
-                            bcd: { needRental: false, sizeText: '', sourceText: '' },
-                            regulator: { needRental: false, sourceText: '' },
-                            wetsuit: { needRental: false, sourceText: '' },
-                            fins: { needRental: false, sourceText: '' },
-                            computer: { needRental: false, sourceText: '' },
+                            bcd: customer?.gearDefault?.bcd || { needRental: false, sizeText: '', sourceText: '' },
+                            regulator: customer?.gearDefault?.regulator || { needRental: false, sourceText: '' },
+                            wetsuit: customer?.gearDefault?.wetsuit || { needRental: false, sourceText: '' },
+                            fins: customer?.gearDefault?.fins || { needRental: false, sourceText: '' },
+                            computer: customer?.gearDefault?.computer || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
@@ -548,11 +604,11 @@ export default function EditCustomerPage() {
                               needRental: e.target.checked,
                               sourceText: e.target.checked ? 'COMP-RENT' : ''
                             },
-                            bcd: { needRental: false, sizeText: '', sourceText: '' },
-                            regulator: { needRental: false, sourceText: '' },
-                            wetsuit: { needRental: false, sourceText: '' },
-                            fins: { needRental: false, sourceText: '' },
-                            mask: { needRental: false, sourceText: '' },
+                            bcd: customer?.gearDefault?.bcd || { needRental: false, sizeText: '', sourceText: '' },
+                            regulator: customer?.gearDefault?.regulator || { needRental: false, sourceText: '' },
+                            wetsuit: customer?.gearDefault?.wetsuit || { needRental: false, sourceText: '' },
+                            fins: customer?.gearDefault?.fins || { needRental: false, sourceText: '' },
+                            mask: customer?.gearDefault?.mask || { needRental: false, sourceText: '' },
                             otherNotes: customer?.gearDefault?.otherNotes || ''
                           };
                           setCustomer(prev => prev ? {...prev, gearDefault: updatedGear} : null);
