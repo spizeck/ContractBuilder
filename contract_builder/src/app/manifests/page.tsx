@@ -20,14 +20,12 @@ import {
 import { useState } from "react";
 import { Boat } from "@/types/diveLogTypes";
 import ProtectedPage from "@/components/shared/LayoutComponents/ProtectedPage";
-import ManifestBoard from "@/app/manifests/components/ManifestBoard";
-import TaxiScheduler from "@/app/manifests/components/TaxiScheduler";
-import TaxiSchedulerNew from "@/app/manifests/components/TaxiSchedulerNew";
 import DayManifestEditor from "@/app/manifests/components/DayManifestEditor";
+import TaxiSchedulerNew from "@/app/manifests/components/TaxiSchedulerNew";
 import ManifestExport from "@/app/manifests/components/ManifestExport";
 
 export default function ManifestsPage() {
-  const [activeView, setActiveView] = useState<'manifest' | 'day-manifest' | 'taxi' | 'taxi-schedule' | 'export'>('day-manifest');
+  const [activeView, setActiveView] = useState<'day-manifest' | 'taxi-schedule' | 'export'>('day-manifest');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const toast = useToast();
   const router = useRouter();
@@ -122,28 +120,6 @@ export default function ManifestsPage() {
                     Export Documents
                   </Button>
                 </SimpleGrid>
-                
-                <Divider />
-                
-                <Text fontWeight="bold" color="textMuted">Legacy Components</Text>
-                <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-                  <Button
-                    leftIcon={<FiCalendar />}
-                    variant={activeView === 'manifest' ? 'solid' : 'outline'}
-                    colorScheme="gray"
-                    onClick={() => setActiveView('manifest')}
-                  >
-                    Old Manifest Board
-                  </Button>
-                  <Button
-                    leftIcon={<FiTruck />}
-                    variant={activeView === 'taxi' ? 'solid' : 'outline'}
-                    colorScheme="gray"
-                    onClick={() => setActiveView('taxi')}
-                  >
-                    Old Taxi Scheduler
-                  </Button>
-                </SimpleGrid>
               </VStack>
             </CardBody>
           </Card>
@@ -161,12 +137,6 @@ export default function ManifestsPage() {
             )}
             {activeView === 'taxi-schedule' && (
               <TaxiSchedulerNew selectedDate={selectedDate} />
-            )}
-            {activeView === 'manifest' && (
-              <ManifestBoard />
-            )}
-            {activeView === 'taxi' && (
-              <TaxiScheduler />
             )}
             {activeView === 'export' && (
               <ManifestExport />

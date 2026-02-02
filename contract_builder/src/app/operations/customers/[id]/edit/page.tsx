@@ -39,9 +39,9 @@ export default function EditCustomerPage() {
     fullName: "",
     emailLower: "",
     phoneE164: "",
-    dateOfBirth: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
+    dob: "",
+    notesGeneral: "",
+    accommodations: "",
     certLevel: "",
     certAgencyNumber: "",
     nitroxCertified: false,
@@ -66,9 +66,9 @@ export default function EditCustomerPage() {
         fullName: customerData.fullName || "",
         emailLower: customerData.emailLower || "",
         phoneE164: customerData.phoneE164 || "",
-        dateOfBirth: formatDateForInput(customerData.dob),
-        emergencyContactName: customerData.notesGeneral || "",
-        emergencyContactPhone: "",
+        dob: formatDateForInput(customerData.dob),
+        notesGeneral: customerData.notesGeneral || "",
+        accommodations: customerData.accommodations || "",
         certLevel: customerData.certLevel || "",
         certAgencyNumber: customerData.certAgencyNumber || "",
         nitroxCertified: customerData.nitroxCertified || false,
@@ -132,14 +132,25 @@ export default function EditCustomerPage() {
     setSaving(true);
     try {
       const updateData = {
-        ...formData,
+        fullName: formData.fullName,
+        emailLower: formData.emailLower,
+        phoneE164: formData.phoneE164,
+        dob: formData.dob || null,
+        notesGeneral: formData.notesGeneral,
+        accommodations: formData.accommodations || null,
+        certLevel: formData.certLevel,
+        certAgencyNumber: formData.certAgencyNumber,
+        nitroxCertified: formData.nitroxCertified,
+        nitroxCertAgencyNumber: formData.nitroxCertAgencyNumber,
+        lastDiveDate: formData.lastDiveDate || null,
+        lifetimeDives: formData.lifetimeDives ? parseInt(formData.lifetimeDives) || null : null,
+        // Include verification fields from customer state
         certVerified: customer.certVerified,
         certVerifiedAt: customer.certVerifiedAt,
         certVerifiedBy: customer.certVerifiedBy,
         nitroxVerified: customer.nitroxVerified,
         nitroxVerifiedAt: customer.nitroxVerifiedAt,
         nitroxVerifiedBy: customer.nitroxVerifiedBy,
-        lifetimeDives: formData.lifetimeDives ? parseInt(formData.lifetimeDives) || null : null,
         gearDefault: customer.gearDefault,
         gearLastUpdatedAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -247,25 +258,25 @@ export default function EditCustomerPage() {
                     <FormLabel>Date of Birth</FormLabel>
                     <Input
                       type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                      value={formData.dob}
+                      onChange={(e) => handleInputChange('dob', e.target.value)}
                     />
                   </FormControl>
                   
                   <FormControl>
-                    <FormLabel>Emergency Contact Name</FormLabel>
+                    <FormLabel>Notes</FormLabel>
                     <Input
-                      value={formData.emergencyContactName}
-                      onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
+                      value={formData.notesGeneral}
+                      onChange={(e) => handleInputChange('notesGeneral', e.target.value)}
                     />
                   </FormControl>
                   
                   <FormControl>
-                    <FormLabel>Emergency Contact Phone</FormLabel>
+                    <FormLabel>Accommodation</FormLabel>
                     <Input
-                      type="tel"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
+                      value={formData.accommodations}
+                      onChange={(e) => handleInputChange('accommodations', e.target.value)}
+                      placeholder="Hotel, resort, or accommodation name"
                     />
                   </FormControl>
                 </VStack>
@@ -338,7 +349,7 @@ export default function EditCustomerPage() {
                   </FormControl>
                   
                   <FormControl>
-                    <FormLabel>Nitrox Agency & Number</FormLabel>
+                    <FormLabel>Nitrox Certification Agency & Number</FormLabel>
                     <Input
                       value={formData.nitroxCertAgencyNumber}
                       onChange={(e) => handleInputChange('nitroxCertAgencyNumber', e.target.value)}
@@ -633,7 +644,7 @@ export default function EditCustomerPage() {
                   </FormControl>
                   
                   <FormControl>
-                    <FormLabel>Total Lifetime Dives</FormLabel>
+                    <FormLabel>Lifetime Dives</FormLabel>
                     <Input
                       type="number"
                       value={formData.lifetimeDives}

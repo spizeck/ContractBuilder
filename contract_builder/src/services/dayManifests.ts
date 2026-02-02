@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   Timestamp,
   writeBatch,
+  setDoc,
   DocumentReference
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -78,6 +79,17 @@ export const dayManifestService = {
   ): Promise<string> {
     const rowsRef = collection(db, DAY_MANIFESTS_COLLECTION, date, 'rows');
     
+    // Ensure the date document exists
+    const dateDocRef = doc(db, DAY_MANIFESTS_COLLECTION, date);
+    const dateDoc = await getDoc(dateDocRef);
+    if (!dateDoc.exists()) {
+      await setDoc(dateDocRef, {
+        date,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+    
     if (rowPatch.rowId) {
       // Update existing row
       const docRef = doc(rowsRef, rowPatch.rowId);
@@ -102,11 +114,15 @@ export const dayManifestService = {
         needsTaxi: rowPatch.needsTaxi || false,
         pickupLocationText: rowPatch.pickupLocationText || null,
         dropoffLocationText: rowPatch.dropoffLocationText || null,
-        taxiOverride: rowPatch.taxiOverride,
         notes: rowPatch.notes || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
+      
+      // Only add taxiOverride if it exists
+      if (rowPatch.taxiOverride) {
+        newRow.taxiOverride = rowPatch.taxiOverride;
+      }
       
       const docRef = await addDoc(rowsRef, newRow);
       return docRef.id;
@@ -150,11 +166,15 @@ export const dayManifestService = {
           needsTaxi: row.needsTaxi || false,
           pickupLocationText: row.pickupLocationText || null,
           dropoffLocationText: row.dropoffLocationText || null,
-          taxiOverride: row.taxiOverride,
           notes: row.notes || null,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         };
+        
+        // Only add taxiOverride if it exists
+        if (row.taxiOverride) {
+          newRow.taxiOverride = row.taxiOverride;
+        }
         batch.set(docRef, newRow);
         rowIds.push(docRef.id);
       }

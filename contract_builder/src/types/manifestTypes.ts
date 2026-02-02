@@ -27,6 +27,7 @@ export interface Customer {
   phoneE164: string | null;
   dob: string | null; // YYYY-MM-DD
   notesGeneral: string | null;
+  accommodations: string | null; // Hotel/accommodation for taxi list
 
   // Dive certification (locked after verification)
   certLevel: string | null;
