@@ -65,6 +65,7 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
   const [taxiAssignments, setTaxiAssignments] = useState<TaxiAssignmentDerived[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [editingRow, setEditingRow] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<Partial<DayRow> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
   const [isAddingCustomers, setIsAddingCustomers] = useState(false);
@@ -262,6 +263,7 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
         row.id === rowId ? { ...row, ...updates } : row
       ));
       setEditingRow(null);
+      setEditingData(null);
     } catch (error) {
       toast({
         title: 'Error updating row',
@@ -269,6 +271,58 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
         duration: 3000,
       });
     }
+  };
+
+  const startEditing = (rowId: string) => {
+    const row = dayRows.find(r => r.id === rowId);
+    if (row) {
+      setEditingRow(rowId);
+      setEditingData({
+        d1: row.d1,
+        d2: row.d2,
+        d3: row.d3,
+        nd: row.nd,
+        d1BoatId: row.d1BoatId,
+        d2BoatId: row.d2BoatId,
+        d3BoatId: row.d3BoatId,
+        needsTaxi: row.needsTaxi,
+        pickupLocationText: row.pickupLocationText,
+        dropoffLocationText: row.dropoffLocationText,
+      });
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingRow(null);
+    setEditingData(null);
+  };
+
+  const saveEditing = async () => {
+    if (!editingRow || !editingData) return;
+    await updateRow(editingRow, editingData);
+  };
+
+  const updateEditingData = (field: string, value: any) => {
+    if (!editingData) return;
+    
+    setEditingData(prev => {
+      if (!prev) return null;
+      
+      // If updating boat ID, update all dive boat IDs
+      if (field === 'boatId') {
+        return {
+          ...prev,
+          d1BoatId: value,
+          d2BoatId: value,
+          d3BoatId: value,
+        };
+      }
+      
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   const removeRow = async (rowId: string) => {
@@ -425,40 +479,50 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                             <Text fontWeight="medium">{customer.fullName}</Text>
                             <Text fontSize="xs" color="textMuted">{customer.emailLower}</Text>
                             {customer.accommodations && (
-                              <Text fontSize="xs" color="blue.600">
-                                📍 {customer.accommodations}
-                              </Text>
+                              <Text fontSize="xs" color="info">📍 {customer.accommodations}</Text>
                             )}
                           </VStack>
                         </Td>
                         <Td>
                           {editingRow === row.id ? (
-                            <VStack spacing={1}>
-                              <Checkbox
-                                isChecked={row.d1}
-                                onChange={(e) => updateRow(row.id!, { d1: e.target.checked })}
-                              >
-                                D1
-                              </Checkbox>
-                              <Checkbox
-                                isChecked={row.d2}
-                                onChange={(e) => updateRow(row.id!, { d2: e.target.checked })}
-                              >
-                                D2
-                              </Checkbox>
-                              <Checkbox
-                                isChecked={row.d3}
-                                onChange={(e) => updateRow(row.id!, { d3: e.target.checked })}
-                              >
-                                D3
-                              </Checkbox>
-                              <Checkbox
-                                isChecked={row.nd}
-                                onChange={(e) => updateRow(row.id!, { nd: e.target.checked })}
-                              >
-                                Nitrox
-                              </Checkbox>
-                            </VStack>
+                            <Card size="sm" variant="outline" bg="cardBgAlt">
+                              <CardBody p={3}>
+                                <VStack spacing={3} align="stretch">
+                                  <Text fontWeight="medium" fontSize="sm">Dive Plan</Text>
+                                  <HStack spacing={4}>
+                                    <Checkbox
+                                      isChecked={editingData?.d1 || false}
+                                      onChange={(e) => updateEditingData('d1', e.target.checked)}
+                                      size="sm"
+                                    >
+                                      D1
+                                    </Checkbox>
+                                    <Checkbox
+                                      isChecked={editingData?.d2 || false}
+                                      onChange={(e) => updateEditingData('d2', e.target.checked)}
+                                      size="sm"
+                                    >
+                                      D2
+                                    </Checkbox>
+                                    <Checkbox
+                                      isChecked={editingData?.d3 || false}
+                                      onChange={(e) => updateEditingData('d3', e.target.checked)}
+                                      size="sm"
+                                    >
+                                      D3
+                                    </Checkbox>
+                                    <Checkbox
+                                      isChecked={editingData?.nd || false}
+                                      onChange={(e) => updateEditingData('nd', e.target.checked)}
+                                      size="sm"
+                                      colorScheme="purple"
+                                    >
+                                      Nitrox
+                                    </Checkbox>
+                                  </HStack>
+                                </VStack>
+                              </CardBody>
+                            </Card>
                           ) : (
                             <VStack spacing={1}>
                               {row.d1 && <Badge size="sm">D1</Badge>}
@@ -470,51 +534,78 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                         </Td>
                         <Td>
                           {editingRow === row.id ? (
-                            <Select
-                              value={row.d1BoatId || ''}
-                              onChange={(e) => updateRow(row.id!, { 
-                                d1BoatId: e.target.value || null,
-                                d2BoatId: e.target.value || null,
-                                d3BoatId: e.target.value || null,
-                              })}
-                              size="sm"
-                            >
-                              <option value="">Select boat</option>
-                              {boats.map(boat => (
-                                <option key={boat.id} value={boat.id}>{boat.name}</option>
-                              ))}
-                            </Select>
+                            <FormControl>
+                              <FormLabel fontSize="xs" mb={1}>Boat Assignment</FormLabel>
+                              <Select
+                                value={editingData?.d1BoatId || ''}
+                                onChange={(e) => updateEditingData('boatId', e.target.value || null)}
+                                size="sm"
+                                bg="cardBg"
+                              >
+                                <option value="">Select boat</option>
+                                {boats.map(boat => (
+                                  <option key={boat.id} value={boat.id}>{boat.name}</option>
+                                ))}
+                              </Select>
+                            </FormControl>
                           ) : (
-                            <Text fontSize="sm">{getBoatName(row.d1BoatId)}</Text>
+                            <VStack spacing={1} align="start">
+                              {(row.d1 || row.d2) && (
+                                <Text fontSize="sm">
+                                  {row.d1 && row.d2 ? 'Morning' : row.d1 ? 'D1' : 'D2'}: {getBoatName(row.d1BoatId)}
+                                </Text>
+                              )}
+                              {row.d3 && (
+                                <Text fontSize="sm">
+                                  D3: {getBoatName(row.d3BoatId)}
+                                </Text>
+                              )}
+                              {!row.d1 && !row.d2 && !row.d3 && (
+                                <Text fontSize="sm" color="textMuted">No dives</Text>
+                              )}
+                            </VStack>
                           )}
                         </Td>
                         <Td>
                           {editingRow === row.id ? (
-                            <VStack spacing={1}>
-                              <Switch
-                                size="sm"
-                                isChecked={row.needsTaxi}
-                                onChange={(e) => updateRow(row.id!, { needsTaxi: e.target.checked })}
-                              >
-                                Needs taxi
-                              </Switch>
-                              {row.needsTaxi && (
-                                <>
-                                  <Input
-                                    placeholder="Pickup location"
-                                    value={row.pickupLocationText || ''}
-                                    onChange={(e) => updateRow(row.id!, { pickupLocationText: e.target.value })}
-                                    size="sm"
-                                  />
-                                  <Input
-                                    placeholder="Dropoff location"
-                                    value={row.dropoffLocationText || ''}
-                                    onChange={(e) => updateRow(row.id!, { dropoffLocationText: e.target.value })}
-                                    size="sm"
-                                  />
-                                </>
-                              )}
-                            </VStack>
+                            <Card size="sm" variant="outline" bg="cardBgAlt">
+                              <CardBody p={3}>
+                                <VStack spacing={3} align="stretch">
+                                  <FormControl>
+                                    <FormLabel fontSize="xs" mb={1}>Taxi Required</FormLabel>
+                                    <Switch
+                                      isChecked={editingData?.needsTaxi || false}
+                                      onChange={(e) => updateEditingData('needsTaxi', e.target.checked)}
+                                      size="sm"
+                                    />
+                                  </FormControl>
+                                  {editingData?.needsTaxi && (
+                                    <>
+                                      <FormControl>
+                                        <FormLabel fontSize="xs" mb={1}>Pickup Location</FormLabel>
+                                        <Input
+                                          placeholder="Pickup location"
+                                          value={editingData.pickupLocationText || ''}
+                                          onChange={(e) => updateEditingData('pickupLocationText', e.target.value)}
+                                          size="sm"
+                                          bg="cardBg"
+                                        />
+                                      </FormControl>
+                                      <FormControl>
+                                        <FormLabel fontSize="xs" mb={1}>Dropoff Location</FormLabel>
+                                        <Input
+                                          placeholder="Dropoff location"
+                                          value={editingData.dropoffLocationText || ''}
+                                          onChange={(e) => updateEditingData('dropoffLocationText', e.target.value)}
+                                          size="sm"
+                                          bg="cardBg"
+                                        />
+                                      </FormControl>
+                                    </>
+                                  )}
+                                </VStack>
+                              </CardBody>
+                            </Card>
                           ) : (
                             <VStack spacing={1}>
                               {row.needsTaxi ? (
@@ -539,13 +630,15 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                                   icon={<FiSave />}
                                   size="xs"
                                   colorScheme="green"
-                                  onClick={() => setEditingRow(null)}
+                                  onClick={saveEditing}
+                                  title="Save changes"
                                 />
                                 <IconButton
                                   aria-label="Cancel"
                                   icon={<FiX />}
                                   size="xs"
-                                  onClick={() => setEditingRow(null)}
+                                  onClick={cancelEditing}
+                                  title="Cancel editing"
                                 />
                               </>
                             ) : (
@@ -554,7 +647,8 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                                   aria-label="Edit"
                                   icon={<FiEdit />}
                                   size="xs"
-                                  onClick={() => setEditingRow(row.id!)}
+                                  onClick={() => startEditing(row.id!)}
+                                  title="Edit customer assignment"
                                 />
                                 <IconButton
                                   aria-label="Remove"
@@ -562,6 +656,7 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                                   size="xs"
                                   colorScheme="red"
                                   onClick={() => removeRow(row.id!)}
+                                  title="Remove from manifest"
                                 />
                               </>
                             )}
@@ -596,7 +691,7 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                           <Text fontWeight="medium">{customer.fullName}</Text>
                           <Text fontSize="sm" color="textMuted">{customer.emailLower}</Text>
                           {customer.accommodations && (
-                            <Text fontSize="xs" color="blue.600">📍 {customer.accommodations}</Text>
+                            <Text fontSize="xs" color="info">📍 {customer.accommodations}</Text>
                           )}
                           {customer.certLevel && (
                             <Badge size="sm">{customer.certLevel}</Badge>
@@ -620,11 +715,11 @@ export default function DayManifestEditor({ selectedDate, boats }: DayManifestEd
                 </List>
               </Box>
               
-              {selectedCustomers.size > 0 && (
-                <Text color="blue.600">
-                  {selectedCustomers.size} customer{selectedCustomers.size > 1 ? 's' : ''} selected
-                </Text>
-              )}
+                  {selectedCustomers.size > 0 && (
+                    <Text color="info">
+                      {selectedCustomers.size} customer{selectedCustomers.size > 1 ? 's' : ''} selected
+                    </Text>
+                  )}
             </VStack>
           </ModalBody>
           <ModalFooter>
