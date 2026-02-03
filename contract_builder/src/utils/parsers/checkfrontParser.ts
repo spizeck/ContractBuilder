@@ -301,6 +301,7 @@ export function parseCheckfrontCSV(csvData: any[]): Customer[] {
         phoneE164: customerData.phone || null,
         dob: customerData.age || null, // Using age field as placeholder for DOB
         notesGeneral: customerData.specialRequirements || null,
+        accommodations: customerData.accommodations || null,
         certLevel: customerData.certificationLevel || null,
         certAgencyNumber: customerData.certificationAgency || null,
         certVerified: false,
