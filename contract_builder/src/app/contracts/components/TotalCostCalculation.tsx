@@ -164,10 +164,19 @@ export default function TotalCostCalculation({
   };
 
   const handleFocOverrideChange = (idx: number) => {
-    if (focOverrideIndex === idx) {
-      setFocOverrideIndex(null); // Uncheck if already checked
-    } else {
-      setFocOverrideIndex(idx); // Check new one, unchecking others
+    const newOverrideIndex = focOverrideIndex === idx ? null : idx;
+    setFocOverrideIndex(newOverrideIndex);
+
+    // Recalculate with the new FOC override immediately
+    if (Object.keys(tempRates).length > 0) {
+      recalculateWithCustomRates(
+        Object.fromEntries(
+          Object.entries(tempRates)
+            .map(([k, v]) => [Number(k), v] as const)
+            .filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
+        ) as Record<number, number>,
+        newOverrideIndex
+      );
     }
   };
 
@@ -208,8 +217,11 @@ export default function TotalCostCalculation({
     });
   };
 
-  const recalculateWithCustomRates = (rates: { [key: string]: number }) => {
+  const recalculateWithCustomRates = (rates: { [key: string]: number }, overrideIndex?: number | null) => {
     if (results && season && hotel) {
+      // Use provided overrideIndex if given, otherwise fall back to state
+      const effectiveOverrideIndex = overrideIndex !== undefined ? overrideIndex : focOverrideIndex;
+
       // Create a copy of results with updated rates
       const updatedRoomCosts = results.roomCosts.map((rc, idx) => {
         if (rates[idx] !== undefined) {
@@ -227,7 +239,7 @@ export default function TotalCostCalculation({
 
           // Update description with new rate
           const newDescription = rc.description.replace(
-            /@ \$\d+\.\d+\/night/,
+            /@ \$[\d.]+\/night/,
             `@ $${newRate.toFixed(2)}/night`
           );
 
@@ -257,10 +269,10 @@ export default function TotalCostCalculation({
       const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
       const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
 
-      // Simple FOC calculation - use override if selected, otherwise use original FOC
+      // FOC calculation - use override if selected, otherwise use original FOC
       let focDeduction = results.roomTotals?.foc || 0;
 
-      if (focOverrideIndex !== null && rates[focOverrideIndex] !== undefined) {
+      if (effectiveOverrideIndex !== null && rates[effectiveOverrideIndex] !== undefined) {
         // Calculate FOC using the selected override rate
         const focRule = parseFocRule(hotel.focRule || "0+0");
         const totalGuests =
@@ -272,15 +284,15 @@ export default function TotalCostCalculation({
             return sum;
           }, 0) || 0;
 
-        const overrideRate = rates[focOverrideIndex];
+        const overrideRate = rates[effectiveOverrideIndex];
         const perGuestPerNight = overrideRate / 2; // assume double occupancy
         const nights = calculateNumberOfNights(
           contractData.startDate!,
           contractData.endDate!
         );
+        const focGroupSize = focRule.paid + focRule.free;
         const freeGuests =
-          Math.floor(totalGuests / (focRule.paid + focRule.free)) *
-          focRule.free;
+          focGroupSize > 0 ? Math.floor(totalGuests / focGroupSize) * focRule.free : 0;
         focDeduction = freeGuests * perGuestPerNight * nights;
       }
 
@@ -762,28 +774,33 @@ export default function TotalCostCalculation({
               return (
                 <VStack key={idx} align="stretch" spacing={1}>
                   {isEditingRates ? (
-                    <HStack spacing={2}>
+                    <HStack spacing={2} wrap="nowrap" align="center">
                       <Checkbox
                         isChecked={focOverrideIndex === originalIdx}
                         onChange={() => handleFocOverrideChange(originalIdx)}
                         size="sm"
+                        flexShrink={0}
                       />
-                      <Text flex={1}>
-                        {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
+                      <Text flex={1} flexShrink={1} minW="0" noOfLines={2}>
+                        {rc.description.replace(/@ \$[\d.]+\/night/, "").trimEnd()}
                       </Text>
-                      <Input
-                        type="number"
-                        value={tempRates[originalIdx]?.toString() || ""}
-                        onChange={(e) =>
-                          handleRateChange(originalIdx, e.target.value)
-                        }
-                        onFocus={handleInputFocus}
-                        size="sm"
-                        width="80px"
-                        step="0.01"
-                        min="0"
-                      />
-                      <Text>/night</Text>
+                      <HStack spacing={1} flexShrink={0}>
+                        <Text whiteSpace="nowrap">@</Text>
+                        <Input
+                          type="number"
+                          value={tempRates[originalIdx]?.toString() || ""}
+                          onChange={(e) =>
+                            handleRateChange(originalIdx, e.target.value)
+                          }
+                          onFocus={handleInputFocus}
+                          size="sm"
+                          w="90px"
+                          minW="90px"
+                          step="0.01"
+                          min="0"
+                        />
+                        <Text whiteSpace="nowrap">/night</Text>
+                      </HStack>
                     </HStack>
                   ) : (
                     <Text>
