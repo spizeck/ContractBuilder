@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx next build)",
+      "Bash(npm install)",
+      "Bash(npx --no-install next build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix 43 bugs across security rules, services, components, types, and utilities\n\nSecurity:\n- Remove overly permissive storage wildcard rule; add path-specific rules\n- Fix Firestore rules: add archived user checks, fix request.resource.data\n  for create operations, split maintenance write permissions, add\n  self-registration rule, fix dive creator bypass to check auth/archived\n\nAuth & Permissions:\n- Add 4-role system: admin, hotel-staff, employee, viewer\n- Map legacy hotel-manager role to hotel-staff in PermissionProvider\n- Set default registration role to viewer with read-only dive access\n- Fix AuthContext infinite loading on network errors\n- Fix PermissionProvider null context default\n\nServices:\n- Fix Firestore getById to include document ID \\(divePackages, mealPackages,\n  groupContracts\\)\n- Fix payments updatePayment to fetch contractId from existing document\n- Fix payments extractFilePathFromUrl for Firebase Storage URL format\n- Fix maintenance updateLog to fetch full document for syncAssetFromLog\n- Fix fileUpload to use serverTimestamp and clean up on Firestore failure\n- Fix hotels service to propagate errors instead of swallowing them\n- Fix roomTypes non-null assertion with proper guard\n- Fix users service optional chaining for nested preferences\n\nContract Calculations:\n- Fix season endDate to be inclusive \\(add 1 day for overlap calculation\\)\n- Fix FOC division-by-zero guard when focRule is \"0+0\"\n- Fix dive FOC to use hotel''s configurable focRule instead of hardcoded /8\n- Fix NaN guard for night calculation\n\nReact Components:\n- Fix UpdateTrackingModal useState initializer to useEffect for reactivity\n- Fix GroupContractWizard stale state when reading bookingType\n- Fix GroupContractsList array sort mutation with spread copy\n- Fix RoomSelectionForm parseInt\\(\"\"\\) NaN with || 0 fallback\n- Fix TemperatureChart missing useEffect dependency\n- Fix PaymentDashboard race condition with cancelled flag\n- Fix contract view page fetchData error handling and style injection\n- Fix SignedContractUpload duplicate file inputs\n- Fix TotalCostCalculation useEffect dependency and remove debug logs\n- Fix BulkImportLogModal CSV validation to check file extension\n- Fix LogForm timezone issue with UTC date construction\n- Fix login page with user-friendly Firebase error messages\n- Remove debug console.logs from DiveForm\n\nTypes & Utilities:\n- Fix Dive.date type from any to string | Date\n- Align DiveLogForm and HotelForm types with their data models\n- Add employee to Role union type\n- Fix firebase.ts HMR guard with getApps\\(\\) check\n- Fix dateUtils parseDateStringAsUTC NaN validation\n- Fix formatters ordinal suffix to avoid locale-dependent regex\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(where:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -51,6 +51,10 @@ export default function PaymentDashboard({
 }: PaymentDashboardProps) {
   const [viewMode, setViewMode] = useState<"upcoming" | "past">("upcoming");
   const [paymentsByContract, setPaymentsByContract] = useState<{ [key: string]: Payment[] }>({});
+  const contractIds = useMemo(
+    () => contracts.map((contract) => contract.id).filter((id): id is string => Boolean(id)),
+    [contracts]
+  );
 
   // Fetch payments for all contracts
   useEffect(() => {
@@ -61,15 +65,13 @@ export default function PaymentDashboard({
 
       // Fetch payments for each contract
       await Promise.all(
-        contracts.map(async (contract) => {
-          if (contract.id) {
-            try {
-              const payments = await getPayments(contract.id);
-              paymentsMap[contract.id] = payments;
-            } catch (error) {
-              console.error(`Error fetching payments for contract ${contract.id}:`, error);
-              paymentsMap[contract.id] = [];
-            }
+        contractIds.map(async (contractId) => {
+          try {
+            const payments = await getPayments(contractId);
+            paymentsMap[contractId] = payments;
+          } catch (error) {
+            console.error(`Error fetching payments for contract ${contractId}:`, error);
+            paymentsMap[contractId] = [];
           }
         })
       );
@@ -79,12 +81,12 @@ export default function PaymentDashboard({
       }
     };
 
-    if (contracts.length > 0) {
+    if (contractIds.length > 0) {
       fetchAllPayments();
     }
 
     return () => { cancelled = true; };
-  }, [JSON.stringify(contracts.map(c => c.id))]);
+  }, [contractIds]);
 
   // Filter contracts based on view mode
   const filteredContracts = useMemo(() => {

@@ -94,11 +94,15 @@ export default function TotalCostCalculation({
   };
 
   const handleSaveRates = () => {
-    const cleanedRates = Object.fromEntries(
-      Object.entries(tempRates)
-        .map(([k, v]) => [Number(k), v] as const)
-        .filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
-    ) as Record<number, number>;
+    const cleanedRates = Object.entries(tempRates).reduce<Record<number, number>>(
+      (acc, [k, v]) => {
+        if (typeof v === "number" && !Number.isNaN(v)) {
+          acc[Number(k)] = v;
+        }
+        return acc;
+      },
+      {}
+    );
 
     const hasValidRates = Object.keys(cleanedRates).length > 0;
 
@@ -107,7 +111,7 @@ export default function TotalCostCalculation({
 
     if (onUpdateContractData) {
       onUpdateContractData({
-        customRates: hasValidRates ? (cleanedRates as any) : undefined,
+        customRates: hasValidRates ? cleanedRates : undefined,
         hasCustomRates: hasValidRates ? true : undefined,
         focOverrideIndex: focOverrideIndex,
       });
@@ -170,12 +174,18 @@ export default function TotalCostCalculation({
 
     // Recalculate with the new FOC override immediately
     if (Object.keys(tempRates).length > 0) {
+      const recalculationRates = Object.entries(tempRates).reduce<Record<number, number>>(
+        (acc, [k, v]) => {
+          if (typeof v === "number" && !Number.isNaN(v)) {
+            acc[Number(k)] = v;
+          }
+          return acc;
+        },
+        {}
+      );
+
       recalculateWithCustomRates(
-        Object.fromEntries(
-          Object.entries(tempRates)
-            .map(([k, v]) => [Number(k), v] as const)
-            .filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
-        ) as Record<number, number>,
+        recalculationRates,
         newOverrideIndex
       );
     }
@@ -218,7 +228,7 @@ export default function TotalCostCalculation({
     });
   };
 
-  const recalculateWithCustomRates = (rates: { [key: string]: number }, overrideIndex?: number | null) => {
+  const recalculateWithCustomRates = (rates: Record<number, number>, overrideIndex?: number | null) => {
     if (results && season && hotel) {
       // Use provided overrideIndex if given, otherwise fall back to state
       const effectiveOverrideIndex = overrideIndex !== undefined ? overrideIndex : focOverrideIndex;
@@ -345,7 +355,7 @@ export default function TotalCostCalculation({
       if (customRates && Object.keys(customRates).length > 0) {
         if (Array.isArray(customRates)) {
           // Handle sparse arrays
-          const tempRates: { [key: number]: number } = {};
+          const tempRates: Record<number, number> = {};
           customRates.forEach((value, index) => {
             if (value !== undefined && value !== null) {
               tempRates[index] = value;
@@ -646,10 +656,13 @@ export default function TotalCostCalculation({
           });
 
           // Restore local state from contract data
-          const incoming = contractData.customRates as Record<string, number>;
-          const nextCustomRates = Object.fromEntries(
-            Object.entries(incoming).map(([k, v]) => [Number(k), v] as const)
-          ) as Record<number, number>;
+          const nextCustomRates = Object.entries(contractData.customRates).reduce<Record<number, number>>(
+            (acc, [k, v]) => {
+              acc[Number(k)] = v;
+              return acc;
+            },
+            {}
+          );
           setCustomRates(nextCustomRates);
           if (contractData.focOverrideIndex != null) {
             setFocOverrideIndex(contractData.focOverrideIndex);
@@ -670,7 +683,22 @@ export default function TotalCostCalculation({
     }
 
     fetchData();
-  }, [JSON.stringify(contractData)]);
+  }, [
+    contractData.hotelId,
+    contractData.startDate,
+    contractData.endDate,
+    contractData.bookingType,
+    contractData.rooms,
+    contractData.divePackageId,
+    contractData.numDivers,
+    contractData.mealPackageId,
+    contractData.hotelAddons,
+    contractData.diveAddons,
+    contractData.mealAddons,
+    contractData.customRates,
+    contractData.hasCustomRates,
+    contractData.focOverrideIndex,
+  ]);
 
   if (error) {
     return (

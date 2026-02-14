@@ -2,9 +2,9 @@
 'use client'
 
 import { useState } from 'react'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
+import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, db, googleProvider } from '@/lib/firebase'
 import { useRouter } from 'next/navigation'
 import {
   Box,
@@ -13,7 +13,9 @@ import {
   FormLabel,
   Input,
   Button,
-  Text
+  Text,
+  Divider,
+  HStack,
 } from '@chakra-ui/react'
 
 export default function RegisterPage () {
@@ -44,6 +46,33 @@ export default function RegisterPage () {
       router.push('/')
     } catch (err: any) {
       setError(err.message)
+    }
+  }
+
+  const handleGoogleRegister = async () => {
+    try {
+      setError(null)
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+
+      // Check if Firestore user doc already exists
+      const userRef = doc(db, 'users', user.uid)
+      const userSnap = await getDoc(userRef)
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          name: user.displayName || user.email?.split('@')[0] || '',
+          role: 'viewer',
+          createdAt: serverTimestamp()
+        })
+      }
+
+      router.push('/')
+    } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        return
+      }
+      setError('Google sign-up failed. Please try again.')
     }
   }
 
@@ -96,6 +125,22 @@ export default function RegisterPage () {
 
           <Button type='submit' colorScheme='teal' width='100%'>
             Register
+          </Button>
+
+          <HStack>
+            <Divider />
+            <Text fontSize='sm' color='gray.500' whiteSpace='nowrap'>
+              or
+            </Text>
+            <Divider />
+          </HStack>
+
+          <Button
+            onClick={handleGoogleRegister}
+            variant='outline'
+            width='100%'
+          >
+            Sign up with Google
           </Button>
         </VStack>
       </form>

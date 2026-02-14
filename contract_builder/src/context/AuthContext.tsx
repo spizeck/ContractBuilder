@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 
 type Role = 'admin' | 'hotel-manager' | 'hotel-staff' | 'employee' | 'viewer'
@@ -35,6 +35,14 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
           if (userSnap.exists()) {
             setRole((userSnap.data().role as Role) || 'viewer')
           } else {
+            // User exists in Firebase Auth but not in Firestore
+            // (e.g. Google sign-in edge case) — auto-create viewer doc
+            await setDoc(userRef, {
+              email: firebaseUser.email,
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+              role: 'viewer',
+              createdAt: serverTimestamp(),
+            })
             setRole('viewer')
           }
         } else {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db, googleProvider } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -13,6 +14,8 @@ import {
   Button,
   Text,
   Link,
+  Divider,
+  HStack,
 } from "@chakra-ui/react";
 
 export default function LoginPage() {
@@ -36,6 +39,34 @@ export default function LoginPage() {
       } else {
         setError('An error occurred. Please try again.')
       }
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setError(null);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Check if Firestore user doc exists; if not, create one as viewer
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          name: user.displayName || user.email?.split('@')[0] || '',
+          role: 'viewer',
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      router.push("/");
+    } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        // User closed the popup, not an error
+        return;
+      }
+      setError('Google sign-in failed. Please try again.');
     }
   };
 
@@ -108,6 +139,22 @@ export default function LoginPage() {
           >
             Forgot your password?
           </Link>
+
+          <HStack>
+            <Divider />
+            <Text fontSize="sm" color="gray.500" whiteSpace="nowrap">
+              or
+            </Text>
+            <Divider />
+          </HStack>
+
+          <Button
+            onClick={handleGoogleLogin}
+            variant="outline"
+            width="100%"
+          >
+            Sign in with Google
+          </Button>
         </VStack>
       </form>
     </Box>

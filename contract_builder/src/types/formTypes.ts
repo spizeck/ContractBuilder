@@ -44,7 +44,7 @@ export interface ContractForm {
   divePackageId?: string;
   numDivers?: number;
   mealPackageId?: string;
-  customRates?: Record<string, number>;
+  customRates?: Record<number, number>;
 }
 
 export interface HotelForm {

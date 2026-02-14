@@ -18,7 +18,7 @@ export interface ContractData {
   diveAddons?: Addon[];
   mealAddons?: Addon[];
   createdAt?: Date;
-  customRates?: { [key: string]: number }; // Custom room rates for this contract
+  customRates?: Record<number, number>; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
   focOverrideIndex?: number | null; // Room cost index selected as FOC base rate override
 }
@@ -110,7 +110,7 @@ export interface GroupContract {
   diveTotals?: Totals;
   mealTotals?: Totals;
   overall?: Totals;
-  customRates?: { [key: string]: number }; // Custom room rates for this contract
+  customRates?: Record<number, number>; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
   signedContractUrl?: string; // URL to the uploaded signed contract PDF
   signedContractUploadedAt?: Date; // When the signed contract was uploaded

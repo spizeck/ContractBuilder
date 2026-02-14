@@ -115,7 +115,8 @@ export default function UserManagementPage() {
         if (userData.role === 'admin') mappedRole = 'admin';
         else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
         else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
-        else if (userData.role === 'viewer') mappedRole = 'employee';
+        else if (userData.role === 'viewer') mappedRole = 'viewer';
+        else if (userData.role === 'employee') mappedRole = 'employee';
         
         usersData.push({
           id: doc.id,
@@ -158,7 +159,8 @@ export default function UserManagementPage() {
     if (user.role === 'admin') mappedRole = 'admin';
     else if (user.role === 'manager' || user.role === 'hotel-manager') mappedRole = 'hotel-staff';
     else if (user.role === 'hotel-staff') mappedRole = 'hotel-staff';
-    else if (user.role === 'viewer') mappedRole = 'employee';
+    else if (user.role === 'viewer') mappedRole = 'viewer';
+    else if (user.role === 'employee') mappedRole = 'employee';
     
     setEditRole(mappedRole);
     setEditPermissions(user.permissions || { ...DEFAULT_PERMISSIONS.employee });
@@ -169,11 +171,11 @@ export default function UserManagementPage() {
   const handleRoleChange = (role: UserRole) => {
     setEditRole(role);
     if (role === 'admin') {
-      // Admin gets all permissions
       setEditPermissions(DEFAULT_PERMISSIONS.admin);
     } else if (role === 'hotel-staff') {
-      // Hotel staff gets default permissions
       setEditPermissions(DEFAULT_PERMISSIONS['hotel-staff']);
+    } else if (role === 'viewer') {
+      setEditPermissions(DEFAULT_PERMISSIONS.viewer);
     }
     // Employee keeps custom permissions
   };
@@ -306,25 +308,33 @@ export default function UserManagementPage() {
 
     setCreating(true);
     try {
-      // Store current user to restore after creation
-      const currentUser = auth.currentUser;
-      
+      // Store current admin user to restore after creation
+      const adminUser = auth.currentUser;
+
       // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-8);
-      
+      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+
       // Create user in Firebase Auth
+      // NOTE: This automatically signs in as the new user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         createEmail,
         tempPassword
       );
-      
+      const newUserId = userCredential.user.uid;
+
+      // Immediately restore admin session BEFORE writing to Firestore
+      // This is critical: Firestore rules require isAdmin() for non-viewer role creation
+      if (adminUser) {
+        await auth.updateCurrentUser(adminUser);
+      }
+
       // Get default permissions for the role
       const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
+
+      // Now create user document in Firestore (running as admin)
+      await setDoc(doc(db, 'users', newUserId), {
+        uid: newUserId,
         email: createEmail,
         name: createEmail.split('@')[0], // Default name from email
         role: createRole,
@@ -333,26 +343,27 @@ export default function UserManagementPage() {
         createdAt: new Date().toISOString(),
         archived: false
       });
-      
+
       // Send password reset email so user can set their own password
       await sendPasswordResetEmail(auth, createEmail);
-      
-      // Restore original user session
-      if (currentUser) {
-        await auth.updateCurrentUser(currentUser);
-      }
-      
+
       // Refresh users list
       await loadUsers();
-      
+
       // Clear form and close modal
       setCreateEmail('');
       setCreateRole('hotel-staff');
       setCreateHotelId('');
       onCreateClose();
-      
+
       setError(null);
     } catch (err: any) {
+      // Ensure admin session is restored even on error
+      const adminUser = auth.currentUser;
+      if (adminUser?.email !== auth.currentUser?.email) {
+        try { await auth.updateCurrentUser(adminUser!); } catch {}
+      }
+
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please use a different email.');
       } else if (err.code === 'auth/invalid-email') {
@@ -523,6 +534,7 @@ export default function UserManagementPage() {
                   <FormControl>
                     <FormLabel>Role</FormLabel>
                     <Select value={editRole} onChange={(e) => handleRoleChange(e.target.value as UserRole)}>
+                      <option value="viewer">Viewer</option>
                       <option value="employee">Employee</option>
                       <option value="hotel-staff">Hotel Staff</option>
                       <option value="admin">Admin</option>
