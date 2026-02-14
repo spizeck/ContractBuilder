@@ -49,14 +49,6 @@ export function formatDateRange(start: string, end: string): string {
   const format = (dateStr: string) => {
     const date = parseDateOnly(dateStr);
 
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    const formatted = date.toLocaleDateString(undefined, options);
-
-    // Add ordinal suffix
     const dayNum = date.getDate();
     const suffix =
       dayNum % 10 === 1 && dayNum !== 11
@@ -67,7 +59,10 @@ export function formatDateRange(start: string, end: string): string {
         ? "rd"
         : "th";
 
-    return formatted.replace(/\d+/, `${dayNum}${suffix}`);
+    const month = date.toLocaleDateString(undefined, { month: "long" });
+    const year = date.getFullYear();
+
+    return `${month} ${dayNum}${suffix}, ${year}`;
   };
 
   return `${format(start)} to ${format(end)}`;

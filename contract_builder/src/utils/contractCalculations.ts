@@ -20,7 +20,7 @@ export function calculateNumberOfNights (
   const end = parseDateStringAsUTC(endDate)
   const diffInMilliseconds = end.getTime() - start.getTime()
   const nights = diffInMilliseconds / (1000 * 3600 * 24) // converting ms to days
-  if (nights <= 0) {
+  if (isNaN(nights) || nights <= 0) {
     throw new Error('End date must be after start date.')
   }
   return nights
@@ -40,9 +40,11 @@ export function determineSeason (
   for (const season of seasons) {
     const seasonStart = parseDateStringAsUTC(season.startDate)
     const seasonEnd = parseDateStringAsUTC(season.endDate)
+    // endDate is inclusive (last night of the season), so add 1 day for overlap calculation
+    const seasonEndExclusive = new Date(seasonEnd.getTime() + 24 * 3600 * 1000)
 
     const overlapStart = Math.max(start.getTime(), seasonStart.getTime())
-    const overlapEnd = Math.min(end.getTime(), seasonEnd.getTime())
+    const overlapEnd = Math.min(end.getTime(), seasonEndExclusive.getTime())
 
     const overlapDays = (overlapEnd - overlapStart) / (1000 * 3600 * 24)
     if (overlapDays > maxOverlapDays) {
@@ -175,8 +177,10 @@ export function calculateTotalCost (
       )
       if (baseRate) {
         const perGuestPerNight = roundToCents(baseRate.price / 2) // assume double occupancy
-        const freeGuests =
-          Math.floor(totalGuests / (focRule.paid + focRule.free)) * focRule.free
+        const focGroupSize = focRule.paid + focRule.free
+        const freeGuests = focGroupSize > 0 && focRule.free > 0
+          ? Math.floor(totalGuests / focGroupSize) * focRule.free
+          : 0
         focDeduction = roundToCents(freeGuests * perGuestPerNight * nights)
       }
     }
@@ -200,7 +204,11 @@ export function calculateTotalCost (
     const divePackageGross = roundToCents(divePackage.price * numDivers)
     const diveAddonTotal = roundToCents((contractData.diveAddons || []).reduce((sum, addon) => sum + addon.amount, 0))
     const gross = roundToCents(divePackageGross + diveAddonTotal)
-    const foc = roundToCents(Math.floor(numDivers / 8) * divePackage.price)
+    const diveFocGroupSize = focRule.paid + focRule.free
+    const diveFreeGuests = diveFocGroupSize > 0 && focRule.free > 0
+      ? Math.floor(numDivers / diveFocGroupSize) * focRule.free
+      : 0
+    const foc = roundToCents(diveFreeGuests * divePackage.price)
     const adjustedGross = roundToCents(gross - foc)
     diveTotals = {
       gross,

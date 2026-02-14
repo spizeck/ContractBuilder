@@ -111,17 +111,23 @@ export async function getPayments(contractId: string): Promise<Payment[]> {
 export async function updatePayment(paymentId: string, updates: Partial<Payment>): Promise<void> {
   try {
     const paymentRef = doc(db, 'payments', paymentId)
+
+    // Fetch existing payment to get contractId for summary recalculation
+    const paymentSnap = await getDoc(paymentRef)
+    const existingContractId = paymentSnap.data()?.contractId
+
     const updateData = {
       ...updates,
       // Convert dates back to Timestamps for Firestore
       ...(updates.paymentDate && { paymentDate: Timestamp.fromDate(updates.paymentDate) })
     }
-    
+
     await updateDoc(paymentRef, updateData)
-    
-    // Update contract payment summary if this payment belongs to a contract
-    if (updates.contractId) {
-      await updateContractPaymentSummary(updates.contractId)
+
+    // Always recalculate contract payment summary
+    const contractId = updates.contractId || existingContractId
+    if (contractId) {
+      await updateContractPaymentSummary(contractId)
     }
   } catch (error) {
     console.error('Error updating payment:', error)
@@ -232,18 +238,14 @@ function getDocumentType(fileName: string, paymentMethod: string): string {
 function extractFilePathFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url)
-    const pathMatch = urlObj.pathname.match(/\/payment-receipts\/(.+)$/)
-    return pathMatch ? pathMatch[1] : null
-  } catch {
-    return null
-  }
-}
-
-export function extractContractIdFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url)
-    const pathMatch = urlObj.pathname.match(/\/payment-receipts\/(.+)$/)
-    return pathMatch ? pathMatch[1] : null
+    // Handle Firebase Storage URL format: /v0/b/BUCKET/o/ENCODED_PATH?...
+    const pathMatch = urlObj.pathname.match(/\/o\/(.+?)(?:\?|$)/)
+    if (pathMatch) {
+      return decodeURIComponent(pathMatch[1])
+    }
+    // Fallback without query params
+    const fallbackMatch = urlObj.pathname.match(/\/o\/(.+)$/)
+    return fallbackMatch ? decodeURIComponent(fallbackMatch[1]) : null
   } catch {
     return null
   }

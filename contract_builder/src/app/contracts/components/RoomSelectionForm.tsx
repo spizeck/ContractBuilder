@@ -147,7 +147,7 @@ export default function RoomSelectionForm ({
 
     updatedSelections[index] = {
       ...updatedSelections[index],
-      [field]: field === 'numRooms' ? parseInt(value) : value
+      [field]: field === 'numRooms' ? parseInt(value) || 0 : value
     }
 
     setRoomSelections(updatedSelections)

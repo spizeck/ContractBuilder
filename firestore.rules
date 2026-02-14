@@ -7,56 +7,66 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
+    function isNotArchived() {
+      return getUserData().archived != true;
+    }
+
     function isAdmin() {
       return request.auth != null && getUserData().role == 'admin';
     }
 
     function isManagerOrAbove() {
-      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager';
+      return request.auth != null && isNotArchived() &&
+             (getUserData().role == 'admin' || getUserData().role == 'hotel-manager');
     }
-    
+
     function isStaffOrAbove() {
-      return getUserData().role == 'admin' || getUserData().role == 'hotel-manager' || getUserData().role == 'hotel-staff' || getUserData().role == 'employee';
+      return request.auth != null && isNotArchived() &&
+             (getUserData().role == 'admin' || getUserData().role == 'hotel-manager' || getUserData().role == 'hotel-staff' || getUserData().role == 'employee');
     }
 
     function isHotelStaff() {
-      return request.auth != null && 
-             (getUserData().role == 'hotel-staff' || 
+      return request.auth != null && isNotArchived() &&
+             (getUserData().role == 'hotel-staff' ||
               getUserData().role == 'hotel-manager');
     }
-    
+
     function isEmployee() {
-      return request.auth != null && 
-             (getUserData().role == 'employee' || 
+      return request.auth != null && isNotArchived() &&
+             (getUserData().role == 'employee' ||
               getUserData().role == 'viewer');
     }
     
     function hasPermission(module, requiredLevel) {
       return isAdmin() ? true : (
-        getUserData().permissions == null ? false : (
-          getUserData().permissions[module] == null ? false : (
-            // Permission hierarchy: edit > create > view
-            getUserData().permissions[module] == 'edit' ? true : (
-              getUserData().permissions[module] == 'create' ? (
-                requiredLevel == 'view' || requiredLevel == 'create'
-              ) : (
-                getUserData().permissions[module] == 'view' && requiredLevel == 'view'
+        request.auth == null || getUserData().archived == true ? false : (
+          getUserData().permissions == null ? false : (
+            getUserData().permissions[module] == null ? false : (
+              // Permission hierarchy: edit > create > view
+              getUserData().permissions[module] == 'edit' ? true : (
+                getUserData().permissions[module] == 'create' ? (
+                  requiredLevel == 'view' || requiredLevel == 'create'
+                ) : (
+                  getUserData().permissions[module] == 'view' && requiredLevel == 'view'
+                )
               )
             )
           )
         )
       );
     }
-    
+
     function canAccessModule(module) {
       return isAdmin() ? true : (
-        getUserData().permissions == null ? false : getUserData().permissions[module] != null
+        request.auth == null || getUserData().archived == true ? false : (
+          getUserData().permissions == null ? false : getUserData().permissions[module] != null
+        )
       );
     }
     
     function isValidRole(role) {
-      return role == 'admin' || role == 'hotel-staff' || role == 'employee' || 
-             role == 'hotel-manager' || role == 'viewer';
+      return role == 'admin' || role == 'hotel-manager' || role == 'hotel-staff' ||
+             role == 'employee' || role == 'viewer';
     }
     
     function isValidPermissionLevel(level) {
@@ -76,14 +86,17 @@ service cloud.firestore {
       );
     }
 
-    // Users collection - only admins can create/update, authenticated users can read their own
+    // Users collection - admins can manage all users, users can read their own and self-register
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow list: if isAdmin();
-      allow create: if isAdmin() && 
-                     isValidRole(request.resource.data.role) &&
-                     (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
-      allow update: if isAdmin() && 
+      // Allow self-registration (user creates their own doc with viewer role) or admin creates
+      allow create: if (request.auth != null && request.auth.uid == userId &&
+                       request.resource.data.role == 'viewer') ||
+                     (isAdmin() &&
+                       isValidRole(request.resource.data.role) &&
+                       (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null));
+      allow update: if isAdmin() &&
                      (isValidRole(request.resource.data.role) || request.resource.data.role == null) &&
                      (isValidPermissions(request.resource.data.permissions) || request.resource.data.permissions == null);
       allow delete: if isAdmin();
@@ -121,11 +134,11 @@ service cloud.firestore {
     match /payments/{paymentId} {
       allow read: if isAdmin() 
         || (isStaffOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && canAccessModule('contracts'));
-      allow create: if isAdmin() 
-        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'create'));
-      allow update: if isAdmin() 
+      allow create: if isAdmin()
+        || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(request.resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'create'));
+      allow update: if isAdmin()
         || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
-      allow delete: if isAdmin() 
+      allow delete: if isAdmin()
         || (isManagerOrAbove() && hasHotelAccess(get(/databases/$(database)/documents/groupContracts/$(resource.data.contractId)).data.hotelId) && hasPermission('contracts', 'edit'));
     }
 
@@ -177,7 +190,8 @@ service cloud.firestore {
     match /dives/{diveId} {
       allow read: if canAccessModule('diveLog');
       allow create: if hasPermission('diveLog', 'create');
-      allow update, delete: if hasPermission('diveLog', 'edit') || request.auth.uid == resource.data.createdBy;
+      allow update, delete: if hasPermission('diveLog', 'edit')
+        || (request.auth != null && isNotArchived() && request.auth.uid == resource.data.createdBy);
     }
 
     match /species/{speciesId} {
@@ -207,7 +221,8 @@ service cloud.firestore {
 
     match /maintenanceLogs/{logId} {
       allow read: if canAccessModule('maintenance');
-      allow write: if hasPermission('maintenance', 'create');
+      allow create: if hasPermission('maintenance', 'create');
+      allow update, delete: if hasPermission('maintenance', 'edit');
     }
 
     match /assets/{assetId} {

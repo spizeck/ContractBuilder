@@ -49,8 +49,8 @@ export async function updateRoomType (
   const docRef = doc(db, 'roomTypes', roomTypeId)
   await updateDoc(docRef, roomTypeData)
 
-  if (roomTypeData.isFocBase) {
-    await setHotelFocBase(roomTypeData.hotelId!, roomTypeId)
+  if (roomTypeData.isFocBase && roomTypeData.hotelId) {
+    await setHotelFocBase(roomTypeData.hotelId, roomTypeId)
 
     // unset others
     const q = query(roomTypesRef, where('hotelId', '==', roomTypeData.hotelId))

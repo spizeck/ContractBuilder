@@ -1,14 +1,18 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users to read/write their own files
-    match /{allPaths=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Specific rules for signed contracts
+    // Signed contracts - only users with contracts module access
     match /signed-contracts/{contractId}/{fileName} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
+
+    // Payment receipts - only users with contracts module access
+    match /payment-receipts/{contractId}/{paymentId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Deny all other paths by default (no wildcard rule)
   }
 }

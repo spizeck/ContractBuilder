@@ -192,7 +192,7 @@ export async function addMaintenanceLog(
 }
 
 export async function updateMaintenanceLog(id: string, data: Partial<MaintenanceLog>) {
-  const ref = doc(db, 'maintenanceLogs', id)
+  const logRef = doc(db, 'maintenanceLogs', id)
   const payload: any = {
     ...data,
   };
@@ -207,9 +207,20 @@ export async function updateMaintenanceLog(id: string, data: Partial<Maintenance
     if (n != null) payload.nextServiceDueHours = n;
   }
 
-  await updateDoc(ref, {
+  await updateDoc(logRef, {
     ...payload,
   });
+
+  // Fetch the full log to ensure assetId is available for sync
+  if (!payload.assetId) {
+    const fullSnap = await getDoc(logRef)
+    if (fullSnap.exists()) {
+      const fullData = fullSnap.data()
+      payload.assetId = fullData.assetId
+      // Also merge date if not in partial update, needed for sync comparison
+      if (!payload.date) payload.date = fullData.date
+    }
+  }
 
   await syncAssetFromLog(payload);
 }

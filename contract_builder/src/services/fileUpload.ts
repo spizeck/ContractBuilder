@@ -1,6 +1,6 @@
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { updateDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export async function uploadSignedContract(
@@ -33,18 +33,24 @@ export async function uploadSignedContract(
           try {
             // Get the download URL
             const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            
+
             // Update the contract document with the signed contract info
             const contractRef = doc(db, 'groupContracts', contractId);
             await updateDoc(contractRef, {
               signedContractUrl: downloadUrl,
-              signedContractUploadedAt: new Date(),
+              signedContractUploadedAt: serverTimestamp(),
               signedContractUploadedBy: userId,
               signedContractUploadedByName: userName || userId
             });
-            
+
             resolve(downloadUrl);
           } catch (error) {
+            // Clean up uploaded file since Firestore update failed
+            try {
+              await deleteObject(uploadTask.snapshot.ref);
+            } catch {
+              // Ignore cleanup errors
+            }
             console.error('Error getting download URL or updating document:', error);
             reject(new Error('Failed to complete upload process'));
           }

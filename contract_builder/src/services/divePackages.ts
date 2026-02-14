@@ -33,5 +33,5 @@ export async function deleteDivePackage(divePackageId: string): Promise<void> {
 export async function getDivePackageById(divePackageId: string): Promise<DivePackage | null> {
   const docRef = doc(db, "divePackages", divePackageId);
   const docSnap = await getDoc(docRef);
-  return docSnap.exists()? docSnap.data() as DivePackage : null;
+  return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as DivePackage : null;
 }
