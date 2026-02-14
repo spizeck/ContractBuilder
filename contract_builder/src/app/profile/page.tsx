@@ -154,8 +154,9 @@ export default function ProfilePage () {
   if (!user)
     return <Text color='red.500'>You must be logged in to view this page.</Text>
 
-  const hasGoogle = linkedProviders.includes('google.com')
-  const hasPassword = linkedProviders.includes('password')
+  const providerIds = new Set(linkedProviders)
+  const hasGoogle = providerIds.has('google.com')
+  const hasPassword = providerIds.has('password')
 
   return (
     <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff', 'employee', 'viewer']}>
