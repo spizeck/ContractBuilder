@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'employee' | 'hotel-manager' | 'hotel-staff' | 'viewer'
+export type UserRole = 'admin' | 'hotel-staff' | 'employee' | 'viewer'
 
 export type PermissionLevel = 'view' | 'create' | 'edit' | null
 
@@ -6,7 +6,6 @@ export interface ModulePermissions {
   contracts: PermissionLevel
   diveLog: PermissionLevel
   maintenance: PermissionLevel
-  operations: PermissionLevel
   // Add more modules as needed
 }
 
@@ -20,7 +19,6 @@ export const MODULES = {
   CONTRACTS: 'contracts',
   DIVE_LOG: 'diveLog',
   MAINTENANCE: 'maintenance',
-  OPERATIONS: 'operations',
 } as const
 
 export const PERMISSION_LEVELS = {
@@ -31,8 +29,8 @@ export const PERMISSION_LEVELS = {
 
 export const ROLE_HIERARCHY = {
   admin: 4,
-  'hotel-manager': 3,
-  'hotel-staff': 2,
+  'hotel-staff': 3,
+  employee: 2,
   viewer: 1,
 } as const
 
@@ -41,30 +39,20 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
     contracts: 'edit',
     diveLog: 'edit',
     maintenance: 'edit',
-    operations: 'edit',
-  },
-  employee: {
-    contracts: null,
-    diveLog: null,
-    maintenance: null,
-    operations: null,
-  },
-  'hotel-manager': {
-    contracts: 'edit',
-    diveLog: 'view',
-    maintenance: 'view',
-    operations: 'edit',
   },
   'hotel-staff': {
     contracts: 'view',
     diveLog: 'view',
     maintenance: 'view',
-    operations: 'view',
   },
-  viewer: {
+  employee: {
     contracts: null,
     diveLog: null,
     maintenance: null,
-    operations: null,
+  },
+  viewer: {
+    contracts: null,
+    diveLog: 'view',
+    maintenance: null,
   },
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Box,
   Table,
@@ -10,7 +10,10 @@ import {
   Th,
   Td,
   Tag,
+  Button,
+  HStack,
 } from "@chakra-ui/react";
+import { naturalSort } from "../hooks/useMaintenanceSearch";
 import type { Asset, AssetCategory } from "@/types/maintenance";
 import {
   getTrackingLabel,
@@ -39,6 +42,19 @@ export default function CategoryPanels({
   assets,
   onViewLogs,
 }: CategoryPanelsProps) {
+  const [collapsedParents, setCollapsedParents] = useState<Set<string>>(new Set());
+
+  const toggleParentCollapse = (parentId: string) => {
+    setCollapsedParents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(parentId)) {
+        newSet.delete(parentId);
+      } else {
+        newSet.add(parentId);
+      }
+      return newSet;
+    });
+  };
 
   // Group by parentAssetId for hierarchy
   const grouped = useMemo(() => {
@@ -50,7 +66,7 @@ export default function CategoryPanels({
       map[key].push(a);
     }
     // Sort siblings by name for stable display
-    Object.keys(map).forEach((k) => map[k].sort((a, b) => a.name.localeCompare(b.name)));
+    Object.keys(map).forEach((k) => map[k].sort((a, b) => naturalSort(a.name, b.name)));
     return map;
   }, [assets]);
 
@@ -61,7 +77,7 @@ export default function CategoryPanels({
       const ca = CATEGORY_ORDER[a.category];
       const cb = CATEGORY_ORDER[b.category];
       if (ca !== cb) return ca - cb;
-      return a.name.localeCompare(b.name);
+      return naturalSort(a.name, b.name);
     });
   }, [grouped]);
 
@@ -99,6 +115,8 @@ export default function CategoryPanels({
               onViewLogs={onViewLogs}
               level={0}
               inheritedCategory={undefined}
+              collapsedParents={collapsedParents}
+              onToggleCollapse={toggleParentCollapse}
             />
           ))}
         </Tbody>
@@ -113,15 +131,21 @@ function AssetRow({
   onViewLogs,
   level,
   inheritedCategory,
+  collapsedParents,
+  onToggleCollapse,
 }: {
   asset: Asset;
   grouped: Record<string, Asset[]>;
   onViewLogs: (asset: Asset) => void;
   level: number;
   inheritedCategory?: AssetCategory;
+  collapsedParents: Set<string>;
+  onToggleCollapse: (parentId: string) => void;
 }) {
   const displayCategory = inheritedCategory ?? asset.category;
   const status = getAssetStatus(asset);
+  const hasChildren = grouped[asset.id]?.length > 0;
+  const isCollapsed = collapsedParents.has(asset.id);
 
   return (
     <>
@@ -131,8 +155,25 @@ function AssetRow({
         _hover={{ bg: "bgHover" }}
       >
         <Td style={{ paddingLeft: `${level * 20}px` }}>
-          {level > 0 && "↳ "}
-          {asset.name}
+          <Box display="flex" alignItems="center" gap={1}>
+            {hasChildren && (
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleCollapse(asset.id);
+                }}
+                p={1}
+                minW={4}
+                h={4}
+              >
+                {isCollapsed ? "▶" : "▼"}
+              </Button>
+            )}
+            {!hasChildren && level > 0 && <span style={{ marginRight: "4px" }}>↳</span>}
+            <span>{asset.name}</span>
+          </Box>
         </Td>
         <Td>{displayCategory}</Td>
         <Td>{getTrackingLabel(asset)}</Td>
@@ -143,7 +184,7 @@ function AssetRow({
         </Td>
       </Tr>
 
-      {(grouped[asset.id] || []).map((child) => (
+      {!isCollapsed && (grouped[asset.id] || []).map((child) => (
         <AssetRow
           key={child.id}
           asset={child}
@@ -151,6 +192,8 @@ function AssetRow({
           onViewLogs={onViewLogs}
           level={level + 1}
           inheritedCategory={displayCategory}
+          collapsedParents={collapsedParents}
+          onToggleCollapse={onToggleCollapse}
         />
       ))}
     </>

@@ -13,6 +13,30 @@ import {
 import { db } from "@/lib/firebase";
 import type { Asset, Technician, MaintenanceLog } from "@/types/maintenance";
 
+export const naturalSort = (a: string, b: string): number => {
+  const regex = /(\d+)|(\D+)/g;
+  const aParts = a.match(regex) || [];
+  const bParts = b.match(regex) || [];
+  
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || '';
+    const bPart = bParts[i] || '';
+    
+    if (aPart === bPart) continue;
+    
+    const aNum = parseInt(aPart, 10);
+    const bNum = parseInt(bPart, 10);
+    
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
+    }
+    
+    return aPart.localeCompare(bPart);
+  }
+  
+  return 0;
+};
+
 type Category = "All" | "Marine" | "Compressors" | "Vehicles" | "Scuba Equipment" | "Other";
 
 export function useMaintenanceData(params: {
@@ -36,20 +60,22 @@ export function useMaintenanceData(params: {
   // Assets (avoid composite index by removing orderBy; sort client-side)
   useEffect(() => {
     const constraints: QueryConstraint[] = [];
-    // if you need only active assets, add: constraints.push(where("active", "==", true));
+    constraints.push(where("active", "==", true));
     const qRef = query(collection(db, "assets"), ...constraints);
     const unsub = onSnapshot(
       qRef,
       (snap) => {
         const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Asset[];
-        console.log('Dashboard loaded assets:', items.length, items.map(a => ({ id: a.id, name: a.name, category: a.category, active: a.active })));
-        // Client-side sort by name for stable UI without composite index
+        // Client-side sort by name for stable UI without composite index using natural sort
         setAssets(
-          items.sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          items.sort((a, b) => naturalSort(a.name || "", b.name || ""))
         );
         setLoading(false);
       },
-      () => setLoading(false)
+      (error) => {
+        console.error("Assets fetch error:", error);
+        setLoading(false);
+      }
     );
     return () => unsub();
   }, []);
@@ -64,11 +90,14 @@ export function useMaintenanceData(params: {
       (snap) => {
         const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Technician[];
         setTechnicians(
-          items.sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          items.sort((a, b) => naturalSort(a.name || "", b.name || ""))
         );
         setLoading(false);
       },
-      () => setLoading(false)
+      (error) => {
+        console.error("Technicians fetch error:", error);
+        setLoading(false);
+      }
     );
     return () => unsub();
   }, []);
@@ -92,7 +121,10 @@ export function useMaintenanceData(params: {
         setLogs(items);
         setLoading(false);
       },
-      () => setLoading(false)
+      (error) => {
+        console.error("Logs fetch error:", error);
+        setLoading(false);
+      }
     );
     return () => unsub();
   }, [range.start?.getTime(), range.end?.getTime()]);

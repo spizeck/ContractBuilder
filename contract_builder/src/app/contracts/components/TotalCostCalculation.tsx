@@ -95,11 +95,15 @@ export default function TotalCostCalculation({
   };
 
   const handleSaveRates = () => {
-    const cleanedRates = Object.fromEntries(
-      Object.entries(tempRates)
-        .map(([k, v]) => [Number(k), v] as const)
-        .filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
-    ) as Record<number, number>;
+    const cleanedRates = Object.entries(tempRates).reduce<Record<number, number>>(
+      (acc, [k, v]) => {
+        if (typeof v === "number" && !Number.isNaN(v)) {
+          acc[Number(k)] = v;
+        }
+        return acc;
+      },
+      {}
+    );
 
     const hasValidRates = Object.keys(cleanedRates).length > 0;
 
@@ -108,8 +112,9 @@ export default function TotalCostCalculation({
 
     if (onUpdateContractData) {
       onUpdateContractData({
-        customRates: hasValidRates ? (cleanedRates as any) : undefined,
+        customRates: hasValidRates ? cleanedRates : undefined,
         hasCustomRates: hasValidRates ? true : undefined,
+        focOverrideIndex: focOverrideIndex,
       });
     }
 
@@ -156,7 +161,7 @@ export default function TotalCostCalculation({
     setFocOverrideIndex(null);
 
     if (onUpdateContractData) {
-      onUpdateContractData({ customRates: undefined, hasCustomRates: undefined });
+      onUpdateContractData({ customRates: undefined, hasCustomRates: undefined, focOverrideIndex: null });
     }
   };
 
@@ -165,10 +170,25 @@ export default function TotalCostCalculation({
   };
 
   const handleFocOverrideChange = (idx: number) => {
-    if (focOverrideIndex === idx) {
-      setFocOverrideIndex(null); // Uncheck if already checked
-    } else {
-      setFocOverrideIndex(idx); // Check new one, unchecking others
+    const newOverrideIndex = focOverrideIndex === idx ? null : idx;
+    setFocOverrideIndex(newOverrideIndex);
+
+    // Recalculate with the new FOC override immediately
+    if (Object.keys(tempRates).length > 0) {
+      const recalculationRates = Object.entries(tempRates).reduce<Record<number, number>>(
+        (acc, [k, v]) => {
+          if (typeof v === "number" && !Number.isNaN(v)) {
+            acc[Number(k)] = v;
+          }
+          return acc;
+        },
+        {}
+      );
+
+      recalculateWithCustomRates(
+        recalculationRates,
+        newOverrideIndex
+      );
     }
   };
 
@@ -209,8 +229,11 @@ export default function TotalCostCalculation({
     });
   };
 
-  const recalculateWithCustomRates = (rates: { [key: string]: number }) => {
+  const recalculateWithCustomRates = (rates: Record<number, number>, overrideIndex?: number | null) => {
     if (results && season && hotel) {
+      // Use provided overrideIndex if given, otherwise fall back to state
+      const effectiveOverrideIndex = overrideIndex !== undefined ? overrideIndex : focOverrideIndex;
+
       // Create a copy of results with updated rates
       const updatedRoomCosts = results.roomCosts.map((rc, idx) => {
         if (rates[idx] !== undefined) {
@@ -228,7 +251,7 @@ export default function TotalCostCalculation({
 
           // Update description with new rate
           const newDescription = rc.description.replace(
-            /@ \$\d+\.\d+\/night/,
+            /@ \$[\d.]+\/night/,
             `@ $${newRate.toFixed(2)}/night`
           );
 
@@ -258,10 +281,10 @@ export default function TotalCostCalculation({
       const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
       const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
 
-      // Simple FOC calculation - use override if selected, otherwise use original FOC
+      // FOC calculation - use override if selected, otherwise use original FOC
       let focDeduction = results.roomTotals?.foc || 0;
 
-      if (focOverrideIndex !== null && rates[focOverrideIndex] !== undefined) {
+      if (effectiveOverrideIndex !== null && rates[effectiveOverrideIndex] !== undefined) {
         // Calculate FOC using the selected override rate
         const focRule = parseFocRule(hotel.focRule || "0+0");
         const totalGuests =
@@ -273,15 +296,15 @@ export default function TotalCostCalculation({
             return sum;
           }, 0) || 0;
 
-        const overrideRate = rates[focOverrideIndex];
+        const overrideRate = rates[effectiveOverrideIndex];
         const perGuestPerNight = overrideRate / 2; // assume double occupancy
         const nights = calculateNumberOfNights(
           contractData.startDate!,
           contractData.endDate!
         );
+        const focGroupSize = focRule.paid + focRule.free;
         const freeGuests =
-          Math.floor(totalGuests / (focRule.paid + focRule.free)) *
-          focRule.free;
+          focGroupSize > 0 ? Math.floor(totalGuests / focGroupSize) * focRule.free : 0;
         focDeduction = freeGuests * perGuestPerNight * nights;
       }
 
@@ -333,7 +356,7 @@ export default function TotalCostCalculation({
       if (customRates && Object.keys(customRates).length > 0) {
         if (Array.isArray(customRates)) {
           // Handle sparse arrays
-          const tempRates: { [key: number]: number } = {};
+          const tempRates: Record<number, number> = {};
           customRates.forEach((value, index) => {
             if (value !== undefined && value !== null) {
               tempRates[index] = value;
@@ -396,14 +419,6 @@ export default function TotalCostCalculation({
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
       };
-
-      // Debug: Log customRates structure before filtering
-      console.log('Original customRates:', customRates);
-      console.log('CustomRates type:', typeof customRates);
-      console.log('CustomRates keys:', Object.keys(customRates));
-
-      // Debug: Log filtered customRates
-      console.log('Filtered customRates:', groupContract.customRates);
 
       await addGroupContract(groupContract);
       alert("Contract saved successfully!");
@@ -524,17 +539,12 @@ export default function TotalCostCalculation({
           const hotelAddonTotal = (contractData.hotelAddons || []).reduce((sum, addon) => sum + addon.amount, 0);
           const grossRoomCostWithAddons = newRoomTotals.gross + hotelAddonTotal;
 
-          // FOC calculation with custom rates - follow the same pattern as original calculation
+          // FOC calculation with custom rates
           const focRule = parseFocRule(hotelData.focRule || "0+0");
           let focDeduction = 0;
+          const savedOverrideIndex = contractData.focOverrideIndex;
 
-          // Find the FOC base room type from hotel settings (same as original)
-          const focRoomType = roomTypesData.find(
-            (rt: RoomType) => rt.hotelId === hotelData.id && rt.isFocBase
-          );
-
-          if (focRoomType && contractData.rooms) {
-            // Calculate total guests from room selections (same as original)
+          if (contractData.rooms) {
             const totalGuests = contractData.rooms.reduce((sum, room) => {
               if (room.numRooms > 0 && room.occupancyType) {
                 const occNum = getOccupancyNumber(room.occupancyType);
@@ -543,60 +553,71 @@ export default function TotalCostCalculation({
               return sum;
             }, 0);
 
-            // Find the room cost that matches the FOC base room type to get custom rate
-            const focRoomCost = updatedRoomCosts.find((rc) => {
-              // Extract category and occupancy from description
-              const match = rc.description.match(
-                /(\d+) x (\w+) rooms in category (\w+)/
-              );
-              if (!match) return false;
+            let focBasePrice: number | null = null;
 
-              const [, , occupancyType, categoryName] = match;
-
-              // Find the category that matches the FOC base room type's categoryId
-              const focBaseCategory = categories.find(
-                (rc: RoomCategory) => rc.id === focRoomType.categoryId
+            if (savedOverrideIndex != null && contractData.customRates![savedOverrideIndex] !== undefined) {
+              // User selected a specific room as FOC base — use its custom rate
+              // Assume double occupancy (divide by 2) for per-guest rate
+              focBasePrice = contractData.customRates![savedOverrideIndex];
+            } else {
+              // Fall back to hotel's isFocBase room type
+              const focRoomType = roomTypesData.find(
+                (rt: RoomType) => rt.hotelId === hotelData.id && rt.isFocBase
               );
 
-              // Check if this matches the FOC base room type's category and double occupancy
-              return (
-                focBaseCategory?.name.toLowerCase() ===
-                  categoryName.toLowerCase() &&
-                occupancyType.toLowerCase() === "double" // FOC is always based on double occupancy
-              );
-            });
+              if (focRoomType) {
+                // Check if the FOC base room type has a custom rate applied
+                const focRoomCost = updatedRoomCosts.find((rc) => {
+                  const match = rc.description.match(
+                    /(\d+) x (\w+) rooms in category (\w+)/
+                  );
+                  if (!match) return false;
+                  const [, , occupancyType, categoryName] = match;
+                  const focBaseCategory = categories.find(
+                    (rc: RoomCategory) => rc.id === focRoomType.categoryId
+                  );
+                  return (
+                    focBaseCategory?.name.toLowerCase() ===
+                      categoryName.toLowerCase() &&
+                    occupancyType.toLowerCase() === "double"
+                  );
+                });
 
-            // Use custom rate if available, otherwise fall back to original logic
-            let baseRate;
-            if (focRoomCost) {
-              // Extract the custom rate from the room cost description
-              const rateMatch = focRoomCost.description.match(
-                /@ \$(\d+\.\d+)\/night/
-              );
-              if (rateMatch) {
-                baseRate = { price: parseFloat(rateMatch[1]) };
+                if (focRoomCost) {
+                  const rateMatch = focRoomCost.description.match(
+                    /@ \$(\d+\.\d+)\/night/
+                  );
+                  if (rateMatch) {
+                    focBasePrice = parseFloat(rateMatch[1]);
+                  }
+                }
+
+                // Fallback to original rate if no custom rate found
+                if (focBasePrice === null) {
+                  const baseRate = ratesData.find(
+                    (r) =>
+                      r.categoryId === focRoomType.categoryId &&
+                      r.seasonId === seasonResult.id &&
+                      r.occupancyType.toLowerCase() === "double"
+                  );
+                  if (baseRate) {
+                    focBasePrice = baseRate.price;
+                  }
+                }
               }
             }
 
-            // Fallback to original rate if no custom rate found
-            if (!baseRate) {
-              baseRate = ratesData.find(
-                (r) =>
-                  r.categoryId === focRoomType.categoryId &&
-                  r.seasonId === seasonResult.id &&
-                  r.occupancyType.toLowerCase() === "double"
-              );
-            }
-
-            if (baseRate) {
-              const perGuestPerNight = baseRate.price / 2;
+            if (focBasePrice !== null) {
+              const perGuestPerNight = focBasePrice / 2; // double occupancy
               const nights = calculateNumberOfNights(
                 contractData.startDate!,
                 contractData.endDate!
               );
+              const focGroupSize = focRule.paid + focRule.free;
               const freeGuests =
-                Math.floor(totalGuests / (focRule.paid + focRule.free)) *
-                focRule.free;
+                focGroupSize > 0
+                  ? Math.floor(totalGuests / focGroupSize) * focRule.free
+                  : 0;
               focDeduction = freeGuests * perGuestPerNight * nights;
             }
           }
@@ -635,12 +656,18 @@ export default function TotalCostCalculation({
             overall: newOverall,
           });
 
-          // Set custom rates state
-          const incoming = contractData.customRates as Record<string, number>;
-          const nextCustomRates = Object.fromEntries(
-            Object.entries(incoming).map(([k, v]) => [Number(k), v] as const)
-          ) as Record<number, number>;
+          // Restore local state from contract data
+          const nextCustomRates = Object.entries(contractData.customRates).reduce<Record<number, number>>(
+            (acc, [k, v]) => {
+              acc[Number(k)] = v;
+              return acc;
+            },
+            {}
+          );
           setCustomRates(nextCustomRates);
+          if (contractData.focOverrideIndex != null) {
+            setFocOverrideIndex(contractData.focOverrideIndex);
+          }
         } else {
           setResults({
             ...calc,
@@ -657,7 +684,22 @@ export default function TotalCostCalculation({
     }
 
     fetchData();
-  }, [contractData]);
+  }, [
+    contractData.hotelId,
+    contractData.startDate,
+    contractData.endDate,
+    contractData.bookingType,
+    contractData.rooms,
+    contractData.divePackageId,
+    contractData.numDivers,
+    contractData.mealPackageId,
+    contractData.hotelAddons,
+    contractData.diveAddons,
+    contractData.mealAddons,
+    contractData.customRates,
+    contractData.hasCustomRates,
+    contractData.focOverrideIndex,
+  ]);
 
   if (error) {
     return (
@@ -771,28 +813,33 @@ export default function TotalCostCalculation({
               return (
                 <VStack key={idx} align="stretch" spacing={1}>
                   {isEditingRates ? (
-                    <HStack spacing={2}>
+                    <HStack spacing={2} wrap="nowrap" align="center">
                       <Checkbox
                         isChecked={focOverrideIndex === originalIdx}
                         onChange={() => handleFocOverrideChange(originalIdx)}
                         size="sm"
+                        flexShrink={0}
                       />
-                      <Text flex={1}>
-                        {rc.description.replace(/@ \$\d+\.\d+\/night/, "@ $")}
+                      <Text flex={1} flexShrink={1} minW="0" noOfLines={2}>
+                        {rc.description.replace(/@ \$[\d.]+\/night/, "").trimEnd()}
                       </Text>
-                      <Input
-                        type="number"
-                        value={tempRates[originalIdx]?.toString() || ""}
-                        onChange={(e) =>
-                          handleRateChange(originalIdx, e.target.value)
-                        }
-                        onFocus={handleInputFocus}
-                        size="sm"
-                        width="80px"
-                        step="0.01"
-                        min="0"
-                      />
-                      <Text>/night</Text>
+                      <HStack spacing={1} flexShrink={0}>
+                        <Text whiteSpace="nowrap">@</Text>
+                        <Input
+                          type="number"
+                          value={tempRates[originalIdx]?.toString() || ""}
+                          onChange={(e) =>
+                            handleRateChange(originalIdx, e.target.value)
+                          }
+                          onFocus={handleInputFocus}
+                          size="sm"
+                          w="90px"
+                          minW="90px"
+                          step="0.01"
+                          min="0"
+                        />
+                        <Text whiteSpace="nowrap">/night</Text>
+                      </HStack>
                     </HStack>
                   ) : (
                     <Text>

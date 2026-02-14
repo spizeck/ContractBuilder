@@ -113,6 +113,8 @@ export default function ViewContractPage () {
       }
     } catch (err) {
       console.error('Error fetching contract:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -458,7 +460,9 @@ export default function ViewContractPage () {
 
 // Add print styles for better PDF output
 if (typeof window !== 'undefined') {
+  if (!document.getElementById('contract-view-styles')) {
   const style = document.createElement('style')
+  style.id = 'contract-view-styles'
   style.textContent = `
     /* Hide print-only content by default */
     .print-only {
@@ -528,4 +532,5 @@ if (typeof window !== 'undefined') {
     }
   `
   document.head.appendChild(style)
+  }
 }

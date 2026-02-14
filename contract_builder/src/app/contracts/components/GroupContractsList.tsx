@@ -25,6 +25,7 @@ import PaymentStatusBadge from "./PaymentStatusBadge";
 import { formatDateTime, parseDate } from "@/utils/datetime";
 import PaymentDashboard from "./PaymentDashboard";
 import { formatCurrency } from "@/utils/formatters";
+import CustomDatePicker from "@/components/DatePicker";
 
 export default function GroupContractsList({
   onBack,
@@ -78,7 +79,7 @@ export default function GroupContractsList({
     const activeContracts = contractsData.filter((c) => !c.archived);
 
     // Sort contracts by start date (oldest first)
-    const sortedContracts = activeContracts.sort((a, b) => {
+    const sortedContracts = [...activeContracts].sort((a, b) => {
       const dateA = new Date(a.startDate);
       const dateB = new Date(b.startDate);
       return dateA.getTime() - dateB.getTime();
@@ -139,7 +140,7 @@ export default function GroupContractsList({
     }
 
     // Maintain sorting by start date even after filtering
-    const sortedFiltered = filtered.sort((a, b) => {
+    const sortedFiltered = [...filtered].sort((a, b) => {
       const dateA = new Date(a.startDate);
       const dateB = new Date(b.startDate);
       return dateA.getTime() - dateB.getTime();
@@ -230,12 +231,18 @@ export default function GroupContractsList({
                   </option>
                 ))}
               </Select>
-              <Input
-                type="date"
+              <CustomDatePicker
+                selected={filters.startDate ? new Date(filters.startDate) : null}
+                onChange={(date) => {
+                  handleFilterChange({
+                    target: {
+                      name: 'startDate' as const,
+                      value: date ? date.toISOString().split('T')[0] : ''
+                    }
+                  } as React.ChangeEvent<HTMLInputElement>);
+                }}
                 placeholder="Filter by Start Date"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
+                className="w-48"
               />
             </Flex>
           </Box>

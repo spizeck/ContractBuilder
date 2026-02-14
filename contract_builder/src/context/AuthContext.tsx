@@ -3,10 +3,10 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 
-type Role = 'admin' | 'hotel-manager' | 'hotel-staff' | 'viewer'
+type Role = 'admin' | 'hotel-manager' | 'hotel-staff' | 'employee' | 'viewer'
 
 interface AuthContextType {
   user: User | null
@@ -26,22 +26,34 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser)  => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
-      if (firebaseUser) {
-        const userRef = doc(db, 'users', firebaseUser.uid)
-        // console.log('Fetching role for user:', firebaseUser.uid)
-        const userSnap = await getDoc(userRef)
-        // console.log('User role:', userSnap.data()?.role)
-        if (userSnap.exists()) {
-          setRole(userSnap.data().role as Role)
+      try {
+        if (firebaseUser) {
+          const userRef = doc(db, 'users', firebaseUser.uid)
+          const userSnap = await getDoc(userRef)
+          if (userSnap.exists()) {
+            setRole((userSnap.data().role as Role) || 'viewer')
+          } else {
+            // User exists in Firebase Auth but not in Firestore
+            // (e.g. Google sign-in edge case) — auto-create viewer doc
+            await setDoc(userRef, {
+              email: firebaseUser.email,
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+              role: 'viewer',
+              createdAt: serverTimestamp(),
+            })
+            setRole('viewer')
+          }
         } else {
-          setRole('viewer') // Default role if no user document
+          setRole('viewer')
         }
-      } else {
-        setRole('viewer') // Default role if not logged in
+      } catch (error) {
+        console.error('Error fetching user role:', error)
+        setRole('viewer')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()

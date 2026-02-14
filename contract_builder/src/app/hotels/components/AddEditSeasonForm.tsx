@@ -12,6 +12,7 @@ import { addSeason, updateSeason } from "@/services/seasons";
 import { parseDateStringAsUTC } from "@/utils/datetime";
 import { Season } from "@/types/contractTypes";
 import { ensureRatesForSeason } from "@/services/rateSync";
+import CustomDatePicker from "@/components/DatePicker";
 
 export default function AddEditSeasonForm({
   hotelId,
@@ -93,20 +94,28 @@ export default function AddEditSeasonForm({
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Start Date</FormLabel>
-            <Input
-              name="startDate"
-              type="date"
-              value={seasonData.startDate}
-              onChange={handleInputChange}
+            <CustomDatePicker
+              selected={seasonData.startDate ? new Date(seasonData.startDate) : null}
+              onChange={(date) => {
+                setSeasonData({
+                  ...seasonData,
+                  startDate: date ? date.toISOString().split('T')[0] : '',
+                });
+              }}
+              placeholder="Select start date"
             />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>End Date</FormLabel>
-            <Input
-              name="endDate"
-              type="date"
-              value={seasonData.endDate}
-              onChange={handleInputChange}
+            <CustomDatePicker
+              selected={seasonData.endDate ? new Date(seasonData.endDate) : null}
+              onChange={(date) => {
+                setSeasonData({
+                  ...seasonData,
+                  endDate: date ? date.toISOString().split('T')[0] : '',
+                });
+              }}
+              placeholder="Select end date"
             />
           </FormControl>
           <HStack spacing={4} mt={2} width={"100%"}>

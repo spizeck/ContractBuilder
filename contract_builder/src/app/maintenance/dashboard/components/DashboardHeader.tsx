@@ -5,6 +5,7 @@ import type { Technician } from "@/types/maintenance";
 import { useMemo } from "react";
 import { IconButton } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
+import CustomDatePicker from "@/components/DatePicker";
 
 const CATEGORIES = [
   "All",
@@ -79,25 +80,27 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
         </HStack>
         {props.range && (
           <HStack spacing={2}>
-            <Input
-              type="date"
-              value={props.range.start ? toInputDate(props.range.start) : ""}
-              onChange={(e) =>
+            <CustomDatePicker
+              selected={props.range.start}
+              onChange={(date) =>
                 props.onRange({
-                  start: e.target.value ? new Date(e.target.value) : null,
+                  start: date,
                   end: props.range.end,
                 })
               }
+              placeholder="Start date"
+              className="w-40"
             />
-            <Input
-              type="date"
-              value={props.range.end ? toInputDate(props.range.end) : ""}
-              onChange={(e) =>
+            <CustomDatePicker
+              selected={props.range.end}
+              onChange={(date) =>
                 props.onRange({
                   start: props.range.start,
-                  end: e.target.value ? new Date(e.target.value) : null,
+                  end: date,
                 })
               }
+              placeholder="End date"
+              className="w-40"
             />
             <IconButton
               aria-label="Clear dates"

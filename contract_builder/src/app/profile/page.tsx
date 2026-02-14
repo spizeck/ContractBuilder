@@ -10,12 +10,17 @@ import {
   Button,
   Text,
   Select,
-  Spinner
+  Spinner,
+  Divider,
+  HStack,
+  Badge,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react'
 import { useAuth } from '@/context/AuthContext'
-import { auth, db } from '@/lib/firebase'
+import { auth, db, googleProvider } from '@/lib/firebase'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
-import { sendPasswordResetEmail } from 'firebase/auth'
+import { sendPasswordResetEmail, linkWithPopup, unlink } from 'firebase/auth'
 import { UserProfile, UserPreferences } from '@/types/userTypes'
 import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
 
@@ -26,12 +31,15 @@ const defaultPrefs: UserPreferences = {
     pressure: 'bar'
   }
 }
+
 export default function ProfilePage () {
   const { user, role, loading } = useAuth()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [linkedProviders, setLinkedProviders] = useState<string[]>([])
+  const [linkingGoogle, setLinkingGoogle] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -54,6 +62,14 @@ export default function ProfilePage () {
       }
     }
     loadProfile()
+  }, [user])
+
+  // Track linked auth providers
+  useEffect(() => {
+    if (user) {
+      const providers = user.providerData.map(p => p.providerId)
+      setLinkedProviders(providers)
+    }
   }, [user])
 
   const handleProfileSave = async () => {
@@ -86,12 +102,64 @@ export default function ProfilePage () {
     }
   }
 
+  const handleLinkGoogle = async () => {
+    if (!user) return
+    setLinkingGoogle(true)
+    setError(null)
+    setMessage(null)
+    try {
+      await linkWithPopup(user, googleProvider)
+      // Refresh provider list
+      setLinkedProviders(user.providerData.map(p => p.providerId))
+      setMessage('Google account linked successfully.')
+    } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setLinkingGoogle(false)
+        return
+      }
+      if (err.code === 'auth/credential-already-in-use') {
+        setError('This Google account is already linked to another user.')
+      } else if (err.code === 'auth/provider-already-linked') {
+        setError('A Google account is already linked to this profile.')
+        // Refresh providers in case state was stale
+        setLinkedProviders(user.providerData.map(p => p.providerId))
+      } else {
+        setError('Failed to link Google account. Please try again.')
+      }
+    }
+    setLinkingGoogle(false)
+  }
+
+  const handleUnlinkGoogle = async () => {
+    if (!user) return
+    // Prevent unlinking if it's the only provider
+    if (linkedProviders.length <= 1) {
+      setError('Cannot unlink Google — it is your only sign-in method. Add a password first.')
+      return
+    }
+    setLinkingGoogle(true)
+    setError(null)
+    setMessage(null)
+    try {
+      await unlink(user, 'google.com')
+      setLinkedProviders(user.providerData.map(p => p.providerId))
+      setMessage('Google account unlinked.')
+    } catch (err: any) {
+      setError('Failed to unlink Google account. Please try again.')
+    }
+    setLinkingGoogle(false)
+  }
+
   if (loading) return <Spinner />
   if (!user)
     return <Text color='red.500'>You must be logged in to view this page.</Text>
 
+  const providerIds = new Set(linkedProviders)
+  const hasGoogle = providerIds.has('google.com')
+  const hasPassword = providerIds.has('password')
+
   return (
-    <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff', 'viewer']}>
+    <ProtectedPage allowedRoles={['admin', 'hotel-manager', 'hotel-staff', 'employee', 'viewer']}>
       <Box p={6} maxW='800px' mx='auto'>
         <Text fontSize='2xl' fontWeight='bold' mb={4}>
           My Profile
@@ -212,9 +280,65 @@ export default function ProfilePage () {
           >
             Save Profile
           </Button>
-          <Button colorScheme='orange' onClick={handlePasswordReset}>
-            Reset Password
-          </Button>
+
+          {hasPassword && (
+            <Button colorScheme='orange' onClick={handlePasswordReset}>
+              Reset Password
+            </Button>
+          )}
+
+          <Divider />
+
+          {/* Linked Accounts Section */}
+          <Text fontWeight='bold' fontSize='lg'>Linked Accounts</Text>
+
+          <HStack justify='space-between' align='center'>
+            <HStack spacing={2}>
+              <Text>Google</Text>
+              {hasGoogle ? (
+                <Badge colorScheme='green'>Linked</Badge>
+              ) : (
+                <Badge colorScheme='gray'>Not linked</Badge>
+              )}
+            </HStack>
+            {hasGoogle ? (
+              <Button
+                size='sm'
+                colorScheme='red'
+                variant='outline'
+                onClick={handleUnlinkGoogle}
+                isLoading={linkingGoogle}
+                isDisabled={linkedProviders.length <= 1}
+              >
+                Unlink
+              </Button>
+            ) : (
+              <Button
+                size='sm'
+                colorScheme='blue'
+                onClick={handleLinkGoogle}
+                isLoading={linkingGoogle}
+              >
+                Link Google Account
+              </Button>
+            )}
+          </HStack>
+
+          {hasGoogle && linkedProviders.length <= 1 && (
+            <Alert status='info' fontSize='sm'>
+              <AlertIcon />
+              Google is your only sign-in method. Add a password before unlinking.
+            </Alert>
+          )}
+
+          <HStack spacing={2}>
+            <Text>Email/Password</Text>
+            {hasPassword ? (
+              <Badge colorScheme='green'>Linked</Badge>
+            ) : (
+              <Badge colorScheme='gray'>Not set</Badge>
+            )}
+          </HStack>
         </VStack>
       </Box>
     </ProtectedPage>

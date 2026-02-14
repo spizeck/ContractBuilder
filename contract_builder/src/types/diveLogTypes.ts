@@ -5,7 +5,7 @@ export interface Sighting {
 
 export interface Dive {
   id: string;
-  date: any; // YYYY-MM-DD (string to avoid UTC shift issues)
+  date: string | Date; // YYYY-MM-DD string preferred, but may be Date from Firestore
   diveSlot: DiveSlot; // replaces diveNumber
   boatId: string;
   diveGuide: string;

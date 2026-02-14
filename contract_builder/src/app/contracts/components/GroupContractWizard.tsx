@@ -17,20 +17,25 @@ export default function GroupContractWizard ({
   const [contractData, setContractData] = useState<any>(initialData || {})
 
   const nextStep = (data: any) => {
-    setContractData((prev: any) => ({ ...prev, ...data }))
-    
-    // For direct hotel booking, skip room selection and meal package steps
-    if (data.bookingType === 'directHotelBooking' || contractData.bookingType === 'directHotelBooking') {
-      if (step === 1) {
-        setStep(3) // Skip to dive package selection
-      } else if (step === 3) {
-        setStep(5) // Skip meal package, go to addons
-      } else {
-        setStep(step + 1)
-      }
-    } else {
-      setStep(step + 1)
-    }
+    setContractData((prev: any) => {
+      const merged = { ...prev, ...data }
+
+      // For direct hotel booking, skip room selection and meal package steps
+      setStep((currentStep) => {
+        if (merged.bookingType === 'directHotelBooking') {
+          if (currentStep === 1) {
+            return 3 // Skip to dive package selection
+          }
+          if (currentStep === 3) {
+            return 5 // Skip meal package, go to addons
+          }
+        }
+
+        return currentStep + 1
+      })
+
+      return merged
+    })
   }
 
   const prevStep = () => {

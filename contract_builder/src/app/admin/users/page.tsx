@@ -40,6 +40,29 @@ import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "fir
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
+// Generate a cryptographically secure random string using the browser's crypto API.
+// Length is the number of characters to generate from the given alphabet.
+function generateSecureRandomString(length: number): string {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabetLength = alphabet.length;
+
+  if (typeof window === "undefined" || !window.crypto || !window.crypto.getRandomValues) {
+    throw new Error("Secure random number generator is not available in this environment.");
+  }
+
+  const randomBytes = new Uint8Array(length);
+  window.crypto.getRandomValues(randomBytes);
+
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    // Map each byte to an index in the alphabet to avoid bias.
+    const index = randomBytes[i] % alphabetLength;
+    result += alphabet.charAt(index);
+  }
+
+  return result;
+}
+
 interface User {
   id: string;
   email: string;
@@ -64,8 +87,8 @@ export default function UserManagementPage() {
   const [hotels, setHotels] = useState<any[]>([]);
 
   // Form state for editing user
-  const [editRole, setEditRole] = useState<UserRole>('viewer');
-  const [editPermissions, setEditPermissions] = useState<ModulePermissions>(DEFAULT_PERMISSIONS.viewer);
+  const [editRole, setEditRole] = useState<UserRole>('employee');
+  const [editPermissions, setEditPermissions] = useState<ModulePermissions>(DEFAULT_PERMISSIONS.employee);
   const [editHotelId, setEditHotelId] = useState<string>('');
 
   // Form state for creating user
@@ -111,11 +134,12 @@ export default function UserManagementPage() {
         const userData = doc.data() as Omit<User, 'id'>;
         
         // Map existing roles to new role system for backward compatibility
-        let mappedRole: UserRole = 'viewer';
+        let mappedRole: UserRole = 'employee';
         if (userData.role === 'admin') mappedRole = 'admin';
-        else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
+        else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
         else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
         else if (userData.role === 'viewer') mappedRole = 'viewer';
+        else if (userData.role === 'employee') mappedRole = 'employee';
         
         usersData.push({
           id: doc.id,
@@ -154,14 +178,15 @@ export default function UserManagementPage() {
     setSelectedUser(user);
     
     // Map existing role to new role system for editing
-    let mappedRole: UserRole = 'viewer';
+    let mappedRole: UserRole = 'employee';
     if (user.role === 'admin') mappedRole = 'admin';
-    else if (user.role === 'manager' || user.role === 'hotel-manager') mappedRole = 'hotel-manager';
+    else if (user.role === 'manager' || user.role === 'hotel-manager') mappedRole = 'hotel-staff';
     else if (user.role === 'hotel-staff') mappedRole = 'hotel-staff';
     else if (user.role === 'viewer') mappedRole = 'viewer';
+    else if (user.role === 'employee') mappedRole = 'employee';
     
     setEditRole(mappedRole);
-    setEditPermissions(user.permissions || { ...DEFAULT_PERMISSIONS.viewer });
+    setEditPermissions(user.permissions || { ...DEFAULT_PERMISSIONS.employee });
     setEditHotelId(user.hotelId || '');
     onOpen();
   };
@@ -169,22 +194,13 @@ export default function UserManagementPage() {
   const handleRoleChange = (role: UserRole) => {
     setEditRole(role);
     if (role === 'admin') {
-      // Admin gets all permissions
       setEditPermissions(DEFAULT_PERMISSIONS.admin);
-      setEditHotelId(''); // Clear hotel assignment for admin
-    } else if (role === 'hotel-manager') {
-      // Hotel manager gets default permissions
-      setEditPermissions(DEFAULT_PERMISSIONS['hotel-manager']);
-      // Keep hotel assignment if already set
     } else if (role === 'hotel-staff') {
-      // Hotel staff gets default permissions
       setEditPermissions(DEFAULT_PERMISSIONS['hotel-staff']);
-      // Keep hotel assignment if already set
     } else if (role === 'viewer') {
-      // Viewer gets no permissions
       setEditPermissions(DEFAULT_PERMISSIONS.viewer);
-      setEditHotelId(''); // Clear hotel assignment for viewer
     }
+    // Employee keeps custom permissions
   };
 
   const handlePermissionChange = (module: keyof ModulePermissions, level: PermissionLevel) => {
@@ -250,7 +266,7 @@ export default function UserManagementPage() {
       if (user.archived) {
         // Unarchive user - restore default permissions based on role
         console.log('Unarchiving user...');
-        let defaultPermissions = DEFAULT_PERMISSIONS.viewer;
+        let defaultPermissions = DEFAULT_PERMISSIONS.employee;
         if (user.role === 'admin') defaultPermissions = DEFAULT_PERMISSIONS.admin;
         else if (user.role === 'manager' || user.role === 'hotel-manager' || user.role === 'hotel-staff') {
           defaultPermissions = DEFAULT_PERMISSIONS['hotel-staff'];
@@ -277,7 +293,6 @@ export default function UserManagementPage() {
           contracts: null,
           diveLog: null,
           maintenance: null,
-          operations: null,
         };
         
         const updateData = {
@@ -316,25 +331,33 @@ export default function UserManagementPage() {
 
     setCreating(true);
     try {
-      // Store current user to restore after creation
-      const currentUser = auth.currentUser;
-      
-      // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-8);
-      
+      // Store current admin user to restore after creation
+      const adminUser = auth.currentUser;
+
+      // Generate a temporary password using a cryptographically secure random generator
+      const tempPassword = generateSecureRandomString(8) + 'A1!';
+
       // Create user in Firebase Auth
+      // NOTE: This automatically signs in as the new user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         createEmail,
         tempPassword
       );
-      
+      const newUserId = userCredential.user.uid;
+
+      // Immediately restore admin session BEFORE writing to Firestore
+      // This is critical: Firestore rules require isAdmin() for non-viewer role creation
+      if (adminUser) {
+        await auth.updateCurrentUser(adminUser);
+      }
+
       // Get default permissions for the role
-      const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.viewer;
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        uid: userCredential.user.uid,
+      const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
+
+      // Now create user document in Firestore (running as admin)
+      await setDoc(doc(db, 'users', newUserId), {
+        uid: newUserId,
         email: createEmail,
         name: createEmail.split('@')[0], // Default name from email
         role: createRole,
@@ -343,26 +366,27 @@ export default function UserManagementPage() {
         createdAt: new Date().toISOString(),
         archived: false
       });
-      
+
       // Send password reset email so user can set their own password
       await sendPasswordResetEmail(auth, createEmail);
-      
-      // Restore original user session
-      if (currentUser) {
-        await auth.updateCurrentUser(currentUser);
-      }
-      
+
       // Refresh users list
       await loadUsers();
-      
+
       // Clear form and close modal
       setCreateEmail('');
       setCreateRole('hotel-staff');
       setCreateHotelId('');
       onCreateClose();
-      
+
       setError(null);
     } catch (err: any) {
+      // Ensure admin session is restored even on error
+      const adminUser = auth.currentUser;
+      if (adminUser?.email !== auth.currentUser?.email) {
+        try { await auth.updateCurrentUser(adminUser!); } catch {}
+      }
+
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please use a different email.');
       } else if (err.code === 'auth/invalid-email') {
@@ -382,7 +406,8 @@ export default function UserManagementPage() {
       case 'manager':
       case 'hotel-manager':
       case 'hotel-staff': return 'yellow';
-      case 'viewer': return 'blue';
+      case 'viewer':
+      case 'employee': return 'blue';
       default: return 'gray';
     }
   };
@@ -533,14 +558,14 @@ export default function UserManagementPage() {
                     <FormLabel>Role</FormLabel>
                     <Select value={editRole} onChange={(e) => handleRoleChange(e.target.value as UserRole)}>
                       <option value="viewer">Viewer</option>
+                      <option value="employee">Employee</option>
                       <option value="hotel-staff">Hotel Staff</option>
-                      <option value="hotel-manager">Hotel Manager</option>
                       <option value="admin">Admin</option>
                     </Select>
                   </FormControl>
 
-                  {/* Hotel Assignment for Hotel Staff and Managers */}
-                  {(editRole === 'hotel-staff' || editRole === 'hotel-manager') && (
+                  {/* Hotel Assignment for Hotel Staff */}
+                  {editRole === 'hotel-staff' && (
                     <FormControl>
                       <FormLabel>Hotel Assignment</FormLabel>
                       <Select 
@@ -555,7 +580,7 @@ export default function UserManagementPage() {
                         ))}
                       </Select>
                       <Text fontSize="sm" color="gray.600" mt={1}>
-                        Hotel staff and managers will only have access to their assigned hotel's data
+                        Hotel staff will only have access to their assigned hotel's data
                       </Text>
                     </FormControl>
                   )}
@@ -577,7 +602,7 @@ export default function UserManagementPage() {
                     </Alert>
                   )}
                   
-                  {editRole === 'viewer' && (
+                  {editRole === 'employee' && (
                     <VStack spacing={4} align="stretch">
                       {Object.entries(editPermissions).map(([module, level]) => (
                         <FormControl key={module}>
@@ -631,15 +656,14 @@ export default function UserManagementPage() {
                   <FormControl>
                     <FormLabel>Role</FormLabel>
                     <Select value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
-                      <option value="viewer">Viewer</option>
+                      <option value="employee">Employee</option>
                       <option value="hotel-staff">Hotel Staff</option>
-                      <option value="hotel-manager">Hotel Manager</option>
                       <option value="admin">Admin</option>
                     </Select>
                   </FormControl>
 
-                  {/* Hotel Assignment for Hotel Staff and Managers */}
-                  {(createRole === 'hotel-staff' || createRole === 'hotel-manager') && (
+                  {/* Hotel Assignment for Hotel Staff */}
+                  {createRole === 'hotel-staff' && (
                     <FormControl>
                       <FormLabel>Hotel Assignment</FormLabel>
                       <Select 
@@ -654,7 +678,7 @@ export default function UserManagementPage() {
                         ))}
                       </Select>
                       <Text fontSize="sm" color="gray.600" mt={1}>
-                        Hotel staff and managers will only have access to their assigned hotel's data
+                        Hotel staff will only have access to their assigned hotel's data
                       </Text>
                     </FormControl>
                   )}

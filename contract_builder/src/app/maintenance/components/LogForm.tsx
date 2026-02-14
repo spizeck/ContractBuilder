@@ -12,7 +12,8 @@ import { getTechnicians } from "@/services/technicians"
 import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
 import { MaintenanceLogForm } from '@/types/formTypes'
 import { useAuth } from '@/context/AuthContext'
-import { toInputDate } from "@/utils/datetime";
+import { toInputDate } from '@/utils/formatters'
+import CustomDatePicker from '@/components/DatePicker'
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()
@@ -145,7 +146,7 @@ export default function LogForm({ id }: { id?: string }) {
       
       const payload: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string } = {
         ...form,
-        date: new Date(y, m - 1, d),
+        date: new Date(Date.UTC(y, m - 1, d, 12)),
         createdBy: user?.uid || "system",
         assetName: selectedAsset.name,
         category: selectedAsset.category,
@@ -299,11 +300,15 @@ export default function LogForm({ id }: { id?: string }) {
 
           <FormControl>
             <FormLabel>Date</FormLabel>
-            <Input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              autoComplete="off"
+            <CustomDatePicker
+              selected={form.date ? new Date(form.date) : null}
+              onChange={(date) => {
+                setForm({ 
+                  ...form, 
+                  date: date ? toInputDate(date) : ''
+                });
+              }}
+              placeholder="Select log date"
             />
           </FormControl>
 
@@ -381,11 +386,15 @@ export default function LogForm({ id }: { id?: string }) {
                 return (
                   <FormControl>
                     <FormLabel>Next Service Due Date</FormLabel>
-                    <Input
-                      type="date"
-                      value={form.nextServiceDueDate || ""}
-                      onChange={(e) => setForm({ ...form, nextServiceDueDate: e.target.value })}
-                      autoComplete="off"
+                    <CustomDatePicker
+                      selected={form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : null}
+                      onChange={(date) => {
+                        setForm({ 
+                          ...form, 
+                          nextServiceDueDate: date ? toInputDate(date) : ''
+                        });
+                      }}
+                      placeholder="Select next service due date"
                     />
                   </FormControl>
                 );

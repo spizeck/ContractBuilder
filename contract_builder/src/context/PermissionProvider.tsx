@@ -18,20 +18,12 @@ interface PermissionContextType {
   hasPermission: (module: keyof ModulePermissions, level: PermissionLevel) => boolean
   isAdmin: () => boolean
   isHotelStaff: () => boolean
-  isManagerOrAbove: () => boolean
-  isStaffOrAbove: () => boolean
+  isEmployee: () => boolean
+  isViewer: () => boolean
   canAccessModule: (module: keyof ModulePermissions) => boolean
 }
 
-const PermissionContext = createContext<PermissionContextType>({
-  userPermissions: null,
-  hasPermission: () => false,
-  isAdmin: () => false,
-  isHotelStaff: () => false,
-  isManagerOrAbove: () => false,
-  isStaffOrAbove: () => false,
-  canAccessModule: () => false,
-})
+const PermissionContext = createContext<PermissionContextType | null>(null)
 
 export function PermissionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -55,9 +47,9 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           // Map legacy roles to new role system
           let mappedRole: UserRole = 'viewer';
           if (userData.role === 'admin') mappedRole = 'admin';
-          else if (userData.role === 'employee') mappedRole = 'employee';
-          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
+          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
           else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
+          else if (userData.role === 'employee') mappedRole = 'employee';
           else if (userData.role === 'viewer') mappedRole = 'viewer';
           
           // Use actual permissions from Firestore, or fall back to defaults for legacy users
@@ -120,8 +112,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = (): boolean => userPermissions?.role === 'admin'
   const isHotelStaff = (): boolean => userPermissions?.role === 'hotel-staff'
-  const isManagerOrAbove = (): boolean => userPermissions?.role === 'admin' || userPermissions?.role === 'hotel-manager'
-  const isStaffOrAbove = (): boolean => userPermissions?.role === 'admin' || userPermissions?.role === 'hotel-manager' || userPermissions?.role === 'hotel-staff'
+  const isEmployee = (): boolean => userPermissions?.role === 'employee'
+  const isViewer = (): boolean => userPermissions?.role === 'viewer'
 
   const canAccessModule = (module: keyof ModulePermissions): boolean => {
     if (!userPermissions) return false
@@ -142,8 +134,8 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       hasPermission,
       isAdmin,
       isHotelStaff,
-      isManagerOrAbove,
-      isStaffOrAbove,
+      isEmployee,
+      isViewer,
       canAccessModule,
     }}>
       {children}
