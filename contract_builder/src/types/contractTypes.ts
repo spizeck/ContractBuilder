@@ -20,6 +20,7 @@ export interface ContractData {
   createdAt?: Date;
   customRates?: { [key: string]: number }; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
+  focOverrideIndex?: number | null; // Room cost index selected as FOC base rate override
 }
 
 export interface RoomSelection {
