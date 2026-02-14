@@ -396,14 +396,6 @@ export default function TotalCostCalculation({
         mealAddons: contractData.mealAddons || [],
       };
 
-      // Debug: Log customRates structure before filtering
-      console.log('Original customRates:', customRates);
-      console.log('CustomRates type:', typeof customRates);
-      console.log('CustomRates keys:', Object.keys(customRates));
-
-      // Debug: Log filtered customRates
-      console.log('Filtered customRates:', groupContract.customRates);
-
       await addGroupContract(groupContract);
       alert("Contract saved successfully!");
       onConfirm();
@@ -656,7 +648,7 @@ export default function TotalCostCalculation({
     }
 
     fetchData();
-  }, [contractData]);
+  }, [JSON.stringify(contractData)]);
 
   if (error) {
     return (

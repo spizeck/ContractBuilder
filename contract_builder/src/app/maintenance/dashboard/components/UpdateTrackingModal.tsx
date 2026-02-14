@@ -19,7 +19,7 @@ import {
   NumberInputStepper,
   useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Asset } from "@/types/maintenance";
 import { updateAsset } from "@/services/assets";
 import { isHoursTracked, isKmTracked } from "@/types/maintenance";
@@ -43,7 +43,7 @@ export default function UpdateTrackingModal({
   // Color values now come from semantic tokens in theme
 
   // Reset form when asset changes
-  useState(() => {
+  useEffect(() => {
     if (asset && isOpen) {
       if (isHoursTracked(asset)) {
         setCurrentHours(asset.currentHours?.toString() || "");
@@ -51,7 +51,7 @@ export default function UpdateTrackingModal({
         setCurrentKilometers(asset.currentKilometers?.toString() || "");
       }
     }
-  });
+  }, [asset, isOpen]);
 
   const handleSubmit = async () => {
     if (!asset) return;

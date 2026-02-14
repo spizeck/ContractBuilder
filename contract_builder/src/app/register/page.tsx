@@ -36,7 +36,8 @@ export default function RegisterPage () {
       // create a Firestore doc with default role = 'viewer'
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
-        name: name, 
+        name: name,
+        role: 'viewer',
         createdAt: serverTimestamp()
       })
 

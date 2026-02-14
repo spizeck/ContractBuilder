@@ -146,7 +146,7 @@ export default function LogForm({ id }: { id?: string }) {
       
       const payload: Omit<MaintenanceLog, 'id' | 'createdAt'> & { createdBy: string } = {
         ...form,
-        date: new Date(y, m - 1, d),
+        date: new Date(Date.UTC(y, m - 1, d, 12)),
         createdBy: user?.uid || "system",
         assetName: selectedAsset.name,
         category: selectedAsset.category,

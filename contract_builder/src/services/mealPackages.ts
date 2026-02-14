@@ -32,6 +32,6 @@ export async function deleteMealPackage(mealPackageId: string): Promise<void> {
 export async function getMealPackageById(mealPackageId: string): Promise<MealPackage | null> {
   const docRef = doc(db, "mealPackages", mealPackageId);
   const docSnap = await getDoc(docRef);
-  return docSnap.exists()? docSnap.data() as MealPackage : null;
+  return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as MealPackage : null;
 }
 

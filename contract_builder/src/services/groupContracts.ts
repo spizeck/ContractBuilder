@@ -42,7 +42,7 @@ export async function getGroupContractById (
 ): Promise<GroupContract | undefined> {
   const docRef = doc(db, 'groupContracts', contractId)
   const docSnap = await getDoc(docRef)
-  return docSnap.exists() ? (docSnap.data() as GroupContract) : undefined
+  return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } as GroupContract : undefined
 }
 
 export function formatBookingType (code: string): string {

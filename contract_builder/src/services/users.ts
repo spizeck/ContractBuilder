@@ -18,9 +18,9 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
       ...defaultPrefs,
       ...data.preferences,
       units: {
-        depth: (data.preferences?.units.depth as "meters" | "feet") ?? "meters",
-        temp: (data.preferences?.units.temp as "celsius" | "fahrenheit") ?? "celsius",
-        pressure: (data.preferences?.units.pressure as "bar" | "psi") ?? "bar",
+        depth: (data.preferences?.units?.depth as "meters" | "feet") ?? "meters",
+        temp: (data.preferences?.units?.temp as "celsius" | "fahrenheit") ?? "celsius",
+        pressure: (data.preferences?.units?.pressure as "bar" | "psi") ?? "bar",
       },
     },
   };

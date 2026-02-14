@@ -66,7 +66,7 @@ export default function BulkImportLogModal({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === "text/csv") {
+    if (file && (file.type === "text/csv" || file.name.toLowerCase().endsWith('.csv'))) {
       setCsvFile(file);
       parseCSV(file);
     } else {

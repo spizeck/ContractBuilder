@@ -54,6 +54,8 @@ export default function PaymentDashboard({
 
   // Fetch payments for all contracts
   useEffect(() => {
+    let cancelled = false;
+
     const fetchAllPayments = async () => {
       const paymentsMap: { [key: string]: Payment[] } = {};
 
@@ -72,13 +74,17 @@ export default function PaymentDashboard({
         })
       );
 
-      setPaymentsByContract(paymentsMap);
+      if (!cancelled) {
+        setPaymentsByContract(paymentsMap);
+      }
     };
 
     if (contracts.length > 0) {
       fetchAllPayments();
     }
-  }, [contracts]);
+
+    return () => { cancelled = true; };
+  }, [JSON.stringify(contracts.map(c => c.id))]);
 
   // Filter contracts based on view mode
   const filteredContracts = useMemo(() => {

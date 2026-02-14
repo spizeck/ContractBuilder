@@ -214,14 +214,6 @@ export default function SignedContractUpload({
           </VStack>
         ) : (
           <VStack spacing={3} align="stretch">
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileSelect}
-              disabled={isUploading}
-              display="none"
-            />
             <Button
               as="label"
               htmlFor="file-upload"
@@ -234,6 +226,7 @@ export default function SignedContractUpload({
             </Button>
             <Box as="label" htmlFor="file-upload" cursor="pointer">
               <Input
+                ref={fileInputRef}
                 id="file-upload"
                 type="file"
                 accept=".pdf"

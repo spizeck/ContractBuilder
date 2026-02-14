@@ -1,5 +1,8 @@
 export function parseDateStringAsUTC(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number)
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    throw new Error(`Invalid date string: "${dateString}". Expected format: YYYY-MM-DD`)
+  }
   return new Date(Date.UTC(year, month - 1, day))
 }
 

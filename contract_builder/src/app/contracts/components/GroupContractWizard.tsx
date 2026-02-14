@@ -17,10 +17,11 @@ export default function GroupContractWizard ({
   const [contractData, setContractData] = useState<any>(initialData || {})
 
   const nextStep = (data: any) => {
-    setContractData((prev: any) => ({ ...prev, ...data }))
-    
+    const merged = { ...contractData, ...data }
+    setContractData(merged)
+
     // For direct hotel booking, skip room selection and meal package steps
-    if (data.bookingType === 'directHotelBooking' || contractData.bookingType === 'directHotelBooking') {
+    if (merged.bookingType === 'directHotelBooking') {
       if (step === 1) {
         setStep(3) // Skip to dive package selection
       } else if (step === 3) {

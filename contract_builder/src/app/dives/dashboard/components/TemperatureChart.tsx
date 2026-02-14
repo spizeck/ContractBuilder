@@ -85,7 +85,7 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
     };
 
     fetchPeriodData();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, trends]);
 
   const celsiusToFahrenheit = (celsius: number) => {
     return Math.round(((celsius * 9) / 5 + 32) * 10) / 10;

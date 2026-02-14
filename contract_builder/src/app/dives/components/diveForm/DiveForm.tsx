@@ -104,30 +104,15 @@ export default function DiveForm ({
       : setWaterTemperature(val)
 
   const handleSubmit = async () => {
-    console.log('=== DIVE FORM SUBMIT DEBUG ===');
-    console.log('User:', user?.email);
-    console.log('Date:', date);
-    console.log('Dive Slot:', diveSlot);
-    console.log('Boat ID:', boatId);
-    console.log('Guide:', diveGuide);
-    console.log('Site ID:', diveSiteId);
-    console.log('Max Depth:', maxDepth);
-    console.log('Water Temp:', waterTemperature);
-    console.log('Sightings:', sightings);
-
     if (!user) {
-      console.log('No user found - returning');
       return
     }
 
     const warnings = validateDive(maxDepth, waterTemperature, prefs)
-    console.log('Validation warnings:', warnings);
     if (warnings.length && !confirm('Warnings:\n' + warnings.join('\n'))) {
-      console.log('User cancelled due to warnings');
       return
     }
 
-    console.log('Checking for duplicate dive...');
     const duplicate = await checkDuplicateDive(
       date,
       diveSlot,
@@ -135,13 +120,10 @@ export default function DiveForm ({
       diveGuide,
       initialDive?.id || ''
     )
-    console.log('Duplicate check result:', duplicate);
     if (duplicate) {
-      console.log('Duplicate dive found - alerting user');
       return alert('This dive has already been logged.')
     }
 
-    console.log('Calling onSave with dive data...');
     try {
       await onSave({
         date,
@@ -154,12 +136,9 @@ export default function DiveForm ({
         createdBy: user.uid,
         sightings
       });
-      console.log('onSave completed successfully');
     } catch (error) {
       console.error('Error in onSave:', error);
     }
-    
-    console.log('=== END DIVE FORM SUBMIT DEBUG ===');
   }
 
   if (loading) return <Spinner />

@@ -28,7 +28,14 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (err: any) {
-      setError(err.message);
+      const code = err?.code
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setError('Invalid email or password.')
+      } else if (code === 'auth/too-many-requests') {
+        setError('Too many attempts. Please try again later.')
+      } else {
+        setError('An error occurred. Please try again.')
+      }
     }
   };
 

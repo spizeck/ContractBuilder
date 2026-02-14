@@ -21,16 +21,13 @@ export interface MaintenanceLogForm {
 
 export interface DiveLogForm {
   date: string;
-  siteId: string;
-  diveNumber: number;
-  depth: number;
-  duration: number;
-  diverIds: string[];
-  guideId?: string;
-  notes?: string;
-  temperature?: number;
-  visibility?: number;
-  current?: string;
+  diveSiteId: string;
+  diveSlot: string;
+  boatId: string;
+  diveGuide: string;
+  maxDepth: number;
+  waterTemperature: number;
+  sightings: Array<{ speciesId: string; count: number }>;
 }
 
 export interface ContractForm {
@@ -54,13 +51,11 @@ export interface HotelForm {
   name: string;
   description?: string;
   location?: string;
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-    address?: string;
-  };
-  amenities?: string[];
-  active?: boolean;
+  contactInfo?: string;
+  amenities?: string;
+  policies?: string;
+  restrictions?: string;
+  focRule?: string;
 }
 
 export interface AssetForm {
