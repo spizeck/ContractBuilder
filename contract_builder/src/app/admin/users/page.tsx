@@ -40,6 +40,29 @@ import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "fir
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
+// Generate a cryptographically secure random string using the browser's crypto API.
+// Length is the number of characters to generate from the given alphabet.
+function generateSecureRandomString(length: number): string {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const alphabetLength = alphabet.length;
+
+  if (typeof window === "undefined" || !window.crypto || !window.crypto.getRandomValues) {
+    throw new Error("Secure random number generator is not available in this environment.");
+  }
+
+  const randomBytes = new Uint8Array(length);
+  window.crypto.getRandomValues(randomBytes);
+
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    // Map each byte to an index in the alphabet to avoid bias.
+    const index = randomBytes[i] % alphabetLength;
+    result += alphabet.charAt(index);
+  }
+
+  return result;
+}
+
 interface User {
   id: string;
   email: string;
@@ -311,8 +334,8 @@ export default function UserManagementPage() {
       // Store current admin user to restore after creation
       const adminUser = auth.currentUser;
 
-      // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+      // Generate a temporary password using a cryptographically secure random generator
+      const tempPassword = generateSecureRandomString(8) + 'A1!';
 
       // Create user in Firebase Auth
       // NOTE: This automatically signs in as the new user
