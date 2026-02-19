@@ -21,10 +21,19 @@ import {
   FormHelperText,
   Spinner,
   Icon,
-  SimpleGrid
+  SimpleGrid,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from '@chakra-ui/react'
 import { ArrowLeft, Save, Hotel as HotelIcon } from 'lucide-react'
 import Link from 'next/link'
+import RoomCategoriesList from '@/app/hotels/components/RoomCategoriesList'
+import RoomTypesList from '@/app/hotels/components/RoomTypesList'
+import SeasonsList from '@/app/hotels/components/SeasonsList'
+import RatesList from '@/app/hotels/components/RatesList'
 
 export default function HotelDetailsPage() {
   const { user, role, loading } = useAuth()
@@ -32,22 +41,20 @@ export default function HotelDetailsPage() {
   const [formData, setFormData] = useState<Partial<Hotel>>({})
   const [loadingData, setLoadingData] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
     if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadHotelData()
     } else if (!loading && !user) {
-      // Redirect to login if not authenticated
       window.location.href = '/login?redirect=/hotel-staff/hotel'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
-      // Redirect to dashboard if wrong role
       window.location.href = '/'
     }
   }, [user, role, loading])
 
   const loadHotelData = async () => {
     if (!user) return
-
     try {
       setLoadingData(true)
       const hotelData = await getHotelByStaffId(user.uid)
@@ -63,23 +70,19 @@ export default function HotelDetailsPage() {
   }
 
   const handleInputChange = (field: keyof Hotel, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleSave = async () => {
     if (!user || !hotel) return
-
     try {
       setSaving(true)
+      setSaveSuccess(false)
       const success = await updateHotelDetails(user.uid, hotel.id, formData)
-      
       if (success) {
-        alert('Hotel details updated successfully')
-        // Reload data to get updated values
+        setSaveSuccess(true)
         await loadHotelData()
+        setTimeout(() => setSaveSuccess(false), 3000)
       } else {
         alert('Failed to update hotel details')
       }
@@ -138,7 +141,8 @@ export default function HotelDetailsPage() {
 
   return (
     <Box maxW="6xl" mx="auto" px={4} py={8}>
-      <VStack spacing={8} align="stretch">
+      <VStack spacing={6} align="stretch">
+        {/* Header */}
         <Box>
           <HStack mb={4}>
             <Link href="/hotel-staff">
@@ -149,171 +153,190 @@ export default function HotelDetailsPage() {
             </Link>
             <HStack>
               <Icon as={HotelIcon} h={8} w={8} color="info" mr={3} />
-              <VStack align="start" spacing={1}>
-                <Heading size="xl" color="textPrimary">Hotel Details</Heading>
-                <Text color="textSecondary">Edit your hotel information</Text>
+              <VStack align="start" spacing={0}>
+                <Heading size="xl" color="textPrimary">{hotel.name}</Heading>
+                <Text color="textSecondary">Manage hotel details, rooms, seasons &amp; rates</Text>
               </VStack>
             </HStack>
           </HStack>
         </Box>
 
-        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
-          <Card>
-            <CardHeader>
-              <Heading size="md">Basic Information</Heading>
-            </CardHeader>
-            <CardBody>
-              <VStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Hotel Name</FormLabel>
-                  <Input
-                    value={formData.name || ''}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter hotel name"
-                  />
-                </FormControl>
-                
-                <FormControl isRequired>
-                  <FormLabel>Location</FormLabel>
-                  <Input
-                    value={formData.location || ''}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="Enter hotel location"
-                  />
-                </FormControl>
+        {/* Tabbed sections */}
+        <Tabs variant="enclosed" colorScheme="teal">
+          <TabList>
+            <Tab>Hotel Details</Tab>
+            <Tab>Room Categories</Tab>
+            <Tab>Room Types</Tab>
+            <Tab>Seasons</Tab>
+            <Tab>Rates</Tab>
+          </TabList>
 
-                <FormControl isRequired>
-                  <FormLabel>Contact Information</FormLabel>
-                  <Textarea
-                    value={formData.contactInfo || ''}
-                    onChange={(e) => handleInputChange('contactInfo', e.target.value)}
-                    placeholder="Enter contact details (phone, email, address)"
-                    rows={3}
-                  />
-                </FormControl>
+          <TabPanels>
+            {/* ── Hotel Details ── */}
+            <TabPanel px={0} pt={6}>
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
+                <Card>
+                  <CardHeader><Heading size="md">Basic Information</Heading></CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      <FormControl isRequired>
+                        <FormLabel>Hotel Name</FormLabel>
+                        <Input
+                          value={formData.name || ''}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Enter hotel name"
+                        />
+                      </FormControl>
+                      <FormControl isRequired>
+                        <FormLabel>Location</FormLabel>
+                        <Input
+                          value={formData.location || ''}
+                          onChange={(e) => handleInputChange('location', e.target.value)}
+                          placeholder="Enter hotel location"
+                        />
+                      </FormControl>
+                      <FormControl isRequired>
+                        <FormLabel>Contact Information</FormLabel>
+                        <Textarea
+                          value={formData.contactInfo || ''}
+                          onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+                          placeholder="Enter contact details (phone, email, address)"
+                          rows={3}
+                        />
+                      </FormControl>
+                      <FormControl isRequired>
+                        <FormLabel>Description</FormLabel>
+                        <Textarea
+                          value={formData.description || ''}
+                          onChange={(e) => handleInputChange('description', e.target.value)}
+                          placeholder="Enter hotel description"
+                          rows={4}
+                        />
+                      </FormControl>
+                    </VStack>
+                  </CardBody>
+                </Card>
 
-                <FormControl isRequired>
-                  <FormLabel>Description</FormLabel>
-                  <Textarea
-                    value={formData.description || ''}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Enter hotel description"
-                    rows={4}
-                  />
-                </FormControl>
-              </VStack>
-            </CardBody>
-          </Card>
+                <Card>
+                  <CardHeader><Heading size="md">Policies &amp; Services</Heading></CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      <FormControl>
+                        <FormLabel>Amenities</FormLabel>
+                        <Textarea
+                          value={formData.amenities || ''}
+                          onChange={(e) => handleInputChange('amenities', e.target.value)}
+                          placeholder="List hotel amenities (one per line or comma-separated)"
+                          rows={4}
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Hotel Policies</FormLabel>
+                        <Textarea
+                          value={formData.policies || ''}
+                          onChange={(e) => handleInputChange('policies', e.target.value)}
+                          placeholder="Enter hotel policies and rules"
+                          rows={4}
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Restrictions</FormLabel>
+                        <Textarea
+                          value={formData.restrictions || ''}
+                          onChange={(e) => handleInputChange('restrictions', e.target.value)}
+                          placeholder="Enter any restrictions or special requirements"
+                          rows={3}
+                        />
+                      </FormControl>
+                    </VStack>
+                  </CardBody>
+                </Card>
 
-          <Card>
-            <CardHeader>
-              <Heading size="md">Policies & Services</Heading>
-            </CardHeader>
-            <CardBody>
-              <VStack spacing={4}>
-                <FormControl>
-                  <FormLabel>Amenities</FormLabel>
-                  <Textarea
-                    value={formData.amenities || ''}
-                    onChange={(e) => handleInputChange('amenities', e.target.value)}
-                    placeholder="List hotel amenities (one per line or comma-separated)"
-                    rows={4}
-                  />
-                </FormControl>
+                <Card>
+                  <CardHeader><Heading size="md">Commission &amp; FOC Rules</Heading></CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      <FormControl>
+                        <FormLabel>Free of Charge Rule</FormLabel>
+                        <Input
+                          value={formData.focRule || ''}
+                          onChange={(e) => handleInputChange('focRule', e.target.value)}
+                          placeholder="e.g., 7+1, 10+1"
+                        />
+                        <FormHelperText>Format: X+Y (Y free for every X paying guests)</FormHelperText>
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>FOC Base Room Type</FormLabel>
+                        <Input
+                          value={formData.focBaseRate || ''}
+                          onChange={(e) => handleInputChange('focBaseRate', e.target.value)}
+                          placeholder="Base room type for FOC calculation"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Meal Commission Rate (%)</FormLabel>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.mealCommissionRate || ''}
+                          onChange={(e) => handleInputChange('mealCommissionRate', e.target.value)}
+                          placeholder="e.g., 10 for 10%"
+                        />
+                        <FormHelperText>Enter percentage (e.g., 10 for 10% commission)</FormHelperText>
+                      </FormControl>
+                    </VStack>
+                  </CardBody>
+                </Card>
 
-                <FormControl>
-                  <FormLabel>Hotel Policies</FormLabel>
-                  <Textarea
-                    value={formData.policies || ''}
-                    onChange={(e) => handleInputChange('policies', e.target.value)}
-                    placeholder="Enter hotel policies and rules"
-                    rows={4}
-                  />
-                </FormControl>
+                <Card>
+                  <CardHeader><Heading size="md">Actions</Heading></CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      {saveSuccess && (
+                        <Text color="green.500" fontWeight="medium">
+                          Hotel details saved successfully!
+                        </Text>
+                      )}
+                      <Button
+                        onClick={handleSave}
+                        isLoading={saving}
+                        loadingText="Saving..."
+                        w="full"
+                        colorScheme="teal"
+                      >
+                        <Icon as={Save} h={4} w={4} mr={2} />
+                        Save Changes
+                      </Button>
+                      <Link href="/hotel-staff">
+                        <Button w="full" variant="outline">Cancel</Button>
+                      </Link>
+                    </VStack>
+                  </CardBody>
+                </Card>
+              </SimpleGrid>
+            </TabPanel>
 
-                <FormControl>
-                  <FormLabel>Restrictions</FormLabel>
-                  <Textarea
-                    value={formData.restrictions || ''}
-                    onChange={(e) => handleInputChange('restrictions', e.target.value)}
-                    placeholder="Enter any restrictions or special requirements"
-                    rows={3}
-                  />
-                </FormControl>
-              </VStack>
-            </CardBody>
-          </Card>
+            {/* ── Room Categories ── */}
+            <TabPanel px={0} pt={6}>
+              <RoomCategoriesList hotelId={hotel.id} onBack={() => {}} />
+            </TabPanel>
 
-          <Card>
-            <CardHeader>
-              <Heading size="md">Commission & FOC Rules</Heading>
-            </CardHeader>
-            <CardBody>
-              <VStack spacing={4}>
-                <FormControl>
-                  <FormLabel>Free of Charge Rule</FormLabel>
-                  <Input
-                    value={formData.focRule || ''}
-                    onChange={(e) => handleInputChange('focRule', e.target.value)}
-                    placeholder="e.g., 7+1, 10+1"
-                  />
-                  <FormHelperText>
-                    Format: X+Y (Y free for every X paying guests)
-                  </FormHelperText>
-                </FormControl>
+            {/* ── Room Types ── */}
+            <TabPanel px={0} pt={6}>
+              <RoomTypesList hotelId={hotel.id} onBack={() => {}} />
+            </TabPanel>
 
-                <FormControl>
-                  <FormLabel>FOC Base Room Type</FormLabel>
-                  <Input
-                    value={formData.focBaseRate || ''}
-                    onChange={(e) => handleInputChange('focBaseRate', e.target.value)}
-                    placeholder="Base room type for FOC calculation"
-                  />
-                </FormControl>
+            {/* ── Seasons ── */}
+            <TabPanel px={0} pt={6}>
+              <SeasonsList hotelId={hotel.id} onBack={() => {}} />
+            </TabPanel>
 
-                <FormControl>
-                  <FormLabel>Meal Commission Rate (%)</FormLabel>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.mealCommissionRate || ''}
-                    onChange={(e) => handleInputChange('mealCommissionRate', e.target.value)}
-                    placeholder="e.g., 10 for 10%"
-                  />
-                  <FormHelperText>
-                    Enter percentage (e.g., 10 for 10% commission)
-                  </FormHelperText>
-                </FormControl>
-              </VStack>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Heading size="md">Actions</Heading>
-            </CardHeader>
-            <CardBody>
-              <VStack spacing={4}>
-                <Button 
-                  onClick={handleSave} 
-                  isLoading={saving}
-                  loadingText="Saving..."
-                  w="full"
-                  colorScheme="teal"
-                >
-                  <Icon as={Save} h={4} w={4} mr={2} />
-                  Save Changes
-                </Button>
-                
-                <Link href="/hotel-staff">
-                  <Button w="full" variant="outline">
-                    Cancel
-                  </Button>
-                </Link>
-              </VStack>
-            </CardBody>
-          </Card>
-        </SimpleGrid>
+            {/* ── Rates ── */}
+            <TabPanel px={0} pt={6}>
+              <RatesList hotelId={hotel.id} onBack={() => {}} />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </VStack>
     </Box>
   )

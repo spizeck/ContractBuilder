@@ -37,7 +37,7 @@ import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute"
 import { usePermissions } from "@/context/PermissionProvider";
 import { UserRole, PermissionLevel, ModulePermissions, DEFAULT_PERMISSIONS } from "@/types/permissions";
 import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 // Generate a cryptographically secure random string using the browser's crypto API.
@@ -216,15 +216,8 @@ export default function UserManagementPage() {
     try {
       const userRef = doc(db, 'users', selectedUser.id);
       
-      // Map new role back to Firestore format if needed
-      let firestoreRole: string = editRole;
-      if (editRole === 'hotel-staff' && selectedUser.role === 'manager') {
-        // Keep original "manager" role if it existed
-        firestoreRole = 'manager';
-      }
-      
       const updateData: any = {
-        role: firestoreRole,
+        role: editRole,
         permissions: editPermissions,
       };
       
@@ -242,7 +235,7 @@ export default function UserManagementPage() {
         user.id === selectedUser.id 
           ? { 
               ...user, 
-              role: firestoreRole, 
+              role: editRole, 
               permissions: editPermissions,
               hotelId: (editRole === 'hotel-staff' && editHotelId) ? editHotelId : undefined
             }
@@ -331,35 +324,28 @@ export default function UserManagementPage() {
 
     setCreating(true);
     try {
-      // Store current admin user to restore after creation
-      const adminUser = auth.currentUser;
-
       // Generate a temporary password using a cryptographically secure random generator
       const tempPassword = generateSecureRandomString(8) + 'A1!';
 
-      // Create user in Firebase Auth
-      // NOTE: This automatically signs in as the new user
+      // Create user via the secondary app instance so the admin session is never disturbed
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         createEmail,
         tempPassword
       );
       const newUserId = userCredential.user.uid;
 
-      // Immediately restore admin session BEFORE writing to Firestore
-      // This is critical: Firestore rules require isAdmin() for non-viewer role creation
-      if (adminUser) {
-        await auth.updateCurrentUser(adminUser);
-      }
+      // Sign out of the secondary instance immediately — we don't need it anymore
+      await secondaryAuth.signOut();
 
       // Get default permissions for the role
       const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
 
-      // Now create user document in Firestore (running as admin)
+      // Write the user document as the admin (primary auth is untouched)
       await setDoc(doc(db, 'users', newUserId), {
         uid: newUserId,
         email: createEmail,
-        name: createEmail.split('@')[0], // Default name from email
+        name: createEmail.split('@')[0],
         role: createRole,
         hotelId: createRole === 'hotel-staff' ? createHotelId : null,
         permissions: defaultPermissions,
@@ -381,12 +367,6 @@ export default function UserManagementPage() {
 
       setError(null);
     } catch (err: any) {
-      // Ensure admin session is restored even on error
-      const adminUser = auth.currentUser;
-      if (adminUser?.email !== auth.currentUser?.email) {
-        try { await auth.updateCurrentUser(adminUser!); } catch {}
-      }
-
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please use a different email.');
       } else if (err.code === 'auth/invalid-email') {
