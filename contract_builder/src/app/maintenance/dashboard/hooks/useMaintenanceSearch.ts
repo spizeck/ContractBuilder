@@ -11,29 +11,30 @@ import {
   QueryConstraint,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { usePermissions } from "@/context/PermissionProvider";
 import type { Asset, Technician, MaintenanceLog } from "@/types/maintenance";
 
 export const naturalSort = (a: string, b: string): number => {
   const regex = /(\d+)|(\D+)/g;
   const aParts = a.match(regex) || [];
   const bParts = b.match(regex) || [];
-  
+
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
     const aPart = aParts[i] || '';
     const bPart = bParts[i] || '';
-    
+
     if (aPart === bPart) continue;
-    
+
     const aNum = parseInt(aPart, 10);
     const bNum = parseInt(bPart, 10);
-    
+
     if (!isNaN(aNum) && !isNaN(bNum)) {
       return aNum - bNum;
     }
-    
+
     return aPart.localeCompare(bPart);
   }
-  
+
   return 0;
 };
 
@@ -51,6 +52,8 @@ export function useMaintenanceData(params: {
   loading: boolean;
 } {
   const { keyword, category, technicianId, range } = params;
+  const { canAccessModule } = usePermissions();
+  const hasAccess = canAccessModule('maintenance');
 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -59,6 +62,12 @@ export function useMaintenanceData(params: {
 
   // Assets (avoid composite index by removing orderBy; sort client-side)
   useEffect(() => {
+    if (!hasAccess) {
+      setAssets([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const constraints: QueryConstraint[] = [];
     constraints.push(where("active", "==", true));
     const qRef = query(collection(db, "assets"), ...constraints);
@@ -78,10 +87,14 @@ export function useMaintenanceData(params: {
       }
     );
     return () => unsub();
-  }, []);
+  }, [hasAccess]);
 
   // Technicians (same approach)
   useEffect(() => {
+    if (!hasAccess) {
+      setLoading(false);
+      return;
+    }
     const constraints: QueryConstraint[] = [];
     // if you need only active techs, add: constraints.push(where("active", "==", true));
     const qRef = query(collection(db, "technicians"), ...constraints);
@@ -100,10 +113,14 @@ export function useMaintenanceData(params: {
       }
     );
     return () => unsub();
-  }, []);
+  }, [hasAccess]);
 
   // Logs: range filter on date is supported with orderBy('date')
   useEffect(() => {
+    if (!hasAccess) {
+      setLoading(false);
+      return;
+    }
     const constraints: QueryConstraint[] = [orderBy("date", "desc")];
     if (range.start) constraints.push(where("date", ">=", Timestamp.fromDate(range.start)));
     if (range.end) constraints.push(where("date", "<=", Timestamp.fromDate(range.end)));
@@ -127,7 +144,7 @@ export function useMaintenanceData(params: {
       }
     );
     return () => unsub();
-  }, [range.start?.getTime(), range.end?.getTime()]);
+  }, [hasAccess, range.start?.getTime(), range.end?.getTime()]);
 
   // Client-side filtering for keyword/category/technician
   const filtered = useMemo(() => {

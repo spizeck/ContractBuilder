@@ -15,6 +15,7 @@ import {
 import { getDiveDashboardData } from "@/services/diveDashboard";
 import type { DiveDashboardData } from "@/types/dashboard";
 import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import { usePermissions } from "@/context/PermissionProvider";
 import SummaryCards from "@/app/dives/dashboard/components/SummaryCards";
 import SiteMatrix from "@/app/dives/dashboard/components/SiteMatrix";
 import TemperatureChart from "@/app/dives/dashboard/components/TemperatureChart";
@@ -22,6 +23,9 @@ import SiteVisitationChart from "@/app/dives/dashboard/components/SiteVisitation
 import SeasonalWildlifePatterns from "@/app/dives/dashboard/components/SeasonalWildlifePatterns";
 
 export default function DiveDashboardPage() {
+  const { canAccessModule } = usePermissions();
+  const hasAccess = canAccessModule('diveLog');
+
   const [dashboardData, setDashboardData] = useState<DiveDashboardData | null>(
     null
   );
@@ -35,6 +39,10 @@ export default function DiveDashboardPage() {
   const isMobile = useBreakpointValue({ base: true, xl: false });
 
   useEffect(() => {
+    if (!hasAccess) {
+      setLoading(false);
+      return;
+    }
     const loadDashboardData = async () => {
       try {
         setLoading(true);
@@ -49,7 +57,7 @@ export default function DiveDashboardPage() {
     };
 
     loadDashboardData();
-  }, []);
+  }, [hasAccess]);
 
   if (loading) {
     return (
