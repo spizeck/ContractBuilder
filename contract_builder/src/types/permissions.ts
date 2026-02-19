@@ -6,7 +6,7 @@ export interface ModulePermissions {
   contracts: PermissionLevel
   diveLog: PermissionLevel
   maintenance: PermissionLevel
-  // Add more modules as needed
+  operations: PermissionLevel
 }
 
 export interface UserPermissions {
@@ -19,6 +19,7 @@ export const MODULES = {
   CONTRACTS: 'contracts',
   DIVE_LOG: 'diveLog',
   MAINTENANCE: 'maintenance',
+  OPERATIONS: 'operations',
 } as const
 
 export const PERMISSION_LEVELS = {
@@ -40,25 +41,30 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
     contracts: 'edit',
     diveLog: 'edit',
     maintenance: 'edit',
+    operations: 'edit',
   },
   'hotel-manager': {
     contracts: 'edit',
-    diveLog: 'view',
+    diveLog: 'create',
     maintenance: 'view',
+    operations: 'create',
   },
   'hotel-staff': {
     contracts: 'view',
-    diveLog: 'view',
+    diveLog: 'create',
     maintenance: 'view',
+    operations: 'create',
   },
   employee: {
     contracts: null,
     diveLog: 'create',
     maintenance: 'view',
+    operations: 'create',
   },
   viewer: {
     contracts: null,
     diveLog: 'view',
     maintenance: null,
+    operations: null,
   },
 }

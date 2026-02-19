@@ -30,6 +30,10 @@ service cloud.firestore {
       return userDocExists() && getUserData().role == 'admin';
     }
 
+    function normalizeLevel(level) {
+      return level == 'viewer' ? 'view' : level;
+    }
+
     function isManagerOrAbove() {
       return userDocExists() && isNotArchived() &&
         (getUserData().role == 'admin' ||
@@ -48,18 +52,21 @@ service cloud.firestore {
     // but if null we fall back to the role's default so legacy docs aren't locked out.
     function effectivePermission(module) {
       return (getUserData().permissions != null && getUserData().permissions[module] != null)
-        ? getUserData().permissions[module]
+        ? normalizeLevel(getUserData().permissions[module])
         : (module == 'diveLog'
             ? ((getUserData().role == 'admin' || getUserData().role == 'hotel-manager' ||
-                getUserData().role == 'hotel-staff' || getUserData().role == 'employee' ||
-                getUserData().role == 'viewer') ? 'create' : null)
+                getUserData().role == 'hotel-staff' || getUserData().role == 'employee') ? 'create' :
+               (getUserData().role == 'viewer' ? 'view' : null))
             : (module == 'maintenance'
                 ? ((getUserData().role == 'admin' || getUserData().role == 'hotel-manager' ||
                     getUserData().role == 'hotel-staff' || getUserData().role == 'employee') ? 'view' : null)
                 : (module == 'contracts'
                     ? ((getUserData().role == 'admin' || getUserData().role == 'hotel-manager') ? 'edit' :
                        (getUserData().role == 'hotel-staff' ? 'view' : null))
-                    : null)));
+                    : (module == 'operations'
+                        ? ((getUserData().role == 'admin' || getUserData().role == 'hotel-manager' ||
+                            getUserData().role == 'hotel-staff' || getUserData().role == 'employee') ? 'create' : null)
+                        : null))));
     }
 
     function hasPermission(module, requiredLevel) {
@@ -98,6 +105,7 @@ service cloud.firestore {
     function isValidPermissionLevel(level) {
       return level == null ||
              level == 'view' ||
+             level == 'viewer' ||
              level == 'create' ||
              level == 'edit';
     }
@@ -109,12 +117,12 @@ service cloud.firestore {
              (permissions.operations == null || isValidPermissionLevel(permissions.operations));
     }
 
-    // Check if user has access to a specific hotel
+    // Check if user has access to a specific hotel.
+    // hotelId == null on the user doc means global access (no hotel restriction).
     function hasHotelAccess(hotelId) {
       return isAdmin() ? true : (
         userDocExists() &&
-        getUserData().hotelId != null &&
-        getUserData().hotelId == hotelId
+        (getUserData().hotelId == null || getUserData().hotelId == hotelId)
       );
     }
 
@@ -296,6 +304,11 @@ service cloud.firestore {
       allow write: if hasPermission('diveLog', 'edit');
     }
 
+    match /crew/{crewId} {
+      allow read: if canAccessModule('diveLog');
+      allow write: if hasPermission('diveLog', 'edit');
+    }
+
     // Maintenance
     match /maintenanceLogs/{logId} {
       allow read: if canAccessModule('maintenance');
@@ -311,6 +324,38 @@ service cloud.firestore {
     match /technicians/{techId} {
       allow read: if canAccessModule('maintenance');
       allow write: if hasPermission('maintenance', 'edit');
+    }
+
+    /* =========================
+       Operations module
+       ========================= */
+
+    match /customers/{customerId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update, delete: if hasPermission('operations', 'edit');
+    }
+
+    match /dayManifests/{dateId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update, delete: if hasPermission('operations', 'edit');
+
+      match /rows/{rowId} {
+        allow read: if canAccessModule('operations');
+        allow write: if hasPermission('operations', 'edit');
+      }
+
+      match /taxiRuns/{runId} {
+        allow read: if canAccessModule('operations');
+        allow write: if hasPermission('operations', 'edit');
+      }
+    }
+
+    match /taxies/{taxiId} {
+      allow read: if canAccessModule('operations');
+      allow create: if hasPermission('operations', 'create');
+      allow update, delete: if hasPermission('operations', 'edit');
     }
   }
 }

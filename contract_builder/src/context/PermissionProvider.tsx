@@ -59,6 +59,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
             contracts: stored.contracts != null ? stored.contracts : roleDefaults.contracts,
             diveLog: stored.diveLog != null ? stored.diveLog : roleDefaults.diveLog,
             maintenance: stored.maintenance != null ? stored.maintenance : roleDefaults.maintenance,
+            operations: stored.operations != null ? stored.operations : roleDefaults.operations,
           };
           
           const finalPermissions = {
