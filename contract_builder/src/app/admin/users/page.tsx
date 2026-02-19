@@ -286,6 +286,7 @@ export default function UserManagementPage() {
           contracts: null,
           diveLog: null,
           maintenance: null,
+          operations: null,
         };
         
         const updateData = {
