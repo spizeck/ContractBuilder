@@ -18,10 +18,12 @@ import {
 import { HamburgerIcon } from '@chakra-ui/icons'
 import NextLink from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { usePermissions } from '@/context/PermissionProvider'
 import LogoutButton from './LogoutButton'
 
 export default function NavLinks() {
   const { user, role, loading } = useAuth()
+  const { canAccessModule } = usePermissions()
 
   // All the links (to reuse for desktop + mobile)
   const diveLogLinks = (
@@ -79,8 +81,8 @@ export default function NavLinks() {
           <Box>Loading...</Box>
         ) : user && (
           <>
-            {/* Dive Log Section - Admin only */}
-            {role === 'admin' && (
+            {/* Dive Log Section */}
+            {canAccessModule('diveLog') && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Dive Log
@@ -89,8 +91,8 @@ export default function NavLinks() {
               </Menu>
             )}
 
-            {/* Maintenance Section - Admin only */}
-            {role === 'admin' && (
+            {/* Maintenance Section */}
+            {canAccessModule('maintenance') && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Maintenance
@@ -154,7 +156,7 @@ export default function NavLinks() {
               <Box>
                 <Accordion allowToggle>
                   {/* Dive Log Section */}
-                  {role === 'admin' && (
+                  {canAccessModule('diveLog') && (
                     <AccordionItem>
                       <AccordionButton>
                         <Box flex="1" textAlign="left">Dive Log</Box>
@@ -163,8 +165,8 @@ export default function NavLinks() {
                     </AccordionItem>
                   )}
 
-                  {/* Maintenance Section - Admin only */}
-                  {role === 'admin' && (
+                  {/* Maintenance Section */}
+                  {canAccessModule('maintenance') && (
                     <AccordionItem>
                       <AccordionButton>
                         <Box flex="1" textAlign="left">Maintenance</Box>
