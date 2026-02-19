@@ -25,6 +25,8 @@ import { roundToCents } from "@/utils/formatters";
 interface PaymentDashboardProps {
   contracts: GroupContract[];
   onFilterByStatus?: (status: string) => void;
+  viewMode: "upcoming" | "past";
+  onViewModeChange: (mode: "upcoming" | "past") => void;
 }
 
 interface PaymentMetrics {
@@ -48,8 +50,9 @@ interface PaymentMetrics {
 export default function PaymentDashboard({
   contracts,
   onFilterByStatus,
+  viewMode,
+  onViewModeChange,
 }: PaymentDashboardProps) {
-  const [viewMode, setViewMode] = useState<"upcoming" | "past">("upcoming");
   const [paymentsByContract, setPaymentsByContract] = useState<{ [key: string]: Payment[] }>({});
   const contractIds = useMemo(
     () => contracts.map((contract) => contract.id).filter((id): id is string => Boolean(id)),
@@ -91,12 +94,13 @@ export default function PaymentDashboard({
   // Filter contracts based on view mode
   const filteredContracts = useMemo(() => {
     const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     return contracts.filter((contract) => {
-      const endDate = new Date(contract.endDate);
+      const endDateStr = contract.endDate.slice(0, 10);
       if (viewMode === "upcoming") {
-        return endDate >= today;
+        return endDateStr >= todayStr;
       } else {
-        return endDate < today;
+        return endDateStr < todayStr;
       }
     });
   }, [contracts, viewMode]);
@@ -174,14 +178,14 @@ export default function PaymentDashboard({
         <ButtonGroup isAttached variant="outline" size="sm">
           <Button
             isActive={viewMode === "upcoming"}
-            onClick={() => setViewMode("upcoming")}
+            onClick={() => onViewModeChange("upcoming")}
             colorScheme={viewMode === "upcoming" ? "blue" : "gray"}
           >
             Upcoming Contracts
           </Button>
           <Button
             isActive={viewMode === "past"}
-            onClick={() => setViewMode("past")}
+            onClick={() => onViewModeChange("past")}
             colorScheme={viewMode === "past" ? "blue" : "gray"}
           >
             Past Contracts

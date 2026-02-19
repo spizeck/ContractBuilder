@@ -40,6 +40,7 @@ export default function GroupContractsList({
   const [filteredContracts, setFilteredContracts] = useState<GroupContract[]>(
     []
   );
+  const [viewMode, setViewMode] = useState<"upcoming" | "past">("upcoming");
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [filters, setFilters] = useState<{
     groupName: string;
@@ -86,7 +87,7 @@ export default function GroupContractsList({
     });
 
     setContracts(sortedContracts);
-    setFilteredContracts(sortedContracts);
+    applyFilters(filters, viewMode, sortedContracts);
   };
 
   const fetchHotels = async () => {
@@ -103,8 +104,20 @@ export default function GroupContractsList({
     applyFilters(updatedFilters);
   };
 
-  const applyFilters = (updatedFilters: typeof filters) => {
-    let filtered = contracts;
+  const getTodayStr = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  };
+
+  const applyFilters = (updatedFilters: typeof filters, mode = viewMode, contractsSource = contracts) => {
+    const todayStr = getTodayStr();
+    let filtered = contractsSource;
+
+    // Apply upcoming/past filter first
+    filtered = filtered.filter((contract) => {
+      const endDateStr = contract.endDate.slice(0, 10);
+      return mode === "upcoming" ? endDateStr >= todayStr : endDateStr < todayStr;
+    });
 
     if (updatedFilters.groupName) {
       filtered = filtered.filter((contract) =>
@@ -167,6 +180,11 @@ export default function GroupContractsList({
     applyFilters(updatedFilters);
   };
 
+  const handleViewModeChange = (mode: "upcoming" | "past") => {
+    setViewMode(mode);
+    applyFilters(filters, mode);
+  };
+
   return (
     <VStack spacing={8} align="stretch">
       {/* Page Header */}
@@ -184,6 +202,8 @@ export default function GroupContractsList({
         <PaymentDashboard
           contracts={filteredContracts}
           onFilterByStatus={handleFilterByStatus}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
         />
       </Box>
 

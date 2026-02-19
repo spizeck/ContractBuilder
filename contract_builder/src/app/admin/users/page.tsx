@@ -341,11 +341,11 @@ export default function UserManagementPage() {
       // Get default permissions for the role
       const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
 
-      // Now create user document in Firestore (running as admin)
+      // Write the user document as the admin (primary auth is untouched)
       await setDoc(doc(db, 'users', newUserId), {
         uid: newUserId,
         email: createEmail,
-        name: createEmail.split('@')[0], // Default name from email
+        name: createEmail.split('@')[0],
         role: createRole,
         hotelId: createRole === 'hotel-staff' ? createHotelId : null,
         permissions: defaultPermissions,
