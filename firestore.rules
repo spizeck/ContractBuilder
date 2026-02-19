@@ -66,7 +66,7 @@ service cloud.firestore {
     
     function isValidRole(role) {
       return role == 'admin' || role == 'hotel-manager' || role == 'hotel-staff' ||
-             role == 'employee' || role == 'viewer';
+             role == 'employee' || role == 'viewer' || role == 'manager';
     }
     
     function isValidPermissionLevel(level) {

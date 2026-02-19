@@ -50,6 +50,7 @@
     "@types/use-sync-external-store": "^1.5.0",
     "@types/yargs": "^17.0.35",
     "@vitejs/plugin-react": "^5.0.4",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^10",
     "eslint-config-next": "^16.0.7",
     "install": "^0.13.0",

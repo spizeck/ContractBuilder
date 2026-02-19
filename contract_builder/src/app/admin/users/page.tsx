@@ -216,15 +216,8 @@ export default function UserManagementPage() {
     try {
       const userRef = doc(db, 'users', selectedUser.id);
       
-      // Map new role back to Firestore format if needed
-      let firestoreRole: string = editRole;
-      if (editRole === 'hotel-staff' && selectedUser.role === 'manager') {
-        // Keep original "manager" role if it existed
-        firestoreRole = 'manager';
-      }
-      
       const updateData: any = {
-        role: firestoreRole,
+        role: editRole,
         permissions: editPermissions,
       };
       
@@ -242,7 +235,7 @@ export default function UserManagementPage() {
         user.id === selectedUser.id 
           ? { 
               ...user, 
-              role: firestoreRole, 
+              role: editRole, 
               permissions: editPermissions,
               hotelId: (editRole === 'hotel-staff' && editHotelId) ? editHotelId : undefined
             }

@@ -20,7 +20,8 @@ import {
   InputLeftElement,
   Spinner,
   Icon,
-  SimpleGrid
+  SimpleGrid,
+  ButtonGroup
 } from '@chakra-ui/react'
 import { ArrowLeft, FileText, Calendar, Users, Search, Download } from 'lucide-react'
 import Link from 'next/link'
@@ -30,29 +31,35 @@ export default function HotelContractsPage() {
   const [contracts, setContracts] = useState<GroupContract[]>([])
   const [filteredContracts, setFilteredContracts] = useState<GroupContract[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState<'upcoming' | 'past'>('upcoming')
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
     if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadContracts()
     } else if (!loading && !user) {
-      // Redirect to login if not authenticated
       window.location.href = '/login?redirect=/hotel-staff/contracts'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
-      // Redirect to dashboard if wrong role
       window.location.href = '/'
     }
   }, [user, role, loading])
 
   useEffect(() => {
-    // Filter contracts based on search term (archived contracts are excluded at database level)
-    const filtered = contracts.filter(contract =>
+    const today = new Date()
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+    const byViewMode = contracts.filter(contract => {
+      const endDateStr = contract.endDate.slice(0, 10)
+      return viewMode === 'upcoming' ? endDateStr >= todayStr : endDateStr < todayStr
+    })
+
+    const filtered = byViewMode.filter(contract =>
       contract.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.seasonName.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredContracts(filtered)
-  }, [searchTerm, contracts])
+  }, [searchTerm, contracts, viewMode])
 
   const loadContracts = async () => {
     if (!user) return
@@ -175,8 +182,29 @@ export default function HotelContractsPage() {
 
         <Card>
           <CardBody p={4}>
-            <HStack spacing={4}>
-              <InputGroup flex={1}>
+            <VStack spacing={3} align="stretch">
+              <HStack spacing={4}>
+                <ButtonGroup isAttached variant="outline" size="sm">
+                  <Button
+                    isActive={viewMode === 'upcoming'}
+                    onClick={() => setViewMode('upcoming')}
+                    colorScheme={viewMode === 'upcoming' ? 'teal' : 'gray'}
+                  >
+                    Upcoming
+                  </Button>
+                  <Button
+                    isActive={viewMode === 'past'}
+                    onClick={() => setViewMode('past')}
+                    colorScheme={viewMode === 'past' ? 'teal' : 'gray'}
+                  >
+                    Past
+                  </Button>
+                </ButtonGroup>
+                <Text fontSize="sm" color="textSecondary">
+                  Showing {filteredContracts.length} {viewMode} contract{filteredContracts.length !== 1 ? 's' : ''}
+                </Text>
+              </HStack>
+              <InputGroup>
                 <InputLeftElement>
                   <Icon as={Search} h={4} w={4} color="gray.400" />
                 </InputLeftElement>
@@ -187,10 +215,7 @@ export default function HotelContractsPage() {
                   pl={10}
                 />
               </InputGroup>
-              <Text fontSize="sm" color="textSecondary">
-                Showing {filteredContracts.length} of {contracts.length} contracts
-              </Text>
-            </HStack>
+            </VStack>
           </CardBody>
         </Card>
 
@@ -200,12 +225,14 @@ export default function HotelContractsPage() {
               <VStack>
                 <Icon as={FileText} h={12} w={12} color="textMuted" />
                 <Heading size="lg" color="textPrimary" mb={2}>
-                  {searchTerm ? 'No contracts found' : 'No contracts available'}
+                  {searchTerm ? 'No contracts found' : `No ${viewMode} contracts`}
                 </Heading>
                 <Text color="textSecondary">
-                  {searchTerm 
+                  {searchTerm
                     ? 'Try adjusting your search terms'
-                    : 'Contracts will appear here once they are assigned to your hotel'
+                    : viewMode === 'upcoming'
+                      ? 'No upcoming contracts are assigned to your hotel'
+                      : 'No past contracts found for your hotel'
                   }
                 </Text>
               </VStack>
