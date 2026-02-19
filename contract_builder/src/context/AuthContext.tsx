@@ -33,7 +33,9 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
           const userRef = doc(db, 'users', firebaseUser.uid)
           const userSnap = await getDoc(userRef)
           if (userSnap.exists()) {
-            setRole((userSnap.data().role as Role) || 'viewer')
+            const rawRole = userSnap.data().role;
+            const mappedRole: Role = rawRole === 'manager' ? 'hotel-manager' : ((rawRole as Role) || 'viewer');
+            setRole(mappedRole)
           } else {
             // User exists in Firebase Auth but not in Firestore
             // (e.g. Google sign-in edge case) — auto-create viewer doc

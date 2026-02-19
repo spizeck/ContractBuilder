@@ -37,7 +37,7 @@ import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute"
 import { usePermissions } from "@/context/PermissionProvider";
 import { UserRole, PermissionLevel, ModulePermissions, DEFAULT_PERMISSIONS } from "@/types/permissions";
 import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, secondaryAuth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 // Generate a cryptographically secure random string using the browser's crypto API.
@@ -216,15 +216,8 @@ export default function UserManagementPage() {
     try {
       const userRef = doc(db, 'users', selectedUser.id);
       
-      // Map new role back to Firestore format if needed
-      let firestoreRole: string = editRole;
-      if (editRole === 'hotel-staff' && selectedUser.role === 'manager') {
-        // Keep original "manager" role if it existed
-        firestoreRole = 'manager';
-      }
-      
       const updateData: any = {
-        role: firestoreRole,
+        role: editRole,
         permissions: editPermissions,
       };
       
@@ -242,7 +235,7 @@ export default function UserManagementPage() {
         user.id === selectedUser.id 
           ? { 
               ...user, 
-              role: firestoreRole, 
+              role: editRole, 
               permissions: editPermissions,
               hotelId: (editRole === 'hotel-staff' && editHotelId) ? editHotelId : undefined
             }
@@ -331,26 +324,19 @@ export default function UserManagementPage() {
 
     setCreating(true);
     try {
-      // Store current admin user to restore after creation
-      const adminUser = auth.currentUser;
-
       // Generate a temporary password using a cryptographically secure random generator
       const tempPassword = generateSecureRandomString(8) + 'A1!';
 
-      // Create user in Firebase Auth
-      // NOTE: This automatically signs in as the new user
+      // Use secondary auth instance so the admin session on the primary instance is never disturbed
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         createEmail,
         tempPassword
       );
       const newUserId = userCredential.user.uid;
 
-      // Immediately restore admin session BEFORE writing to Firestore
-      // This is critical: Firestore rules require isAdmin() for non-viewer role creation
-      if (adminUser) {
-        await auth.updateCurrentUser(adminUser);
-      }
+      // Sign out of secondary instance immediately
+      await secondaryAuth.signOut();
 
       // Get default permissions for the role
       const defaultPermissions = DEFAULT_PERMISSIONS[createRole] || DEFAULT_PERMISSIONS.employee;
@@ -368,7 +354,14 @@ export default function UserManagementPage() {
       });
 
       // Send password reset email so user can set their own password
-      await sendPasswordResetEmail(auth, createEmail);
+      try {
+        await sendPasswordResetEmail(auth, createEmail);
+        console.log('Password reset email sent to:', createEmail);
+      } catch (emailErr: any) {
+        // User was created successfully — log the email failure but don't block
+        console.error('Failed to send password reset email:', emailErr.code, emailErr.message);
+        setError(`User created but failed to send invite email: ${emailErr.message}. You can resend from Firebase Console.`);
+      }
 
       // Refresh users list
       await loadUsers();
@@ -378,15 +371,7 @@ export default function UserManagementPage() {
       setCreateRole('hotel-staff');
       setCreateHotelId('');
       onCreateClose();
-
-      setError(null);
     } catch (err: any) {
-      // Ensure admin session is restored even on error
-      const adminUser = auth.currentUser;
-      if (adminUser?.email !== auth.currentUser?.email) {
-        try { await auth.updateCurrentUser(adminUser!); } catch {}
-      }
-
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please use a different email.');
       } else if (err.code === 'auth/invalid-email') {

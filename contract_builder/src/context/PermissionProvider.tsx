@@ -47,13 +47,19 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
           // Map legacy roles to new role system
           let mappedRole: UserRole = 'viewer';
           if (userData.role === 'admin') mappedRole = 'admin';
-          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-staff';
+          else if (userData.role === 'manager' || userData.role === 'hotel-manager') mappedRole = 'hotel-manager';
           else if (userData.role === 'hotel-staff') mappedRole = 'hotel-staff';
           else if (userData.role === 'employee') mappedRole = 'employee';
           else if (userData.role === 'viewer') mappedRole = 'viewer';
           
-          // Use actual permissions from Firestore, or fall back to defaults for legacy users
-          const permissions = userData.permissions || DEFAULT_PERMISSIONS[mappedRole];
+          // Merge stored permissions with role defaults so null module values fall back
+          const roleDefaults = DEFAULT_PERMISSIONS[mappedRole];
+          const stored = userData.permissions || {};
+          const permissions: ModulePermissions = {
+            contracts: stored.contracts != null ? stored.contracts : roleDefaults.contracts,
+            diveLog: stored.diveLog != null ? stored.diveLog : roleDefaults.diveLog,
+            maintenance: stored.maintenance != null ? stored.maintenance : roleDefaults.maintenance,
+          };
           
           const finalPermissions = {
             role: mappedRole,

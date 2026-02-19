@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'hotel-staff' | 'employee' | 'viewer'
+export type UserRole = 'admin' | 'hotel-manager' | 'hotel-staff' | 'employee' | 'viewer'
 
 export type PermissionLevel = 'view' | 'create' | 'edit' | null
 
@@ -29,9 +29,10 @@ export const PERMISSION_LEVELS = {
 
 export const ROLE_HIERARCHY = {
   admin: 4,
-  'hotel-staff': 3,
-  employee: 2,
-  viewer: 1,
+  'hotel-manager': 3,
+  'hotel-staff': 2,
+  employee: 1,
+  viewer: 0,
 } as const
 
 export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
@@ -40,6 +41,11 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
     diveLog: 'edit',
     maintenance: 'edit',
   },
+  'hotel-manager': {
+    contracts: 'edit',
+    diveLog: 'view',
+    maintenance: 'view',
+  },
   'hotel-staff': {
     contracts: 'view',
     diveLog: 'view',
@@ -47,8 +53,8 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, ModulePermissions> = {
   },
   employee: {
     contracts: null,
-    diveLog: null,
-    maintenance: null,
+    diveLog: 'create',
+    maintenance: 'view',
   },
   viewer: {
     contracts: null,
