@@ -16,6 +16,10 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+// Secondary app instance used only for creating new users without disturbing the admin session
+const secondaryApp = getApps().find(a => a.name === 'secondary') ?? initializeApp(firebaseConfig, 'secondary');
+export const secondaryAuth = getAuth(secondaryApp);
+
 export const db = getFirestore(app);
 
 export const auth = getAuth(app);
