@@ -12,7 +12,8 @@
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
       "Bash(where:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

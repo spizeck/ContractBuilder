@@ -13,6 +13,7 @@ import { parseDateStringAsUTC } from "@/utils/dateUtils";
 import { Season } from "@/types/contractTypes";
 import { ensureRatesForSeason } from "@/services/rateSync";
 import CustomDatePicker from "@/components/DatePicker";
+import { toInputDate, parseDateOnly } from "@/utils/formatters";
 
 export default function AddEditSeasonForm({
   hotelId,
@@ -95,11 +96,11 @@ export default function AddEditSeasonForm({
           <FormControl isRequired>
             <FormLabel>Start Date</FormLabel>
             <CustomDatePicker
-              selected={seasonData.startDate ? new Date(seasonData.startDate) : null}
-              onChange={(date) => {
+              selected={seasonData.startDate ? parseDateOnly(seasonData.startDate) : null}
+              onChange={(date: Date | null) => {
                 setSeasonData({
                   ...seasonData,
-                  startDate: date ? date.toISOString().split('T')[0] : '',
+                  startDate: date ? toInputDate(date) : '',
                 });
               }}
               placeholder="Select start date"
@@ -108,11 +109,11 @@ export default function AddEditSeasonForm({
           <FormControl isRequired>
             <FormLabel>End Date</FormLabel>
             <CustomDatePicker
-              selected={seasonData.endDate ? new Date(seasonData.endDate) : null}
-              onChange={(date) => {
+              selected={seasonData.endDate ? parseDateOnly(seasonData.endDate) : null}
+              onChange={(date: Date | null) => {
                 setSeasonData({
                   ...seasonData,
-                  endDate: date ? date.toISOString().split('T')[0] : '',
+                  endDate: date ? toInputDate(date) : '',
                 });
               }}
               placeholder="Select end date"

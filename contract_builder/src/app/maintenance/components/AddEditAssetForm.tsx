@@ -366,7 +366,7 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
                   <FormLabel>Next Service Due (date)</FormLabel>
                   <CustomDatePicker
                     selected={form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : null}
-                    onChange={(date) => {
+                    onChange={(date: Date | null) => {
                       setForm({
                         ...form,
                         nextServiceDueDate: date || undefined,
@@ -383,7 +383,7 @@ export default function AddEditAssetForm({ asset, onClose }: Props) {
               <FormLabel>Last Service Date</FormLabel>
               <CustomDatePicker
                 selected={form.lastServiceDate ? new Date(form.lastServiceDate) : null}
-                onChange={(date) => {
+                onChange={(date: Date | null) => {
                   setForm({
                     ...form,
                     lastServiceDate: date || undefined,

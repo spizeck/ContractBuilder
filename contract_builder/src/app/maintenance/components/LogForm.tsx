@@ -12,7 +12,7 @@ import { getTechnicians } from "@/services/technicians"
 import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
 import { MaintenanceLogForm } from '@/types/formTypes'
 import { useAuth } from '@/context/AuthContext'
-import { toInputDate } from '@/utils/formatters'
+import { toInputDate, parseDateOnly } from '@/utils/formatters'
 import CustomDatePicker from '@/components/DatePicker'
 
 export default function LogForm({ id }: { id?: string }) {
@@ -301,10 +301,10 @@ export default function LogForm({ id }: { id?: string }) {
           <FormControl>
             <FormLabel>Date</FormLabel>
             <CustomDatePicker
-              selected={form.date ? new Date(form.date) : null}
-              onChange={(date) => {
-                setForm({ 
-                  ...form, 
+              selected={form.date ? parseDateOnly(form.date) : null}
+              onChange={(date: Date | null) => {
+                setForm({
+                  ...form,
                   date: date ? toInputDate(date) : ''
                 });
               }}
@@ -387,10 +387,10 @@ export default function LogForm({ id }: { id?: string }) {
                   <FormControl>
                     <FormLabel>Next Service Due Date</FormLabel>
                     <CustomDatePicker
-                      selected={form.nextServiceDueDate ? new Date(form.nextServiceDueDate) : null}
-                      onChange={(date) => {
-                        setForm({ 
-                          ...form, 
+                      selected={form.nextServiceDueDate ? parseDateOnly(form.nextServiceDueDate) : null}
+                      onChange={(date: Date | null) => {
+                        setForm({
+                          ...form,
                           nextServiceDueDate: date ? toInputDate(date) : ''
                         });
                       }}

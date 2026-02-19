@@ -82,7 +82,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
           <HStack spacing={2}>
             <CustomDatePicker
               selected={props.range.start}
-              onChange={(date) =>
+              onChange={(date: Date | null) =>
                 props.onRange({
                   start: date,
                   end: props.range.end,
@@ -93,7 +93,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
             />
             <CustomDatePicker
               selected={props.range.end}
-              onChange={(date) =>
+              onChange={(date: Date | null) =>
                 props.onRange({
                   start: props.range.start,
                   end: date,

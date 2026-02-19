@@ -24,7 +24,7 @@ import { GroupContract, Hotel } from "@/types/contractTypes";
 import PaymentStatusBadge from "./PaymentStatusBadge";
 import { parseDate } from "@/utils/dateHelpers";
 import PaymentDashboard from "./PaymentDashboard";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, toInputDate, parseDateOnly } from "@/utils/formatters";
 import CustomDatePicker from "@/components/DatePicker";
 
 export default function GroupContractsList({
@@ -232,12 +232,12 @@ export default function GroupContractsList({
                 ))}
               </Select>
               <CustomDatePicker
-                selected={filters.startDate ? new Date(filters.startDate) : null}
-                onChange={(date) => {
+                selected={filters.startDate ? parseDateOnly(filters.startDate) : null}
+                onChange={(date: Date | null) => {
                   handleFilterChange({
                     target: {
                       name: 'startDate' as const,
-                      value: date ? date.toISOString().split('T')[0] : ''
+                      value: date ? toInputDate(date) : ''
                     }
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
