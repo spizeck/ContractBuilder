@@ -13,7 +13,8 @@
       "Bash(gh pr create:*)",
       "Bash(where:*)",
       "Bash(git commit:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(dir /s \"C:\\\\Users\\\\chadn\\\\CodingProjects\\\\ContractBuilder\")"
     ]
   }
 }

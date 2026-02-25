@@ -79,6 +79,9 @@ export interface Totals {
 
 export interface GroupContract {
   id: string;
+  revisionOfContractId?: string;
+  rootContractId?: string;
+  revisionNumber?: number;
   groupName: string;
   startDate: string;
   endDate: string;

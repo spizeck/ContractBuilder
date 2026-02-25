@@ -14,6 +14,10 @@ import {
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from '@/lib/firebase'
 import { Payment, ContractNote } from '@/types/contractTypes'
+import {
+  cloneNoteForRevision,
+  clonePaymentForRevision
+} from '@/utils/contractRevisions'
 
 // Payment CRUD operations
 export async function addPayment(
@@ -216,6 +220,43 @@ export async function deleteContractNote(contractId: string, noteId: string): Pr
   } catch (error) {
     console.error('Error deleting contract note:', error)
     throw new Error('Failed to delete contract note')
+  }
+}
+
+export async function cloneContractDataForRevision(
+  previousContractId: string,
+  newContractId: string
+): Promise<void> {
+  try {
+    const [paymentsSnapshot, notesSnapshot] = await Promise.all([
+      getDocs(
+        query(
+          collection(db, 'payments'),
+          where('contractId', '==', previousContractId)
+        )
+      ),
+      getDocs(collection(db, 'groupContracts', previousContractId, 'notes'))
+    ])
+
+    const paymentClonePromises = paymentsSnapshot.docs.map(paymentDoc => {
+      const paymentData = clonePaymentForRevision(
+        paymentDoc.data(),
+        newContractId,
+        previousContractId
+      )
+      return addDoc(collection(db, 'payments'), paymentData)
+    })
+
+    const noteClonePromises = notesSnapshot.docs.map(noteDoc => {
+      const noteData = cloneNoteForRevision(noteDoc.data())
+      return addDoc(collection(db, 'groupContracts', newContractId, 'notes'), noteData)
+    })
+
+    await Promise.all([...paymentClonePromises, ...noteClonePromises])
+    await updateContractPaymentSummary(newContractId)
+  } catch (error) {
+    console.error('Error cloning contract data for revision:', error)
+    throw new Error('Failed to clone contract data for revision')
   }
 }
 

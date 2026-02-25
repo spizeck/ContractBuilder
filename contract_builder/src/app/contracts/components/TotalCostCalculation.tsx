@@ -31,7 +31,9 @@ import {
   addGroupContract,
   archiveGroupContract,
   formatBookingType,
+  getGroupContractById,
 } from "@/services/groupContracts";
+import { cloneContractDataForRevision } from "@/services/payments";
 import {
   calculateNumberOfNights,
   calculateTotalCost,
@@ -344,8 +346,15 @@ export default function TotalCostCalculation({
 
   const handleConfirm = async () => {
     try {
+      let revisionOfContractId: string | undefined;
+      let rootContractId: string | undefined;
+      let revisionNumber: number | undefined;
+
       if (contractData.id) {
-        await archiveGroupContract(contractData.id);
+        const previousContract = await getGroupContractById(contractData.id);
+        revisionOfContractId = contractData.id;
+        rootContractId = previousContract?.rootContractId || contractData.id;
+        revisionNumber = (previousContract?.revisionNumber || 0) + 1;
       }
 
       // Clean customRates data
@@ -374,6 +383,9 @@ export default function TotalCostCalculation({
 
       const groupContract: Omit<GroupContract, "id"> = {
         archived: false,
+        ...(revisionOfContractId && { revisionOfContractId }),
+        ...(rootContractId && { rootContractId }),
+        ...(revisionNumber !== undefined && { revisionNumber }),
         groupName: contractData.groupName!,
         startDate: contractData.startDate!,
         endDate: contractData.endDate!,
@@ -419,7 +431,13 @@ export default function TotalCostCalculation({
         mealAddons: contractData.mealAddons || [],
       };
 
-      await addGroupContract(groupContract);
+      const newContractId = await addGroupContract(groupContract);
+
+      if (contractData.id) {
+        await cloneContractDataForRevision(contractData.id, newContractId);
+        await archiveGroupContract(contractData.id);
+      }
+
       alert("Contract saved successfully!");
       onConfirm();
     } catch (error) {

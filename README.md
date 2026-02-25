@@ -313,10 +313,68 @@ For debugging permission issues, check browser console for detailed permission c
 - Custom analytics for user behavior tracking
 
 ### **Data Security**
-- Role-based access control
+- Role-based access control via Firestore Security Rules
 - Encrypted data transmission
 - Regular security audits
 - Backup and recovery procedures
+
+---
+
+## Firestore Security Rules
+
+The application enforces security at the database level through Firestore Security Rules (`firestore.rules`). These rules mirror the client-side permission system to ensure data cannot be accessed or modified outside of the application's intended access patterns.
+
+### Helper Functions
+
+| Function | Purpose |
+|---|---|
+| `isSignedIn()` | Requires Firebase Authentication |
+| `isActive()` | Signed in AND not archived (`archived != true`) |
+| `isAdmin()` | Active user with `role == 'admin'` |
+| `isHotelStaff()` | Active user with `hotel-staff`, `manager`, or `hotel-manager` role |
+| `hasPermission(module, level)` | Checks the user's `permissions` map against the required module and level. Admins bypass all checks. Uses the same hierarchy as the client: `edit (3) > create (2) > view (1)` |
+
+### Collection Rules Summary
+
+| Collection | Read | Create | Update | Delete |
+|---|---|---|---|---|
+| `users` | Own doc or admin | Admin only | Own profile (name/prefs) or admin | Never (use archiving) |
+| `hotels` | Any active user | Admin only | Admin or assigned hotel-staff | Admin only |
+| `roomCategories` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `roomTypes` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `seasons` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `rates` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `divePackages` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `mealPackages` | Any active user | Admin or contracts:edit | Admin or contracts:edit | Admin or contracts:edit |
+| `groupContracts` | contracts:view | contracts:create | contracts:edit | Admin only |
+| `groupContracts/{id}/notes` | contracts:view | contracts:create | N/A | Admin or contracts:edit |
+| `payments` | contracts:view | contracts:create | contracts:edit | Admin or contracts:edit |
+| `dives` | diveLog:view | diveLog:create | diveLog:edit | Admin or diveLog:edit |
+| `boats` | diveLog:view | Admin only | Admin only | Admin only |
+| `guides` | diveLog:view | Admin only | Admin only | Admin only |
+| `sites` | diveLog:view | Admin only | Admin only | Admin only |
+| `species` | diveLog:view | Admin only | Admin only | Admin only |
+| `assets` | maintenance:view | maintenance:create | maintenance:edit | Admin or maintenance:edit |
+| `maintenanceLogs` | maintenance:view | maintenance:create | maintenance:edit | Admin or maintenance:edit |
+| `technicians` | maintenance:view | Admin or maintenance:edit | Admin or maintenance:edit | Admin or maintenance:edit |
+
+### Key Design Decisions
+
+- **Archived users are fully blocked**: The `isActive()` check gates every rule, so archived users have zero access regardless of their stored permissions.
+- **No document deletion for users**: User documents are never deleted; the archiving pattern preserves data integrity and audit trails.
+- **Hotel-staff scoping on hotels**: Hotel staff can only update their own assigned hotel (`getUserData().hotelId == hotelId`).
+- **Reference data is admin-only for writes**: Boats, guides, sites, and species are lookup tables managed exclusively by admins.
+- **Config collections are broadly readable**: Hotels, room types, seasons, rates, and packages are readable by any active user since they're needed for contract creation workflows.
+- **Default deny**: A catch-all rule at the bottom denies access to any collection not explicitly listed.
+- **Legacy role support**: The `isHotelStaff()` function accepts `manager` and `hotel-manager` roles for backward compatibility.
+
+### Deploying Rules
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+After deploying, verify in the Firebase Console under **Firestore > Rules** that the rules are active. Monitor the **Rules Playground** or **Usage** tab for any denied requests that may indicate a misconfiguration.
 
 ### **Performance Optimization**
 - Lazy loading for large datasets
