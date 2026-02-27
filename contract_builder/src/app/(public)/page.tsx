@@ -39,7 +39,7 @@ export default function Home() {
     if (!loading && user) {
       // Redirect hotel users to their dashboard
       if (role === "hotel-staff" || role === "hotel-manager") {
-        router.push("/hotel-staff");
+        router.push("/app/contracts/hotel-staff");
       }
     }
   }, [user, role, loading, router]);
@@ -101,7 +101,7 @@ export default function Home() {
               </VStack>
               <Button
                 as={NextLink}
-                href="/dives/log"
+                href="/app/dive-log/dives/log"
                 colorScheme="teal"
                 variant="solid"
                 w="full"
@@ -133,7 +133,7 @@ export default function Home() {
               </VStack>
               <Button
                 as={NextLink}
-                href="/contracts"
+                href="/app/contracts"
                 colorScheme="blue"
                 variant="solid"
                 w="full"
@@ -165,7 +165,7 @@ export default function Home() {
               </VStack>
               <Button
                 as={NextLink}
-                href="/dives/dashboard"
+                href="/app/dive-log/dives/dashboard"
                 colorScheme="purple"
                 variant="solid"
                 w="full"
@@ -197,7 +197,7 @@ export default function Home() {
               </VStack>
               <Button
                 as={NextLink}
-                href="/maintenance/dashboard"
+                href="/app/maintenance/dashboard"
                 colorScheme="orange"
                 variant="solid"
                 w="full"
@@ -229,7 +229,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/dives/log"
+                  href="/app/dive-log/dives/log"
                   color="teal.500"
                   fontWeight="bold"
                 >
@@ -247,7 +247,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/dives/view"
+                  href="/app/dive-log/dives/view"
                   color="teal.500"
                   fontWeight="bold"
                 >
@@ -258,7 +258,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/dives/dashboard"
+                  href="/app/dive-log/dives/dashboard"
                   color="teal.500"
                   fontWeight="bold"
                 >
@@ -281,7 +281,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/contracts"
+                  href="/app/contracts"
                   color="blue.500"
                   fontWeight="bold"
                 >
@@ -292,7 +292,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/hotels"
+                  href="/app/contracts/hotels"
                   color="blue.500"
                   fontWeight="bold"
                 >
@@ -303,7 +303,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/dive-packages"
+                  href="/app/contracts/dive-packages"
                   color="blue.500"
                   fontWeight="bold"
                 >
@@ -318,7 +318,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/hotel-staff"
+                  href="/app/contracts/hotel-staff"
                   color="blue.500"
                   fontWeight="bold"
                 >
@@ -341,7 +341,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/maintenance/dashboard"
+                  href="/app/maintenance/dashboard"
                   color="orange.500"
                   fontWeight="bold"
                 >
@@ -352,7 +352,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/maintenance/logs"
+                  href="/app/maintenance/logs"
                   color="orange.500"
                   fontWeight="bold"
                 >
@@ -363,7 +363,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/maintenance/assets"
+                  href="/app/maintenance/assets"
                   color="orange.500"
                   fontWeight="bold"
                 >
@@ -374,7 +374,7 @@ export default function Home() {
               <ListItem>
                 <Link
                   as={NextLink}
-                  href="/maintenance/technicians"
+                  href="/app/maintenance/technicians"
                   color="orange.500"
                   fontWeight="bold"
                 >
