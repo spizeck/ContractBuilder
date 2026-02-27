@@ -139,3 +139,31 @@ export interface MaintenanceLog {
 // (kept here; dashboard.ts re-exports these for backward compat)
 
 export type StatusColor = "red" | "orange" | "green" | "gray";
+
+export type DashboardFilter = {
+  searchTerm: string;
+  categoryId: AssetCategory | "All";
+  technicianId: string | "All";
+  dateRange: {
+    from: Date | null;
+    to: Date | null;
+  };
+  cardFilter: null | "LOGS_THIS_MONTH" | "OVERDUE_SERVICES" | "UPCOMING_SERVICES";
+};
+
+export interface TechnicianActivity {
+  technician: Technician;
+  count: number;
+  logs: MaintenanceLog[];
+}
+
+export interface DashboardFilterResult {
+  filteredAssets: Asset[];
+  filteredTechnicianActivities: TechnicianActivity[];
+  stats: {
+    totalAssets: number;
+    logsThisMonth: number;
+    overdueServices: number;
+    upcomingServices: number;
+  };
+}
