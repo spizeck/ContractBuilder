@@ -1,10 +1,5 @@
-import LogForm from "../../components/LogForm";
+import { redirect } from 'next/navigation'
 
-export default async function EditLogPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  return <LogForm id={id} />;
+export default function MaintenanceLogRedirect({ params }: { params: { id: string } }) {
+  redirect(`/app/maintenance/logs/${params.id}`)
 }

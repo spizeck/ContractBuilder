@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import LogForm from "../../components/LogForm";
+import { redirect } from 'next/navigation'
 
-export default function NewLogPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LogForm />
-    </Suspense>
-  );
+export default function MaintenanceLogsNewRedirect() {
+  redirect('/app/maintenance/logs/new')
 }
