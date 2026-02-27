@@ -94,12 +94,12 @@ export default function LogsModal({
   const goToAddLog = () => {
     if (!asset?.id) return;
     onClose();
-    router.push(`/maintenance/logs/new?assetId=${asset.id}`);
+    router.push(`/app/maintenance/logs/new?assetId=${asset.id}`);
   };
 
   const goToEditLog = (log: MaintenanceLog) => {
     onClose();
-    router.push(`/maintenance/logs/${log.id}`);
+    router.push(`/app/maintenance/logs/${log.id}`);
   };
 
   const handleDeleteLog = async (log: MaintenanceLog) => {

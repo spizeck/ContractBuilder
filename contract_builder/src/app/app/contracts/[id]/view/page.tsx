@@ -57,7 +57,7 @@ export default function ViewContractPage () {
 
   const handleEditContract = () => {
     // Navigate to the contracts page with edit mode using URL parameter id
-    router.push(`/contracts?edit=${id}`)
+    router.push(`/app/contracts?edit=${id}`)
   }
 
   const handleUploadSuccess = (url: string) => {

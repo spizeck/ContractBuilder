@@ -145,7 +145,7 @@ export default function HotelDetailsPage() {
         {/* Header */}
         <Box>
           <HStack mb={4}>
-            <Link href="/hotel-staff">
+            <Link href="/app/contracts/hotel-staff">
               <Button variant="ghost" mr={4}>
                 <Icon as={ArrowLeft} h={4} w={4} mr={2} />
                 Back to Dashboard
@@ -307,7 +307,7 @@ export default function HotelDetailsPage() {
                         <Icon as={Save} h={4} w={4} mr={2} />
                         Save Changes
                       </Button>
-                      <Link href="/hotel-staff">
+                      <Link href="/app/contracts/hotel-staff">
                         <Button w="full" variant="outline">Cancel</Button>
                       </Link>
                     </VStack>

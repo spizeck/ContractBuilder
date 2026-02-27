@@ -158,7 +158,7 @@ export default function HotelContractsPage() {
         <Box>
           <HStack justify="space-between" mb={4}>
             <HStack>
-              <Link href="/hotel-staff">
+              <Link href="/app/contracts/hotel-staff">
                 <Button variant="ghost" mr={4}>
                   <Icon as={ArrowLeft} h={4} w={4} mr={2} />
                   Back to Dashboard

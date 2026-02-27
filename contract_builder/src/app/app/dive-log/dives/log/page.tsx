@@ -66,7 +66,7 @@ export default function LogDivePage() {
     <DiveForm
       key={formKey} // This forces form reset when key changes
       onSave={handleSave}
-      onCancel={() => router.push("/dives/dashboard")}
+      onCancel={() => router.push("/app/dive-log/dives/dashboard")}
       isSaving={isSaving}
     />
     </ProtectedRoute>

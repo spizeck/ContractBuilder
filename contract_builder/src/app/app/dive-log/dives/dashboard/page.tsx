@@ -100,13 +100,13 @@ export default function DiveDashboardPage() {
               <HStack spacing={3}>
                 <Button
                   colorScheme="green"
-                  onClick={() => router.push("/dives/view")}
+                  onClick={() => router.push("/app/dive-log/dives/view")}
                 >
                   View Dives
                 </Button>
                 <Button
                   colorScheme="blue"
-                  onClick={() => router.push("/dives/log")}
+                  onClick={() => router.push("/app/dive-log/dives/log")}
                 >
                   Log Dive
                 </Button>

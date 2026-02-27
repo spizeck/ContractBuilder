@@ -28,30 +28,30 @@ export default function NavLinks() {
   // All the links (to reuse for desktop + mobile)
   const diveLogLinks = (
     <>
-      <MenuItem as={NextLink} href="/dives/dashboard">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/dives/log">Log a Dive</MenuItem>
-      <MenuItem as={NextLink} href="/dives/view">View Dives</MenuItem>
-      <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
-      <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
-      <MenuItem as={NextLink} href="/admin/boats">Manage Boats</MenuItem>
-      <MenuItem as={NextLink} href="/admin/species">Manage Species</MenuItem>
+      <MenuItem as={NextLink} href="/app/dive-log/dives/dashboard">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/app/dive-log/dives/log">Log a Dive</MenuItem>
+      <MenuItem as={NextLink} href="/app/dive-log/dives/view">View Dives</MenuItem>
+      <MenuItem as={NextLink} href="/app/admin/guides">Manage Guides</MenuItem>
+      <MenuItem as={NextLink} href="/app/admin/sites">Manage Sites</MenuItem>
+      <MenuItem as={NextLink} href="/app/admin/boats">Manage Boats</MenuItem>
+      <MenuItem as={NextLink} href="/app/admin/species">Manage Species</MenuItem>
     </>
   )
 
   const maintenanceLinks = (
     <>
-      <MenuItem as={NextLink} href="/maintenance/dashboard">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/technicians">Manage Technicians</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
+      <MenuItem as={NextLink} href="/app/maintenance/dashboard">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/app/maintenance/logs">Maintenance Logs</MenuItem>
+      <MenuItem as={NextLink} href="/app/maintenance/technicians">Manage Technicians</MenuItem>
+      <MenuItem as={NextLink} href="/app/maintenance/assets">Manage Assets</MenuItem>
     </>
   )
 
   const contractLinks = (
     <>
-      <MenuItem as={NextLink} href="/contracts">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/hotels">Manage Hotels</MenuItem>
-      <MenuItem as={NextLink} href="/dive-packages">Manage Dive Packages</MenuItem>
+      <MenuItem as={NextLink} href="/app/contracts">Dashboard</MenuItem>
+      <MenuItem as={NextLink} href="/app/contracts/hotels">Manage Hotels</MenuItem>
+      <MenuItem as={NextLink} href="/app/contracts/dive-packages">Manage Dive Packages</MenuItem>
     </>
   )
 
@@ -59,7 +59,7 @@ export default function NavLinks() {
     <>
       <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
       {role === 'admin' && (
-        <MenuItem as={NextLink} href="/admin/users">Manage Users</MenuItem>
+        <MenuItem as={NextLink} href="/app/admin/users">Manage Users</MenuItem>
       )}
     </>
   )

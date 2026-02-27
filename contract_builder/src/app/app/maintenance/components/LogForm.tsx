@@ -186,7 +186,7 @@ export default function LogForm({ id }: { id?: string }) {
       }
 
       toast({ title: "Saved", status: "success" })
-      router.push("/maintenance/dashboard")
+      router.push("/app/maintenance/dashboard")
     } catch (err) {
       console.error(err)
       toast({ title: "Save failed", status: "error" })
@@ -416,7 +416,7 @@ export default function LogForm({ id }: { id?: string }) {
         </VStack>
 
         <HStack mt={6} justify="space-between">
-          <Button variant="outline" onClick={() => router.push("/maintenance/dashboard")}>
+          <Button variant="outline" onClick={() => router.push("/app/maintenance/dashboard")}>
             Cancel
           </Button>
           <Button colorScheme="blue" type="submit" isLoading={loading}>
