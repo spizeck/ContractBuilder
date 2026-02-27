@@ -1,10 +1,5 @@
-import HotelsPageContent from './components/HotelPageContent'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import { redirect } from 'next/navigation'
 
-export default function HotelsPage () {
-  return (
-    <ProtectedPage allowedRoles={['admin', 'hotel-manager']}>
-      <HotelsPageContent />
-    </ProtectedPage>
-  )
+export default function HotelsRedirect() {
+  redirect('/app/contracts/hotels')
 }
