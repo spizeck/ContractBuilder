@@ -43,6 +43,7 @@ export default function DiveForm ({
   const [diveSiteId, setDiveSiteId] = useState('')
   const [maxDepth, setMaxDepth] = useState(0)
   const [waterTemperature, setWaterTemperature] = useState(0)
+  const [isDrift, setIsDrift] = useState(false)
   const [sightings, setSightings] = useState<Sighting[]>([])
   const [step, setStep] = useState(0)
 
@@ -76,6 +77,7 @@ export default function DiveForm ({
       setDiveSiteId(initialDive.diveSiteId)
       setMaxDepth(initialDive.maxDepth)
       setWaterTemperature(initialDive.waterTemperature)
+      setIsDrift(initialDive.isDrift || false)
       setSightings(initialDive.sightings || [])
     } else {
       setDate(new Date().toISOString().split('T')[0])
@@ -133,6 +135,7 @@ export default function DiveForm ({
         diveSiteId,
         maxDepth,
         waterTemperature,
+        isDrift,
         createdBy: user.uid,
         sightings
       });
@@ -171,6 +174,7 @@ export default function DiveForm ({
             diveSiteId,
             maxDepth,
             waterTemperature,
+            isDrift,
             boats,
             sites,
             guides,
@@ -186,6 +190,7 @@ export default function DiveForm ({
               setBoatId,
               setDiveGuide,
               setDiveSiteId,
+              setIsDrift,
               handleDepthChange,
               handleTempChange
             }
@@ -211,6 +216,7 @@ export default function DiveForm ({
           diveGuide={diveGuide}
           boatId={boatId}
           diveSiteId={diveSiteId}
+          isDrift={isDrift}
           displayDepth={displayDepth}
           displayTemp={displayTemp}
           prefs={prefs}
