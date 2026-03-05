@@ -87,7 +87,7 @@ export default function DiveDashboardPage() {
         <VStack spacing={6} align="stretch">
           {/* Header */}
           <Box>
-            <HStack justify="space-between" align="start" mb={4}>
+            <VStack spacing={4} align="stretch" mb={4}>
               <Box>
                 <Heading size="lg" mb={2}>
                   Dive Log Dashboard
@@ -97,21 +97,21 @@ export default function DiveDashboardPage() {
                   patterns
                 </Text>
               </Box>
-              <HStack spacing={3}>
+              <HStack spacing={3} justify={{ base: "stretch", md: "flex-end" }} flexDirection={{ base: "column", md: "row" }} align="stretch">
                 <Button
                   colorScheme="green"
-                  onClick={() => router.push("/dives/view")}
+                  onClick={() => router.push("/dive-log/dives/view")}
                 >
                   View Dives
                 </Button>
                 <Button
                   colorScheme="blue"
-                  onClick={() => router.push("/dives/log")}
+                  onClick={() => router.push("/dive-log/dives/log")}
                 >
                   Log Dive
                 </Button>
               </HStack>
-            </HStack>
+            </VStack>
           </Box>
 
           {/* Summary Statistics */}
