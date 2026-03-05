@@ -2,7 +2,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react'
-import { onAuthStateChanged, type User } from 'firebase/auth'
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@core/db/firebase'
 
@@ -12,12 +12,19 @@ interface AuthContextType {
   user: User | null
   role: Role
   loading: boolean
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   role: 'viewer', // Default role
-  loading: true
+  loading: true,
+  logout: async () => {
+    throw new Error(
+      'AuthContext.logout called outside of AuthProvider. ' +
+        'Ensure your component tree is wrapped in <AuthProvider>.'
+    )
+  }
 })
 
 export function AuthProvider ({ children }: { children: React.ReactNode }) {
@@ -61,8 +68,17 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
     return () => unsubscribe()
   }, [])
 
+  const logout = async () => {
+    try {
+      await signOut(auth)
+    } catch (error) {
+      console.error('Error signing out:', error)
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, role, loading }}>
+    <AuthContext.Provider value={{ user, role, loading, logout }}>
       {children}
     </AuthContext.Provider>
   )
