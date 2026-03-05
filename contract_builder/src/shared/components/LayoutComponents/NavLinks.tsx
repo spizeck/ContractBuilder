@@ -28,38 +28,38 @@ export default function NavLinks() {
   // All the links (to reuse for desktop + mobile)
   const diveLogLinks = (
     <>
-      <MenuItem as={NextLink} href="/dive-log/dives/dashboard">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/dive-log/dives/log">Log a Dive</MenuItem>
-      <MenuItem as={NextLink} href="/dive-log/dives/view">View Dives</MenuItem>
-      <MenuItem as={NextLink} href="/admin/guides">Manage Guides</MenuItem>
-      <MenuItem as={NextLink} href="/admin/sites">Manage Sites</MenuItem>
-      <MenuItem as={NextLink} href="/admin/boats">Manage Boats</MenuItem>
-      <MenuItem as={NextLink} href="/admin/species">Manage Species</MenuItem>
+      <MenuItem><NextLink href="/dive-log/dives/dashboard">Dashboard</NextLink></MenuItem>
+      <MenuItem><NextLink href="/dive-log/dives/log">Log a Dive</NextLink></MenuItem>
+      <MenuItem><NextLink href="/dive-log/dives/view">View Dives</NextLink></MenuItem>
+      <MenuItem><NextLink href="/admin/guides">Manage Guides</NextLink></MenuItem>
+      <MenuItem><NextLink href="/admin/sites">Manage Sites</NextLink></MenuItem>
+      <MenuItem><NextLink href="/admin/boats">Manage Boats</NextLink></MenuItem>
+      <MenuItem><NextLink href="/admin/species">Manage Species</NextLink></MenuItem>
     </>
   )
 
   const maintenanceLinks = (
     <>
-      <MenuItem as={NextLink} href="/maintenance/dashboard">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/logs">Maintenance Logs</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/technicians">Manage Technicians</MenuItem>
-      <MenuItem as={NextLink} href="/maintenance/assets">Manage Assets</MenuItem>
+      <MenuItem><NextLink href="/maintenance/dashboard">Dashboard</NextLink></MenuItem>
+      <MenuItem><NextLink href="/maintenance/logs">Maintenance Logs</NextLink></MenuItem>
+      <MenuItem><NextLink href="/maintenance/technicians">Manage Technicians</NextLink></MenuItem>
+      <MenuItem><NextLink href="/maintenance/assets">Manage Assets</NextLink></MenuItem>
     </>
   )
 
   const contractLinks = (
     <>
-      <MenuItem as={NextLink} href="/contracts">Dashboard</MenuItem>
-      <MenuItem as={NextLink} href="/contracts/hotels">Manage Hotels</MenuItem>
-      <MenuItem as={NextLink} href="/contracts/dive-packages">Manage Dive Packages</MenuItem>
+      <MenuItem><NextLink href="/contracts">Dashboard</NextLink></MenuItem>
+      <MenuItem><NextLink href="/contracts/hotels">Manage Hotels</NextLink></MenuItem>
+      <MenuItem><NextLink href="/contracts/dive-packages">Manage Dive Packages</NextLink></MenuItem>
     </>
   )
 
   const userLinks = (
     <>
-      <MenuItem as={NextLink} href="/profile">Profile</MenuItem>
+      <MenuItem><NextLink href="/profile">Profile</NextLink></MenuItem>
       {role === 'admin' && (
-        <MenuItem as={NextLink} href="/admin/users">Manage Users</MenuItem>
+        <MenuItem><NextLink href="/admin/users">Manage Users</NextLink></MenuItem>
       )}
     </>
   )
@@ -148,7 +148,7 @@ export default function NavLinks() {
             border="none"
           />
           <MenuList color="teal" p={0}>
-            <MenuItem as={NextLink} href="/">Home</MenuItem>
+            <MenuItem><NextLink href="/">Home</NextLink></MenuItem>
 
             {loading ? (
               <Box>...</Box>
