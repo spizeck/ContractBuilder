@@ -4,9 +4,9 @@ import {useEffect, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import {Spinner} from "@chakra-ui/react";
 import DiveForm from "../../components/diveForm/DiveForm";
-import {deleteDive, getDive, updateDive} from "@/services/dives";
-import {Dive} from "@/types/diveLogTypes";
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import {deleteDive, getDive, updateDive} from "@/app/app/dive-log/_lib/divesRepo";
+import {Dive} from "@/app/app/dive-log/_types";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 
 export default function EditDivePage() {
   const {id} = useParams<{ id: string }>();

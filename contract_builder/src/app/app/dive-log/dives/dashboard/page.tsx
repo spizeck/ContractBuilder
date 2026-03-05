@@ -12,10 +12,10 @@ import {
   useBreakpointValue,
   Button,
 } from "@chakra-ui/react";
-import { getDiveDashboardData } from "@/services/diveDashboard";
-import type { DiveDashboardData } from "@/types/dashboard";
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
-import { usePermissions } from "@/context/PermissionProvider";
+import { getDiveDashboardData } from "@/app/app/dive-log/_lib/diveDashboardRepo";
+import type { DiveDashboardData } from "@/app/app/dive-log/_types";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
+import { usePermissions } from "@core/permissions/PermissionProvider";
 import SummaryCards from "@/app/app/dive-log/dives/dashboard/components/SummaryCards";
 import SiteMatrix from "@/app/app/dive-log/dives/dashboard/components/SiteMatrix";
 import TemperatureChart from "@/app/app/dive-log/dives/dashboard/components/TemperatureChart";

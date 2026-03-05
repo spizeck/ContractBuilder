@@ -17,12 +17,12 @@ import {
   Alert,
   AlertIcon,
 } from '@chakra-ui/react'
-import { useAuth } from '@/context/AuthContext'
-import { auth, db, googleProvider } from '@/lib/firebase'
+import { useAuth } from '@core/auth/AuthContext'
+import { auth, db, googleProvider } from '@core/db/firebase'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { sendPasswordResetEmail, linkWithPopup, unlink } from 'firebase/auth'
-import { UserProfile, UserPreferences } from '@/types/userTypes'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import { UserProfile, UserPreferences } from '@core/types/userTypes'
+import ProtectedPage from '@shared/components/LayoutComponents/ProtectedPage'
 
 const defaultPrefs: UserPreferences = {
   units: {

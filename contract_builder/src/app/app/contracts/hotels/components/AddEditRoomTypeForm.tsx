@@ -10,9 +10,9 @@ import {
   Select,
   Checkbox
 } from '@chakra-ui/react'
-import { addRoomType, updateRoomType } from '@/services/roomTypes'
+import { addRoomType, updateRoomType } from '@/app/app/contracts/_lib/roomTypesRepo'
 
-import { RoomCategory, RoomType } from '@/types/contractTypes'
+import { RoomCategory, RoomType } from '@/app/app/contracts/_types'
 
 export default function AddEditRoomTypeForm ({
   hotelId,

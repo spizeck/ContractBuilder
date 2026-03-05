@@ -20,9 +20,9 @@ import {
   ButtonGroup,
   Spinner,
 } from "@chakra-ui/react";
-import type { SiteVisitationData } from "@/types/dashboard";
-import { formatDiveDate } from "@/utils/dateUtils";
-import { getSiteVisitation } from "@/services/diveDashboard";
+import type { SiteVisitationData } from "@/app/app/dive-log/_types";
+import { formatDiveDate } from "@shared/utils/dateUtils";
+import { getSiteVisitation } from "@/app/app/dive-log/_lib/diveDashboardRepo";
 import ChartHeader from "./ChartHeader";
 
 interface SiteVisitationChartProps {

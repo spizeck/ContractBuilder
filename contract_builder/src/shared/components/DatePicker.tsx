@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { parseDateOnly, toInputDate } from "@/utils/formatters";
+import { parseDateOnly, toInputDate } from "@shared/utils/formatters";
 
 // Two usage modes:
 //   1. String mode: pass `value` ("YYYY-MM-DD" | null) — onChange emits "YYYY-MM-DD" | null

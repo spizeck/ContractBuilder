@@ -28,8 +28,8 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import Papa from "papaparse";
-import { addAsset, linkAssets, getAssets } from "@/services/assets";
-import type { Asset } from "@/types/maintenance";
+import { addAsset, linkAssets, getAssets } from "@/app/app/maintenance/_lib/assetsRepo";
+import type { Asset } from "@/app/app/maintenance/_types";
 
 interface ImportRow {
   name: string;

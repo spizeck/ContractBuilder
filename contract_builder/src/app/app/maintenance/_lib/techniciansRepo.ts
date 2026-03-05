@@ -1,5 +1,5 @@
 // src/app/app/maintenance/_lib/techniciansRepo.ts
-import { db } from "@/lib/firebase";
+import { db } from "@core/db/firebase";
 import {
   collection,
   getDocs,

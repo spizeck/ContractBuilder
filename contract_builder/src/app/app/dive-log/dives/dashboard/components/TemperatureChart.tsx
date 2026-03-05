@@ -18,8 +18,8 @@ import {
   useBreakpointValue,
   Spinner,
 } from "@chakra-ui/react";
-import type { TemperatureTrend } from "@/types/dashboard";
-import { formatDiveDate } from "@/utils/dateUtils";
+import type { TemperatureTrend } from "@/app/app/dive-log/_types";
+import { formatDiveDate } from "@shared/utils/dateUtils";
 import {
   LineChart,
   Line,
@@ -29,7 +29,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { getTemperatureTrends } from "@/services/diveDashboard";
+import { getTemperatureTrends } from "@/app/app/dive-log/_lib/diveDashboardRepo";
 import ChartHeader from "./ChartHeader";
 
 interface TemperatureChartProps {

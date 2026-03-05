@@ -13,8 +13,8 @@ import {
   MenuList
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-import { getDivePackages } from '@/services/divePackages'
-import { DivePackage } from '@/types/contractTypes'
+import { getDivePackages } from '@/app/app/contracts/_lib/divePackagesRepo'
+import { DivePackage } from '@/app/app/contracts/_types'
 
 export default function DivePackageSelectionForm ({
   hotelId,

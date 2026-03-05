@@ -11,10 +11,10 @@ import {
   Td,
   Text
 } from '@chakra-ui/react'
-import { getRoomTypes, deleteRoomType } from '@/services/roomTypes'
-import { getRoomCategories } from '@/services/roomCategories'
+import { getRoomTypes, deleteRoomType } from '@/app/app/contracts/_lib/roomTypesRepo'
+import { getRoomCategories } from '@/app/app/contracts/_lib/roomCategoriesRepo'
 import AddEditRoomTypeForm from './AddEditRoomTypeForm'
-import { RoomCategory, RoomType } from '@/types/contractTypes'
+import { RoomCategory, RoomType } from '@/app/app/contracts/_types'
 
 export default function RoomTypesList ({
   hotelId,

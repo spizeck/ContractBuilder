@@ -29,7 +29,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { TbScubaMask } from "react-icons/tb";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@core/auth/AuthContext";
 
 export default function Home() {
   const { user, role, loading } = useAuth();

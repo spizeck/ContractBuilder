@@ -2,8 +2,8 @@
 
 import { Button, MenuItem } from "@chakra-ui/react";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useAuth } from "@/context/AuthContext";
+import { auth } from "@core/db/firebase";
+import { useAuth } from "@core/auth/AuthContext";
 
 export default function LogoutButton({ asMenuItem = false }) {
   const { user } = useAuth();

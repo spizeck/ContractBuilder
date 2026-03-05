@@ -9,8 +9,8 @@ import {
   HStack,
   Select
 } from '@chakra-ui/react'
-import { addRate, updateRate } from '@/services/rates'
-import { Rate, RoomCategory, Season } from '@/types/contractTypes'
+import { addRate, updateRate } from '@/app/app/contracts/_lib/ratesRepo'
+import { Rate, RoomCategory, Season } from '@/app/app/contracts/_types'
 
 export default function AddEditRateForm ({
   hotelId,

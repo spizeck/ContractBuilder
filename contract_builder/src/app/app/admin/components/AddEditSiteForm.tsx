@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {Box, Button, Checkbox, FormControl, FormLabel, HStack, Input, Switch, VStack} from "@chakra-ui/react";
-import {Site} from "@/types/diveLogTypes";
+import {Site} from "@/app/app/dive-log/_types";
 
 interface Props {
   site?: Site;

@@ -13,9 +13,9 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import DatePicker from "@/components/DatePicker";
-import { getHotels } from "@/services/hotels";
-import { Hotel } from "@/types/contractTypes";
+import DatePicker from "@shared/components/DatePicker";
+import { getHotels } from "@/app/app/contracts/_lib/hotelsRepo";
+import { Hotel } from "@/app/app/contracts/_types";
 
 interface GroupContractData {
   groupName: string;

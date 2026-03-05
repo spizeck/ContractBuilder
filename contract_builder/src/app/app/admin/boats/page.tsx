@@ -15,9 +15,9 @@ import {
   Tr,
   TableContainer
 } from '@chakra-ui/react'
-import { Boat } from '@/types/diveLogTypes'
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
-import { addBoat, deleteBoat, getBoats, updateBoat } from '@/services/boats'
+import { Boat } from '@/app/app/dive-log/_types'
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
+import { addBoat, deleteBoat, getBoats, updateBoat } from '@/app/app/dive-log/_lib/boatsRepo'
 import AddEditBoatForm from '../components/AddEditBoatForm'
 
 export default function BoatsPage () {

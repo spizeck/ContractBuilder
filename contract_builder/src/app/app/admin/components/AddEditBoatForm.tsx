@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {Box, Button, FormControl, FormLabel, HStack, Input, Switch, VStack,} from "@chakra-ui/react";
-import {Boat} from "@/types/diveLogTypes";
+import {Boat} from "@/app/app/dive-log/_types";
 
 interface AddEditBoatFormProps {
   boat?: Boat;

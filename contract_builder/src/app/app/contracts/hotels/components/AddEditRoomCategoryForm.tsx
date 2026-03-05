@@ -10,9 +10,9 @@ import {
   CheckboxGroup,
   Checkbox
 } from '@chakra-ui/react'
-import { addRoomCategory, updateRoomCategory } from '@/services/roomCategories'
-import { ensureRatesForCategory } from '@/services/rateSync'
-import { RoomCategory } from '@/types/contractTypes'
+import { addRoomCategory, updateRoomCategory } from '@/app/app/contracts/_lib/roomCategoriesRepo'
+import { ensureRatesForCategory } from '@/app/app/contracts/_lib/rateSyncRepo'
+import { RoomCategory } from '@/app/app/contracts/_types'
 
 export default function AddEditRoomCategoryForm ({
   hotelId,

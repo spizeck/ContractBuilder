@@ -2,7 +2,7 @@
 
 import {ReactNode, useEffect} from "react";
 import {useRouter} from "next/navigation";
-import {useAuth} from "@/context/AuthContext";
+import {useAuth} from "@core/auth/AuthContext";
 import {Center, Spinner} from "@chakra-ui/react";
 
 interface Props {

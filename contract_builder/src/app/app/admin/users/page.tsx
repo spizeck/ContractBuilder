@@ -33,11 +33,11 @@ import {
   Flex,
   Input,
 } from "@chakra-ui/react";
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
-import { usePermissions } from "@/context/PermissionProvider";
-import { UserRole, PermissionLevel, ModulePermissions, DEFAULT_PERMISSIONS } from "@/types/permissions";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
+import { usePermissions } from "@core/permissions/PermissionProvider";
+import { UserRole, PermissionLevel, ModulePermissions, DEFAULT_PERMISSIONS } from "@core/types/permissions";
 import { collection, getDocs, doc, updateDoc, query, orderBy, setDoc } from "firebase/firestore";
-import { auth, db, secondaryAuth } from "@/lib/firebase";
+import { auth, db, secondaryAuth } from "@core/db/firebase";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 // Generate a cryptographically secure random string using the browser's crypto API.

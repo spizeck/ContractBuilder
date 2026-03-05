@@ -13,8 +13,8 @@ import {
   addDivePackage,
   updateDivePackage,
 
-} from "@/services/divePackages";
-import {DivePackage} from "@/types/contractTypes";
+} from "@/app/app/contracts/_lib/divePackagesRepo";
+import {DivePackage} from "@/app/app/contracts/_types";
 
 export default function AddEditDivePackageForm({
   divePackage,

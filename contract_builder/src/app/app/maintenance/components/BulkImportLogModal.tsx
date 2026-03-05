@@ -28,10 +28,10 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import Papa from "papaparse";
-import { addMaintenanceLog } from "@/services/maintenance";
-import { getAssets } from "@/services/assets";
-import { getTechnicians } from "@/services/technicians";
-import type { Asset, Technician, MaintenanceLog } from "@/types/maintenance";
+import { addMaintenanceLog } from "@/app/app/maintenance/_lib/maintenanceRepo";
+import { getAssets } from "@/app/app/maintenance/_lib/assetsRepo";
+import { getTechnicians } from "@/app/app/maintenance/_lib/techniciansRepo";
+import type { Asset, Technician, MaintenanceLog } from "@/app/app/maintenance/_types";
 
 interface ImportRow {
   assetName: string;

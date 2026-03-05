@@ -2,8 +2,8 @@
 
 import { Spinner } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-import { Dive, DiveSlot, Sighting } from '@/types/diveLogTypes'
-import { useAuth } from '@/context/AuthContext'
+import { Dive, DiveSlot, Sighting } from '@/app/app/dive-log/_types'
+import { useAuth } from '@core/auth/AuthContext'
 import { useDiveFormData } from './hooks/useDiveFormData'
 import { StepDiveInfo } from './steps/StepDiveInfo'
 import { StepSightings } from './steps/StepSightings'
@@ -15,9 +15,9 @@ import {
   fahrenheitToCelsius,
   feetToMeters,
   metersToFeet
-} from '@/utils/conversions'
-import { checkDuplicateDive } from '@/services/dives'
-import { validateDive } from '@/utils/validators'
+} from '@/app/app/dive-log/_lib/conversions'
+import { checkDuplicateDive } from '@/app/app/dive-log/_lib/divesRepo'
+import { validateDive } from '@shared/utils/validators'
 
 interface DiveFormProps {
   initialDive?: Dive

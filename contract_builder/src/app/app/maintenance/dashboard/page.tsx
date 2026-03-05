@@ -18,9 +18,9 @@ import LogsModal from "./components/LogsModal";
 import TechnicianActivity from "./components/TechnicianActivity";
 import { useMaintenanceData } from "./hooks/useMaintenanceSearch";
 import { useDashboardFilters } from "./hooks/useDashboardFilters";
-import type { Asset } from "@/types/maintenance";
-import { useAuth } from "@/context/AuthContext";
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import type { Asset } from "@/app/app/maintenance/_types";
+import { useAuth } from "@core/auth/AuthContext";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 
 export default function MaintenanceDashboardPage() {
   const { role } = useAuth(); // expects roles like 'viewer', 'manager', 'admin'

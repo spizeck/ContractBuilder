@@ -9,7 +9,7 @@ import {
   Box,
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@core/auth/AuthContext'
 
 export default function PublicHeader() {
   const { user, loading } = useAuth()

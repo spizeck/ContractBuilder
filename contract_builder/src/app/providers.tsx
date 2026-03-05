@@ -2,9 +2,9 @@
 
 import { ChakraProvider } from '@chakra-ui/react'
 import React from 'react'
-import theme from '@/theme'
-import { AuthProvider } from '@/context/AuthContext'
-import { PermissionProvider } from '@/context/PermissionProvider'
+import theme from '@shared/theme'
+import { AuthProvider } from '@core/auth/AuthContext'
+import { PermissionProvider } from '@core/permissions/PermissionProvider'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

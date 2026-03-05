@@ -16,7 +16,7 @@ import {
   Button,
   ButtonGroup
 } from '@chakra-ui/react'
-import type { DiveDashboardStats } from '@/types/dashboard'
+import type { DiveDashboardStats } from '@/app/app/dive-log/_types'
 
 interface SummaryCardsProps {
   stats: DiveDashboardStats

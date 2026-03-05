@@ -15,10 +15,10 @@ import {
   AlertIcon,
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, DeleteIcon } from '@chakra-ui/icons'
-import { Payment } from '@/types/contractTypes'
-import { getPayments, deletePayment } from '@/services/payments'
-import { formatDateTime } from '@/utils/dateHelpers'
-import { formatCurrency, roundToCents } from '@/utils/formatters'
+import { Payment } from '@/app/app/contracts/_types'
+import { getPayments, deletePayment } from '@/app/app/contracts/_lib/paymentsRepo'
+import { formatDateTime } from '@shared/utils/dateHelpers'
+import { formatCurrency, roundToCents } from '@shared/utils/formatters'
 
 interface PaymentHistoryProps {
   contractId: string

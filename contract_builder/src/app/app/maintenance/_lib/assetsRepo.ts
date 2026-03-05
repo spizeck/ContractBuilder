@@ -15,7 +15,7 @@ import {
   runTransaction,
   DocumentData,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@core/db/firebase";
 import type { Asset, AssetCategory, ServiceTracking } from "../_types";
 
 // Central collection ref

@@ -8,12 +8,12 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react";
-import { addSeason, updateSeason } from "@/services/seasons";
-import { parseDateStringAsUTC } from "@/utils/dateUtils";
-import { Season } from "@/types/contractTypes";
-import { ensureRatesForSeason } from "@/services/rateSync";
-import CustomDatePicker from "@/components/DatePicker";
-import { toInputDate, parseDateOnly } from "@/utils/formatters";
+import { addSeason, updateSeason } from "@/app/app/contracts/_lib/seasonsRepo";
+import { parseDateStringAsUTC } from "@shared/utils/dateUtils";
+import { Season } from "@/app/app/contracts/_types";
+import { ensureRatesForSeason } from "@/app/app/contracts/_lib/rateSyncRepo";
+import CustomDatePicker from "@shared/components/DatePicker";
+import { toInputDate, parseDateOnly } from "@shared/utils/formatters";
 
 export default function AddEditSeasonForm({
   hotelId,

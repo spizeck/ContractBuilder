@@ -17,12 +17,12 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { useEffect, useState, useMemo } from "react";
-import type { Asset, MaintenanceLog, Technician } from "@/types/maintenance";
-import { onLogsForAsset, deleteMaintenanceLog } from "@/services/maintenance";
+import type { Asset, MaintenanceLog, Technician } from "@/app/app/maintenance/_types";
+import { onLogsForAsset, deleteMaintenanceLog } from "@/app/app/maintenance/_lib/maintenanceRepo";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { getTechnicians } from "@/services/technicians";
-import { isHoursTracked, isKmTracked } from "@/types/maintenance";
+import { useAuth } from "@core/auth/AuthContext";
+import { getTechnicians } from "@/app/app/maintenance/_lib/techniciansRepo";
+import { isHoursTracked, isKmTracked } from "@/app/app/maintenance/_types";
 import UpdateTrackingModal from "./UpdateTrackingModal";
 
 export default function LogsModal({

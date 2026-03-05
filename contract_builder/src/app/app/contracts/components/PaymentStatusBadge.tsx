@@ -1,10 +1,10 @@
 'use client'
 
 import { Badge } from '@chakra-ui/react'
-import { GroupContract, Payment } from '@/types/contractTypes'
+import { GroupContract, Payment } from '@/app/app/contracts/_types'
 import { useState, useEffect, useMemo } from 'react'
-import { getPayments } from '@/services/payments'
-import { roundToCents } from '@/utils/formatters'
+import { getPayments } from '@/app/app/contracts/_lib/paymentsRepo'
+import { roundToCents } from '@shared/utils/formatters'
 
 interface PaymentStatusBadgeProps {
   contract: GroupContract

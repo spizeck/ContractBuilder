@@ -2,10 +2,10 @@
 
 import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/context/PermissionProvider";
+import { useAuth } from "@core/auth/AuthContext";
+import { usePermissions } from "@core/permissions/PermissionProvider";
 import { Center, Spinner, Alert, AlertIcon } from "@chakra-ui/react";
-import { PermissionLevel, ModulePermissions } from "@/types/permissions";
+import { PermissionLevel, ModulePermissions } from "@core/types/permissions";
 
 interface Props {
   children: ReactNode;

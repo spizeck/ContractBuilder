@@ -1,4 +1,4 @@
-import type { Asset } from "@/types/maintenance";
+import type { Asset } from "@/app/app/maintenance/_types";
 
 export type AssetStatus = "Overdue" | "Due Soon" | "OK";
 

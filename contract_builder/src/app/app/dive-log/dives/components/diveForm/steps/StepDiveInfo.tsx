@@ -14,8 +14,8 @@ import {
   Progress,
   Flex,
 } from "@chakra-ui/react";
-import DatePicker from "@/components/DatePicker";
-import { Boat, DiveSlot, Guide, Site } from "@/types/diveLogTypes";
+import DatePicker from "@shared/components/DatePicker";
+import { Boat, DiveSlot, Guide, Site } from "@/app/app/dive-log/_types";
 
 interface StepDiveInfoProps {
   date: string;

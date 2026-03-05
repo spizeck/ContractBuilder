@@ -18,14 +18,14 @@ import {
   VStack,
   TableContainer
 } from '@chakra-ui/react'
-import { Guide } from '@/types/diveLogTypes'
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import { Guide } from '@/app/app/dive-log/_types'
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 import {
   addGuide,
   deleteGuide,
   getGuides,
   updateGuide
-} from '@/services/guides'
+} from '@/app/app/dive-log/_lib/guidesRepo'
 
 export default function GuidesPage () {
   const [guides, setGuides] = useState<Guide[]>([])

@@ -15,10 +15,10 @@ import {
   Tr,
   TableContainer
 } from '@chakra-ui/react'
-import { Site } from '@/types/diveLogTypes'
-import { addSite, deleteSite, getSites, updateSite } from '@/services/sites'
+import { Site } from '@/app/app/dive-log/_types'
+import { addSite, deleteSite, getSites, updateSite } from '@/app/app/dive-log/_lib/sitesRepo'
 import AddEditSiteForm from '../components/AddEditSiteForm'
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 
 export default function SitesPage () {
   const [sites, setSites] = useState<Site[]>([])

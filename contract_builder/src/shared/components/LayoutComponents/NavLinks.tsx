@@ -17,8 +17,8 @@ import {
 } from '@chakra-ui/react'
 import { HamburgerIcon } from '@chakra-ui/icons'
 import NextLink from 'next/link'
-import { useAuth } from '@/context/AuthContext'
-import { usePermissions } from '@/context/PermissionProvider'
+import { useAuth } from '@core/auth/AuthContext'
+import { usePermissions } from '@core/permissions/PermissionProvider'
 import LogoutButton from './LogoutButton'
 
 export default function NavLinks() {

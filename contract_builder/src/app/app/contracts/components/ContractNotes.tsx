@@ -15,14 +15,14 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@core/auth/AuthContext";
 import {
   addContractNote,
   getContractNotes,
   deleteContractNote,
-} from "@/services/payments";
-import { ContractNote } from "@/types/contractTypes";
-import { formatDateTime } from "@/utils/dateHelpers";
+} from "@/app/app/contracts/_lib/paymentsRepo";
+import { ContractNote } from "@/app/app/contracts/_types";
+import { formatDateTime } from "@shared/utils/dateHelpers";
 
 interface ContractNotesProps {
   contractId: string;

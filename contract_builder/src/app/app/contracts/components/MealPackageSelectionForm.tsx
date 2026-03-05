@@ -12,8 +12,8 @@ import {
   MenuList
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-import { getMealPackages } from '@/services/mealPackages'
-import { MealPackage } from '@/types/contractTypes'
+import { getMealPackages } from '@/app/app/contracts/_lib/mealPackagesRepo'
+import { MealPackage } from '@/app/app/contracts/_types'
 
 export default function MealPackageSelectionForm ({
   hotelId,

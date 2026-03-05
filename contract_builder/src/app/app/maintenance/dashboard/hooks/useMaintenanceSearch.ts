@@ -10,9 +10,9 @@ import {
   Timestamp,
   QueryConstraint,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { usePermissions } from "@/context/PermissionProvider";
-import type { Asset, Technician, MaintenanceLog } from "@/types/maintenance";
+import { db } from "@core/db/firebase";
+import { usePermissions } from "@core/permissions/PermissionProvider";
+import type { Asset, Technician, MaintenanceLog } from "@/app/app/maintenance/_types";
 
 export const naturalSort = (a: string, b: string): number => {
   const regex = /(\d+)|(\D+)/g;

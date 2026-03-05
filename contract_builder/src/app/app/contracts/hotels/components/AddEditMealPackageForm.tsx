@@ -10,8 +10,8 @@ import {
   Textarea,
   Select
 } from '@chakra-ui/react'
-import { addMealPackage, updateMealPackage } from '@/services/mealPackages'
-import { MealPackage } from '@/types/contractTypes'
+import { addMealPackage, updateMealPackage } from '@/app/app/contracts/_lib/mealPackagesRepo'
+import { MealPackage } from '@/app/app/contracts/_types'
 
 export default function AddEditMealPackageForm ({
   hotelId,

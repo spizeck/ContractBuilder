@@ -1,5 +1,5 @@
 import HotelsPageContent from './components/HotelPageContent'
-import ProtectedPage from '@/components/shared/LayoutComponents/ProtectedPage'
+import ProtectedPage from '@shared/components/LayoutComponents/ProtectedPage'
 
 export default function HotelsPage () {
   return (

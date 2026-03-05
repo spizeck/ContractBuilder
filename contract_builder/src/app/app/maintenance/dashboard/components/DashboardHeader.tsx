@@ -1,11 +1,11 @@
 "use client";
 
 import { Box, HStack, Input, Select, Flex } from "@chakra-ui/react";
-import type { Technician } from "@/types/maintenance";
+import type { Technician } from "@/app/app/maintenance/_types";
 import { useMemo } from "react";
 import { IconButton } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
-import CustomDatePicker from "@/components/DatePicker";
+import CustomDatePicker from "@shared/components/DatePicker";
 
 const CATEGORIES = [
   "All",

@@ -15,15 +15,15 @@ import {
   Tr,
   TableContainer
 } from '@chakra-ui/react'
-import { Species } from '@/types/diveLogTypes'
+import { Species } from '@/app/app/dive-log/_types'
 import {
   addSpecies,
   deleteSpecies,
   getSpecies,
   updateSpecies
-} from '@/services/species'
+} from '@/app/app/dive-log/_lib/speciesRepo'
 import AddEditSpeciesForm from '../components/AddEditSpeciesForm'
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 
 export default function SpeciesPage () {
   const [speciesList, setSpeciesList] = useState<Species[]>([])

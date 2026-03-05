@@ -4,8 +4,8 @@ import {useState} from "react";
 import {useRouter} from "next/navigation";
 import { useToast } from "@chakra-ui/react";
 import DiveForm from "../components/diveForm/DiveForm";
-import {addDive} from "@/services/dives";
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
+import {addDive} from "@/app/app/dive-log/_lib/divesRepo";
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
 
 export default function LogDivePage() {
   const router = useRouter();

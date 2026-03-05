@@ -11,7 +11,7 @@ import {
   Td,
   Tooltip,
 } from "@chakra-ui/react";
-import type { TechnicianActivity } from "@/types/dashboard";
+import type { TechnicianActivity } from "@/app/app/maintenance/_types";
 import { useMemo, useState } from "react";
 
 export default function TechnicianActivity({

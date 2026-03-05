@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider } from "@/lib/firebase";
+import { auth, db, googleProvider } from "@core/db/firebase";
 import { useRouter } from "next/navigation";
 import {
   Box,

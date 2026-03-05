@@ -20,29 +20,29 @@ import {
   RoomCategory,
   RoomType,
   Season,
-} from "@/types/contractTypes";
-import { getSeasons } from "@/services/seasons";
-import { getRates } from "@/services/rates";
-import { getDivePackageById } from "@/services/divePackages";
-import { getMealPackageById } from "@/services/mealPackages";
-import { getHotelById } from "@/services/hotels";
-import { getRoomCategories } from "@/services/roomCategories";
+} from "@/app/app/contracts/_types";
+import { getSeasons } from "@/app/app/contracts/_lib/seasonsRepo";
+import { getRates } from "@/app/app/contracts/_lib/ratesRepo";
+import { getDivePackageById } from "@/app/app/contracts/_lib/divePackagesRepo";
+import { getMealPackageById } from "@/app/app/contracts/_lib/mealPackagesRepo";
+import { getHotelById } from "@/app/app/contracts/_lib/hotelsRepo";
+import { getRoomCategories } from "@/app/app/contracts/_lib/roomCategoriesRepo";
 import {
   addGroupContract,
   archiveGroupContract,
   formatBookingType,
   getGroupContractById,
-} from "@/services/groupContracts";
-import { cloneContractDataForRevision } from "@/services/payments";
+} from "@/app/app/contracts/_lib/groupContractsRepo";
+import { cloneContractDataForRevision } from "@/app/app/contracts/_lib/paymentsRepo";
 import {
   calculateNumberOfNights,
   calculateTotalCost,
   determineSeason,
   getCommissionRate,
   getOccupancyNumber,
-} from "@/utils/contractCalculations";
-import { formatCurrency, formatDate, parseFocRule } from "@/utils/formatters";
-import { getRoomTypes } from "@/services/roomTypes";
+} from "@/app/app/contracts/_lib/contractCalculations";
+import { formatCurrency, formatDate, parseFocRule } from "@shared/utils/formatters";
+import { getRoomTypes } from "@/app/app/contracts/_lib/roomTypesRepo";
 
 export default function TotalCostCalculation({
   contractData,

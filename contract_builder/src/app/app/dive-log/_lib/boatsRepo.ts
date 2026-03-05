@@ -1,5 +1,5 @@
 // src/app/app/dive-log/_lib/boatsRepo.ts
-import {db} from "@/lib/firebase";
+import {db} from "@core/db/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, updateDoc,} from "firebase/firestore";
 import {Boat} from "../_types";
 

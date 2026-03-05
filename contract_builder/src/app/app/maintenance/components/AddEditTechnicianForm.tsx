@@ -17,8 +17,8 @@ import {
   VStack
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { addTechnician, updateTechnician } from '@/services/technicians'
-import { Technician } from '@/types/maintenance'
+import { addTechnician, updateTechnician } from '@/app/app/maintenance/_lib/techniciansRepo'
+import { Technician } from '@/app/app/maintenance/_types'
 
 interface Props {
   technician: Technician | null

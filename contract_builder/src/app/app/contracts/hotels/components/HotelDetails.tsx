@@ -14,15 +14,15 @@ import {
   AlertDialogOverlay
 } from '@chakra-ui/react'
 import AddHotelForm from './AddHotelForm'
-import { deleteHotel } from '@/services/hotels'
+import { deleteHotel } from '@/app/app/contracts/_lib/hotelsRepo'
 import SeasonsList from './SeasonsList'
 import RoomCategoriesList from './RoomCategoriesList'
 import RoomTypesList from './RoomTypesList'
 import RatesList from './RatesList'
 import MealPackagesList from './MealPackagesList'
-import { Hotel, RoomType } from '@/types/contractTypes'
-import { getRoomTypes } from '@/services/roomTypes'
-import { formatFocRule } from '@/utils/formatters'
+import { Hotel, RoomType } from '@/app/app/contracts/_types'
+import { getRoomTypes } from '@/app/app/contracts/_lib/roomTypesRepo'
+import { formatFocRule } from '@shared/utils/formatters'
 
 export default function HotelDetails ({
   hotel,

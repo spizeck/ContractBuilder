@@ -7,7 +7,7 @@ import {
   StatNumber,
   Box
 } from "@chakra-ui/react";
-import type { DashboardFilterResult, DashboardFilter } from "@/types/dashboard";
+import type { DashboardFilterResult, DashboardFilter } from "@/app/app/maintenance/_types";
 
 export interface SummaryCardsProps {
   summary: DashboardFilterResult["stats"];

@@ -14,14 +14,14 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { naturalSort } from "../hooks/useMaintenanceSearch";
-import type { Asset, AssetCategory } from "@/types/maintenance";
+import type { Asset, AssetCategory } from "@/app/app/maintenance/_types";
 import {
   getTrackingLabel,
   getCurrentReading,
   getNextDueDisplay,
   getAssetStatus,
   getStatusColor,
-} from "@/utils/maintenanceSelectors";
+} from "@/app/app/maintenance/_lib/maintenanceSelectors";
 
 export interface CategoryPanelsProps {
   assets: Asset[];

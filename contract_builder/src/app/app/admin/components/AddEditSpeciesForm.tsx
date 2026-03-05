@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {Box, Button, FormControl, FormLabel, HStack, Input, Select, Switch, VStack} from "@chakra-ui/react";
-import {Species} from "@/types/diveLogTypes";
+import {Species} from "@/app/app/dive-log/_types";
 
 interface Props {
   species?: Species;

@@ -18,10 +18,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { addAsset, updateAsset, getAssets } from "@/services/assets";
-import { Asset, ServiceTracking, AssetCategory } from "@/types/maintenance";
-import { toInputDate, parseDateOnly } from "@/utils/formatters";
-import CustomDatePicker from "@/components/DatePicker";
+import { addAsset, updateAsset, getAssets } from "@/app/app/maintenance/_lib/assetsRepo";
+import { Asset, ServiceTracking, AssetCategory } from "@/app/app/maintenance/_types";
+import { toInputDate, parseDateOnly } from "@shared/utils/formatters";
+import CustomDatePicker from "@shared/components/DatePicker";
 
 // Props
 interface Props {

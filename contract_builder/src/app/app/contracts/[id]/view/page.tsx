@@ -14,21 +14,21 @@ import {
   Collapse,
   useDisclosure
 } from '@chakra-ui/react'
-import { getGroupContractById } from '@/services/groupContracts'
-import { getHotelById } from '@/services/hotels'
-import { GroupContract, Hotel } from '@/types/contractTypes'
+import { getGroupContractById } from '@/app/app/contracts/_lib/groupContractsRepo'
+import { getHotelById } from '@/app/app/contracts/_lib/hotelsRepo'
+import { GroupContract, Hotel } from '@/app/app/contracts/_types'
 import {
   formatCurrency,
   formatDateRange,
   formatFocRule
-} from '@/utils/formatters'
-import { getCommissionRate } from '@/utils/contractCalculations'
+} from '@shared/utils/formatters'
+import { getCommissionRate } from '@/app/app/contracts/_lib/contractCalculations'
 import SignedContractUpload from '../../components/SignedContractUpload'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@core/auth/AuthContext'
 import PaymentModal from '../../components/PaymentModal'
 import ContractNotes from '../../components/ContractNotes'
-import { Payment } from '@/types/contractTypes'
-import { getPayments } from '@/services/payments'
+import { Payment } from '@/app/app/contracts/_types'
+import { getPayments } from '@/app/app/contracts/_lib/paymentsRepo'
 import PaymentHistory from '../../components/PaymentHistory'
 
 export default function ViewContractPage () {

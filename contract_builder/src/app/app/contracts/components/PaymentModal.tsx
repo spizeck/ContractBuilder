@@ -30,10 +30,10 @@ import {
   AlertIcon,
   useToast,
 } from '@chakra-ui/react'
-import { addPayment } from '@/services/payments'
-import { Payment } from '@/types/contractTypes'
-import { useAuth } from '@/context/AuthContext'
-import { formatCurrency, roundToCents } from '@/utils/formatters'
+import { addPayment } from '@/app/app/contracts/_lib/paymentsRepo'
+import { Payment } from '@/app/app/contracts/_types'
+import { useAuth } from '@core/auth/AuthContext'
+import { formatCurrency, roundToCents } from '@shared/utils/formatters'
 
 interface PaymentModalProps {
   isOpen: boolean

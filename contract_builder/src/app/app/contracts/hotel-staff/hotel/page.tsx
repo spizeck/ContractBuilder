@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { getHotelByStaffId, updateHotelDetails } from '@/services/hotelStaff'
-import { Hotel } from '@/types/contractTypes'
+import { useAuth } from '@core/auth/AuthContext'
+import { getHotelByStaffId, updateHotelDetails } from '@/app/app/contracts/_lib/hotelStaffRepo'
+import { Hotel } from '@/app/app/contracts/_types'
 import {
   Box,
   VStack,

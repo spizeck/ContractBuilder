@@ -29,18 +29,18 @@ import {
   useDisclosure,
   VStack
 } from '@chakra-ui/react'
-import { getDivesPage } from '@/services/dives'
-import { getBoats } from '@/services/boats'
-import { getSites } from '@/services/sites'
-import { getGuides } from '@/services/guides'
-import { getUserProfile } from '@/services/users'
-import { Boat, Dive, Guide, Site, Species } from '@/types/diveLogTypes'
-import { UserProfile } from '@/types/userTypes'
-import { formatDiveValue } from '@/utils/formatDiveValue'
-import { useAuth } from '@/context/AuthContext'
-import { getSpecies } from '@/services/species'
+import { getDivesPage } from '@/app/app/dive-log/_lib/divesRepo'
+import { getBoats } from '@/app/app/dive-log/_lib/boatsRepo'
+import { getSites } from '@/app/app/dive-log/_lib/sitesRepo'
+import { getGuides } from '@/app/app/dive-log/_lib/guidesRepo'
+import { getUserProfile } from '@/app/app/admin/_lib/usersRepo'
+import { Boat, Dive, Guide, Site, Species } from '@/app/app/dive-log/_types'
+import { UserProfile } from '@core/types/userTypes'
+import { formatDiveValue } from '@/app/app/dive-log/_lib/formatDiveValue'
+import { useAuth } from '@core/auth/AuthContext'
+import { getSpecies } from '@/app/app/dive-log/_lib/speciesRepo'
 import DiveActions from '../components/diveForm/DiveActions'
-import { formatDiveDate } from '@/utils/dateUtils'
+import { formatDiveDate } from '@shared/utils/dateUtils'
 
 export default function ViewDivesPage () {
   const { user, role } = useAuth()

@@ -1,6 +1,6 @@
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { UserProfile, UserPreferences } from "@/types/userTypes";
+import { db } from "@core/db/firebase";
+import { UserProfile, UserPreferences } from "@core/types/userTypes";
 
 const defaultPrefs: UserPreferences = {
   units: { depth: "meters", temp: "celsius", pressure: "bar" },

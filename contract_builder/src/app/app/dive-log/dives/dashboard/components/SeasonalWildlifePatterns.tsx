@@ -19,7 +19,7 @@ import {
   Alert,
   AlertIcon,
 } from '@chakra-ui/react'
-import type { SeasonalWildlifePattern } from '@/types/dashboard'
+import type { SeasonalWildlifePattern } from '@/app/app/dive-log/_types'
 
 interface SeasonalWildlifePatternsProps {
   patterns: SeasonalWildlifePattern[]

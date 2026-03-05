@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { Asset, MaintenanceLog, Technician, AssetCategory } from "@/types/maintenance";
-import type { DashboardFilter, DashboardFilterResult } from "@/types/dashboard";
-import { applyDashboardFilters } from "@/utils/dashboardFilters";
+import type { Asset, MaintenanceLog, Technician, AssetCategory } from "@/app/app/maintenance/_types";
+import type { DashboardFilter, DashboardFilterResult } from "@/app/app/maintenance/_types";
+import { applyDashboardFilters } from "@/app/app/maintenance/_lib/dashboardFilters";
 
 const INITIAL_FILTER: DashboardFilter = {
   searchTerm: "",

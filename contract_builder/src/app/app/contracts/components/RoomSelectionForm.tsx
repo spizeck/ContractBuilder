@@ -17,12 +17,12 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-import { getRoomCategories } from '@/services/roomCategories'
-import { getRates } from '@/services/rates'
-import { getSeasons } from '@/services/seasons'
-import { parseDateStringAsUTC } from '@/utils/dateUtils'
-import { getRoomTypes } from '@/services/roomTypes'
-import { Rate, RoomCategory, RoomType, Season } from '@/types/contractTypes'
+import { getRoomCategories } from '@/app/app/contracts/_lib/roomCategoriesRepo'
+import { getRates } from '@/app/app/contracts/_lib/ratesRepo'
+import { getSeasons } from '@/app/app/contracts/_lib/seasonsRepo'
+import { parseDateStringAsUTC } from '@shared/utils/dateUtils'
+import { getRoomTypes } from '@/app/app/contracts/_lib/roomTypesRepo'
+import { Rate, RoomCategory, RoomType, Season } from '@/app/app/contracts/_types'
 
 interface RoomSelection {
   categoryId: string

@@ -1,10 +1,10 @@
 import {useEffect, useState} from "react";
 import {formatInTimeZone} from "date-fns-tz";
 import {Button, HStack, Table, Tbody, Td, Th, Thead, Tr, VStack, Text} from "@chakra-ui/react";
-import {deleteSeason, getSeasons} from "@/services/seasons";
+import {deleteSeason, getSeasons} from "@/app/app/contracts/_lib/seasonsRepo";
 import AddEditSeasonForm from "./AddEditSeasonForm";
-import { parseDateStringAsUTC } from "@/utils/dateUtils";
-import {Season} from "@/types/contractTypes";
+import { parseDateStringAsUTC } from "@shared/utils/dateUtils";
+import {Season} from "@/app/app/contracts/_types";
 
 export default function SeasonsList({
                                       hotelId,

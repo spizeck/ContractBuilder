@@ -28,8 +28,8 @@ import {
   deleteSignedContract,
   validateContractFile,
 } from "@/services/fileUpload";
-import { useAuth } from "@/context/AuthContext";
-import { formatDateTime } from "@/utils/dateHelpers";
+import { useAuth } from "@core/auth/AuthContext";
+import { formatDateTime } from "@shared/utils/dateHelpers";
 
 interface SignedContractUploadProps {
   contractId: string;

@@ -2,8 +2,8 @@
 
 import { Button, HStack } from '@chakra-ui/react'
 import { useRouter } from 'next/navigation'
-import { deleteDive } from '@/services/dives'
-import { Dive } from '@/types/diveLogTypes'
+import { deleteDive } from '@/app/app/dive-log/_lib/divesRepo'
+import { Dive } from '@/app/app/dive-log/_types'
 
 export interface DiveActionsProps {
   dive: Dive

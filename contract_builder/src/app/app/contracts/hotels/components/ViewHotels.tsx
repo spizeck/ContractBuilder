@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {Box, Button, Center, Heading, Table, Tbody, Td, Th, Thead, Tr, VStack} from "@chakra-ui/react";
-import {getHotels} from "@/services/hotels";
-import {Hotel} from "@/types/contractTypes";
+import {getHotels} from "@/app/app/contracts/_lib/hotelsRepo";
+import {Hotel} from "@/app/app/contracts/_types";
 
 export default function ViewHotels({
                                      onHotelSelect,

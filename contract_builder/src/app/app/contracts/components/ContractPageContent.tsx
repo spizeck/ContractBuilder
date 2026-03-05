@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { VStack } from '@chakra-ui/react'
 import GroupContractWizard from './GroupContractWizard'
 import GroupContractsList from './GroupContractsList'
-import ProtectedRoute from "@/components/shared/LayoutComponents/ProtectedRoute";
-import { getGroupContractById } from '@/services/groupContracts'
+import ProtectedRoute from "@shared/components/LayoutComponents/ProtectedRoute";
+import { getGroupContractById } from '@/app/app/contracts/_lib/groupContractsRepo'
 
 export default function ContractPageContent() {
   const searchParams = useSearchParams()

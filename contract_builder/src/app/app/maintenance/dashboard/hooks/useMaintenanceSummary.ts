@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Asset, MaintenanceLog } from "@/types/maintenance";
-import { getAssetStatus } from "@/utils/maintenanceSelectors";
+import type { Asset, MaintenanceLog } from "@/app/app/maintenance/_types";
+import { getAssetStatus } from "@/app/app/maintenance/_lib/maintenanceSelectors";
 
 export interface Summary {
   totalAssets: number;

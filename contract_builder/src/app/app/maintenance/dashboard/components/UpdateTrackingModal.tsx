@@ -20,9 +20,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import type { Asset } from "@/types/maintenance";
-import { updateAsset } from "@/services/assets";
-import { isHoursTracked, isKmTracked } from "@/types/maintenance";
+import type { Asset } from "@/app/app/maintenance/_types";
+import { updateAsset } from "@/app/app/maintenance/_lib/assetsRepo";
+import { isHoursTracked, isKmTracked } from "@/app/app/maintenance/_types";
 
 export default function UpdateTrackingModal({
   isOpen,

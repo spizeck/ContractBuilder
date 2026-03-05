@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Heading, Progress, Text } from '@chakra-ui/react'
-import { Boat, Site, Species, Sighting } from '@/types/diveLogTypes'
+import { Boat, Site, Species, Sighting } from '@/app/app/dive-log/_types'
 
 interface StepConfirmProps {
   date: string

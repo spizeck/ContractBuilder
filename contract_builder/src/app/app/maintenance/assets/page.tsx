@@ -17,15 +17,15 @@ import {
   HStack,
   Input,
 } from "@chakra-ui/react";
-import { getAssets, deleteAsset } from "@/services/assets";
-import { Asset, AssetCategory } from "@/types/maintenance";
+import { getAssets, deleteAsset } from "@/app/app/maintenance/_lib/assetsRepo";
+import { Asset, AssetCategory } from "@/app/app/maintenance/_types";
 import AddEditAssetForm from "../components/AddEditAssetForm";
 import BulkImportModal from "../components/BulkImportModal";
 import {
   getTrackingLabel,
   getCurrentReading,
   getNextDueDisplay,
-} from "@/utils/maintenanceSelectors";
+} from "@/app/app/maintenance/_lib/maintenanceSelectors";
 
 // Allowed categories going forward — use these for filters and parent assignment
 const ALLOWED_CATEGORIES = [

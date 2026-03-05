@@ -38,13 +38,13 @@ import { useRouter } from "next/navigation";
 import {
   getMaintenanceLogs,
   deleteMaintenanceLog,
-} from "@/services/maintenance";
-import { getAssets } from "@/services/assets";
-import { getTechnicians } from "@/services/technicians";
-import { MaintenanceLog, Asset } from "@/types/maintenance";
-import { Technician } from "@/types/maintenance";
-import { formatDate, formatNumber, formatCurrency } from "@/utils/formatters";
-import { useAuth } from "@/context/AuthContext"; // << added
+} from "@/app/app/maintenance/_lib/maintenanceRepo";
+import { getAssets } from "@/app/app/maintenance/_lib/assetsRepo";
+import { getTechnicians } from "@/app/app/maintenance/_lib/techniciansRepo";
+import { MaintenanceLog, Asset } from "@/app/app/maintenance/_types";
+import { Technician } from "@/app/app/maintenance/_types";
+import { formatDate, formatNumber, formatCurrency } from "@shared/utils/formatters";
+import { useAuth } from "@core/auth/AuthContext"; // << added
 import BulkImportLogModal from "@/app/app/maintenance/components/BulkImportLogModal";
 
 export default function MaintenanceLogsPage() {

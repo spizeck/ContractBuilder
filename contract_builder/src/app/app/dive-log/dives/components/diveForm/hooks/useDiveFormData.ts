@@ -2,14 +2,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Boat, Site, Species, Guide } from '@/types/diveLogTypes'
-import { UserProfile } from '@/types/userTypes'
-import { useAuth } from '@/context/AuthContext'
-import { getBoats } from '@/services/boats'
-import { getSites } from '@/services/sites'
-import { getSpecies } from '@/services/species'
-import { getUserProfile } from '@/services/users'
-import { getGuides } from '@/services/guides'
+import { Boat, Site, Species, Guide } from '@/app/app/dive-log/_types'
+import { UserProfile } from '@core/types/userTypes'
+import { useAuth } from '@core/auth/AuthContext'
+import { getBoats } from '@/app/app/dive-log/_lib/boatsRepo'
+import { getSites } from '@/app/app/dive-log/_lib/sitesRepo'
+import { getSpecies } from '@/app/app/dive-log/_lib/speciesRepo'
+import { getUserProfile } from '@/app/app/admin/_lib/usersRepo'
+import { getGuides } from '@/app/app/dive-log/_lib/guidesRepo'
 
 export function useDiveFormData () {
   const { user } = useAuth()

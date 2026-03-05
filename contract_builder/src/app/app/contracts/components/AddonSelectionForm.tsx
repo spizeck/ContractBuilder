@@ -12,7 +12,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { DeleteIcon, AddIcon } from '@chakra-ui/icons'
-import { formatCurrency } from '@/utils/formatters'
+import { formatCurrency } from '@shared/utils/formatters'
 
 interface Addon {
   description: string

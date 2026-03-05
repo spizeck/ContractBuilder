@@ -11,7 +11,7 @@ import {
   NumberInput,
   NumberInputField
 } from '@chakra-ui/react'
-import { Species, Sighting } from '@/types/diveLogTypes'
+import { Species, Sighting } from '@/app/app/dive-log/_types'
 
 interface StepSightingsProps {
   speciesList: Species[]

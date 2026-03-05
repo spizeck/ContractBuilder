@@ -6,14 +6,14 @@ import {
 } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { addMaintenanceLog, updateMaintenanceLog, getMaintenanceLog } from "@/services/maintenance"
-import { getAssets } from "@/services/assets"
-import { getTechnicians } from "@/services/technicians"
-import { Asset, Technician, MaintenanceLog } from '@/types/maintenance'
-import { MaintenanceLogForm } from '@/types/formTypes'
-import { useAuth } from '@/context/AuthContext'
-import { toInputDate, parseDateOnly } from '@/utils/formatters'
-import CustomDatePicker from '@/components/DatePicker'
+import { addMaintenanceLog, updateMaintenanceLog, getMaintenanceLog } from "@/app/app/maintenance/_lib/maintenanceRepo"
+import { getAssets } from "@/app/app/maintenance/_lib/assetsRepo"
+import { getTechnicians } from "@/app/app/maintenance/_lib/techniciansRepo"
+import { Asset, Technician, MaintenanceLog } from '@/app/app/maintenance/_types'
+import { MaintenanceLogForm } from '@shared/types/formTypes'
+import { useAuth } from '@core/auth/AuthContext'
+import { toInputDate, parseDateOnly } from '@shared/utils/formatters'
+import CustomDatePicker from '@shared/components/DatePicker'
 
 export default function LogForm({ id }: { id?: string }) {
   const router = useRouter()

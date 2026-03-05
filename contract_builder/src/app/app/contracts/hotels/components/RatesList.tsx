@@ -12,11 +12,11 @@ import {
   Select,
   Text
 } from '@chakra-ui/react'
-import { getRates, deleteRate } from '@/services/rates'
-import { getRoomCategories } from '@/services/roomCategories'
-import { getSeasons } from '@/services/seasons'
+import { getRates, deleteRate } from '@/app/app/contracts/_lib/ratesRepo'
+import { getRoomCategories } from '@/app/app/contracts/_lib/roomCategoriesRepo'
+import { getSeasons } from '@/app/app/contracts/_lib/seasonsRepo'
 import AddEditRateForm from './AddEditRateForm'
-import { Rate, RoomCategory, Season } from '@/types/contractTypes'
+import { Rate, RoomCategory, Season } from '@/app/app/contracts/_types'
 
 export default function RatesList ({
   hotelId,

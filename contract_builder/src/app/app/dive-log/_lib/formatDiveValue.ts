@@ -1,5 +1,5 @@
 import {celsiusToFahrenheit, metersToFeet,} from "./conversions";
-import {UserPreferences} from "@/types/userTypes";
+import {UserPreferences} from "@core/types/userTypes";
 import {Boat, Dive, Site, FormattedDive} from "../_types";
 
 export function formatDiveValue(

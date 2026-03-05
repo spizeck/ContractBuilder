@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase'
+import { db } from '@core/db/firebase'
 import {
   collection,
   getDocs,
@@ -21,7 +21,7 @@ import {
 import { MaintenanceLog } from '../_types'
 import { updateAsset } from './assetsRepo'
 import type { Asset } from '../_types'
-import { handleError, AppError, NotFoundError, safeAsync } from '@/utils/errorHandler'
+import { handleError, AppError, NotFoundError, safeAsync } from '@shared/utils/errorHandler'
 
 // Central collection ref
 const logsCollection = collection(db, 'maintenanceLogs')

@@ -11,8 +11,8 @@ import {
   FormHelperText,
   Select
 } from '@chakra-ui/react'
-import { addHotel, updateHotel } from '@/services/hotels'
-import { Hotel } from '@/types/contractTypes'
+import { addHotel, updateHotel } from '@/app/app/contracts/_lib/hotelsRepo'
+import { Hotel } from '@/app/app/contracts/_types'
 
 export default function AddHotelForm ({
   editingHotel,

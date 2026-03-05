@@ -1,5 +1,5 @@
 // src/app/app/dive-log/_lib/divesRepo.ts
-import { db } from '@/lib/firebase'
+import { db } from '@core/db/firebase'
 import {
   addDoc,
   collection,

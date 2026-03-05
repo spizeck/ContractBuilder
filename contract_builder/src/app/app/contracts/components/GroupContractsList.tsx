@@ -18,14 +18,14 @@ import {
   archiveGroupContract,
   formatBookingType,
   getGroupContracts,
-} from "@/services/groupContracts";
-import { getHotels } from "@/services/hotels";
-import { GroupContract, Hotel } from "@/types/contractTypes";
+} from "@/app/app/contracts/_lib/groupContractsRepo";
+import { getHotels } from "@/app/app/contracts/_lib/hotelsRepo";
+import { GroupContract, Hotel } from "@/app/app/contracts/_types";
 import PaymentStatusBadge from "./PaymentStatusBadge";
-import { parseDate } from "@/utils/dateHelpers";
+import { parseDate } from "@shared/utils/dateHelpers";
 import PaymentDashboard from "./PaymentDashboard";
-import { formatCurrency, toInputDate, parseDateOnly } from "@/utils/formatters";
-import CustomDatePicker from "@/components/DatePicker";
+import { formatCurrency, toInputDate, parseDateOnly } from "@shared/utils/formatters";
+import CustomDatePicker from "@shared/components/DatePicker";
 
 export default function GroupContractsList({
   onBack,
