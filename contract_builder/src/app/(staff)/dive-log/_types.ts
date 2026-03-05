@@ -12,6 +12,7 @@ export interface Dive {
   diveSiteId: string;
   maxDepth: number; // meters
   waterTemperature: number; // celsius
+  isDrift?: boolean; // indicates if dive was done as a drift dive
   sightings: Sighting[];
   createdBy: string;
   createdAt?: Date;

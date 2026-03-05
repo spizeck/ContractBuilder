@@ -9,6 +9,7 @@ interface StepConfirmProps {
   diveGuide: string
   boatId: string
   diveSiteId: string
+  isDrift: boolean
   displayDepth: number
   displayTemp: number
   prefs: any
@@ -25,6 +26,7 @@ export function StepConfirm ({
   diveGuide,
   boatId,
   diveSiteId,
+  isDrift,
   displayDepth,
   displayTemp,
   prefs,
@@ -55,6 +57,7 @@ export function StepConfirm ({
       </Text>
       <Text>
         <b>Site:</b> {sites.find(s => s.id === diveSiteId)?.name}
+        {isDrift && ' (Drift)'}
       </Text>
       <Text>
         <b>Max Depth:</b> {displayDepth}{' '}
