@@ -1,7 +1,7 @@
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { storage } from '@core/db/firebase';
 import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@core/db/firebase';
 
 export async function uploadSignedContract(
   contractId: string,
