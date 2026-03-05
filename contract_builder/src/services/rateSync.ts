@@ -2,4 +2,4 @@
 export {
   ensureRatesForCategory,
   ensureRatesForSeason,
-} from '../app/app/contracts/_lib/rateSyncRepo'
+} from '../app/(staff)/contracts/_lib/rateSyncRepo'

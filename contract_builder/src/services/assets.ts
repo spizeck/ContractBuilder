@@ -11,4 +11,4 @@ export {
   unlinkAssets,
   subscribeAssets,
   onAssetsSnapshot,
-} from '../app/app/maintenance/_lib/assetsRepo'
+} from '../app/(staff)/maintenance/_lib/assetsRepo'

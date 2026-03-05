@@ -6,4 +6,4 @@ export {
   fahrenheitToCelsius,
   barToPsi,
   psiToBar,
-} from '../app/app/dive-log/_lib/conversions'
+} from '../app/(staff)/dive-log/_lib/conversions'

@@ -5,4 +5,4 @@ export {
   updateRate,
   deleteRate,
   getRateById,
-} from '../app/app/contracts/_lib/ratesRepo'
+} from '../app/(staff)/contracts/_lib/ratesRepo'

@@ -4,4 +4,4 @@ export {
   addGuide,
   updateGuide,
   deleteGuide,
-} from '../app/app/dive-log/_lib/guidesRepo'
+} from '../app/(staff)/dive-log/_lib/guidesRepo'

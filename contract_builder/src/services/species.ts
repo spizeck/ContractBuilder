@@ -4,4 +4,4 @@ export {
   addSpecies,
   updateSpecies,
   deleteSpecies,
-} from '../app/app/dive-log/_lib/speciesRepo'
+} from '../app/(staff)/dive-log/_lib/speciesRepo'

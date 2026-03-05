@@ -4,4 +4,4 @@ export {
   addSite,
   updateSite,
   deleteSite,
-} from '../app/app/dive-log/_lib/sitesRepo'
+} from '../app/(staff)/dive-log/_lib/sitesRepo'

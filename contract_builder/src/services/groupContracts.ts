@@ -6,4 +6,4 @@ export {
   archiveGroupContract,
   getGroupContractById,
   formatBookingType,
-} from '../app/app/contracts/_lib/groupContractsRepo'
+} from '../app/(staff)/contracts/_lib/groupContractsRepo'

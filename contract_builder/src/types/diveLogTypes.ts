@@ -8,4 +8,4 @@ export type {
   FormattedDive,
   Guide,
   DiveSlot,
-} from '../app/app/dive-log/_types'
+} from '../app/(staff)/dive-log/_types'

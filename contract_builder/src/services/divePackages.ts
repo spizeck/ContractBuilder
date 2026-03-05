@@ -5,4 +5,4 @@ export {
   updateDivePackage,
   deleteDivePackage,
   getDivePackageById,
-} from '../app/app/contracts/_lib/divePackagesRepo'
+} from '../app/(staff)/contracts/_lib/divePackagesRepo'

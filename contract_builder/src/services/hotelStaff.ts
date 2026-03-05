@@ -5,4 +5,4 @@ export {
   getContractsForStaff,
   updateHotelDetails,
   getStaffProfile,
-} from '../app/app/contracts/_lib/hotelStaffRepo'
+} from '../app/(staff)/contracts/_lib/hotelStaffRepo'

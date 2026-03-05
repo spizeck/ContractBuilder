@@ -4,4 +4,4 @@ export {
   addRoomCategory,
   updateRoomCategory,
   deleteRoomCategory,
-} from '../app/app/contracts/_lib/roomCategoriesRepo'
+} from '../app/(staff)/contracts/_lib/roomCategoriesRepo'

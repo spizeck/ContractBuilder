@@ -14,4 +14,4 @@ export type {
   RoomType,
   Payment,
   ContractNote,
-} from '../app/app/contracts/_types'
+} from '../app/(staff)/contracts/_types'

@@ -2,4 +2,4 @@
 export {
   clonePaymentForRevision,
   cloneNoteForRevision,
-} from '../app/app/contracts/_lib/contractRevisions'
+} from '../app/(staff)/contracts/_lib/contractRevisions'

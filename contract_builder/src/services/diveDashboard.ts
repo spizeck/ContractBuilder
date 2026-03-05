@@ -3,4 +3,4 @@ export {
   getDiveDashboardData,
   getTemperatureTrends,
   getSiteVisitation,
-} from '../app/app/dive-log/_lib/diveDashboardRepo'
+} from '../app/(staff)/dive-log/_lib/diveDashboardRepo'

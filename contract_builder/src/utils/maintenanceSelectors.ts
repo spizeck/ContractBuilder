@@ -5,6 +5,6 @@ export {
   getNextDueDisplay,
   getAssetStatus,
   getStatusColor,
-} from '../app/app/maintenance/_lib/maintenanceSelectors'
+} from '../app/(staff)/maintenance/_lib/maintenanceSelectors'
 
-export type { StatusColor } from '../app/app/maintenance/_lib/maintenanceSelectors'
+export type { StatusColor } from '../app/(staff)/maintenance/_lib/maintenanceSelectors'

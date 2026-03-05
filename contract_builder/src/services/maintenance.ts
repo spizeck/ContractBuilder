@@ -8,4 +8,4 @@ export {
   getMaintenanceLog,
   onLogsForAsset,
   onLogsInDateRange,
-} from '../app/app/maintenance/_lib/maintenanceRepo'
+} from '../app/(staff)/maintenance/_lib/maintenanceRepo'

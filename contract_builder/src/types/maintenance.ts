@@ -12,10 +12,10 @@ export type {
   MaintenanceLogKind,
   MaintenanceLog,
   StatusColor,
-} from '../app/app/maintenance/_types'
+} from '../app/(staff)/maintenance/_types'
 
 export {
   isHoursTracked,
   isKmTracked,
   isDateTracked,
-} from '../app/app/maintenance/_types'
+} from '../app/(staff)/maintenance/_types'

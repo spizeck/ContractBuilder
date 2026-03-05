@@ -5,4 +5,4 @@ export {
   updateHotel,
   deleteHotel,
   getHotelById,
-} from '../app/app/contracts/_lib/hotelsRepo'
+} from '../app/(staff)/contracts/_lib/hotelsRepo'

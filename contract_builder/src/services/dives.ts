@@ -8,4 +8,4 @@ export {
   getUserDives,
   checkDuplicateDive,
   getDivesPage,
-} from '../app/app/dive-log/_lib/divesRepo'
+} from '../app/(staff)/dive-log/_lib/divesRepo'

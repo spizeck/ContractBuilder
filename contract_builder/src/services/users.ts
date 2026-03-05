@@ -2,4 +2,4 @@
 export {
   getUserProfile,
   updateUserProfile,
-} from '../app/app/admin/_lib/usersRepo'
+} from '../app/(staff)/admin/_lib/usersRepo'

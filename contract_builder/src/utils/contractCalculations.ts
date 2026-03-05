@@ -5,4 +5,4 @@ export {
   getOccupancyNumber,
   getCommissionRate,
   calculateTotalCost,
-} from '../app/app/contracts/_lib/contractCalculations'
+} from '../app/(staff)/contracts/_lib/contractCalculations'

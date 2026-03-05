@@ -4,4 +4,4 @@ export {
   addRoomType,
   updateRoomType,
   deleteRoomType,
-} from '../app/app/contracts/_lib/roomTypesRepo'
+} from '../app/(staff)/contracts/_lib/roomTypesRepo'

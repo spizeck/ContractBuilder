@@ -4,4 +4,4 @@ export {
   getSeasons,
   updateSeason,
   deleteSeason,
-} from '../app/app/contracts/_lib/seasonsRepo'
+} from '../app/(staff)/contracts/_lib/seasonsRepo'

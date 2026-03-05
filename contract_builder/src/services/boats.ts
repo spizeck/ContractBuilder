@@ -4,4 +4,4 @@ export {
   addBoat,
   updateBoat,
   deleteBoat,
-} from '../app/app/dive-log/_lib/boatsRepo'
+} from '../app/(staff)/dive-log/_lib/boatsRepo'

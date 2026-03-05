@@ -5,4 +5,4 @@ export {
   updateMealPackage,
   deleteMealPackage,
   getMealPackageById,
-} from '../app/app/contracts/_lib/mealPackagesRepo'
+} from '../app/(staff)/contracts/_lib/mealPackagesRepo'

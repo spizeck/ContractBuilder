@@ -6,6 +6,6 @@ export {
   updateTechnician,
   deleteTechnician,
   onTechniciansSnapshot,
-} from '../app/app/maintenance/_lib/techniciansRepo'
+} from '../app/(staff)/maintenance/_lib/techniciansRepo'
 
-export type { PaginatedTechniciansResult } from '../app/app/maintenance/_lib/techniciansRepo'
+export type { PaginatedTechniciansResult } from '../app/(staff)/maintenance/_lib/techniciansRepo'

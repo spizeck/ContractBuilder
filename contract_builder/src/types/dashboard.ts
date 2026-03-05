@@ -40,4 +40,4 @@ export type {
   SiteVisitationData,
   SeasonalWildlifePattern,
   DiveDashboardData,
-} from '../app/app/dive-log/_types'
+} from '../app/(staff)/dive-log/_types'

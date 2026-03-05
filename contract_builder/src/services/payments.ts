@@ -9,4 +9,4 @@ export {
   deleteContractNote,
   cloneContractDataForRevision,
   updateContractPaymentSummary,
-} from '../app/app/contracts/_lib/paymentsRepo'
+} from '../app/(staff)/contracts/_lib/paymentsRepo'
