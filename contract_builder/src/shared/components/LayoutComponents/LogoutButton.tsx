@@ -1,17 +1,23 @@
 "use client";
 
 import { Button, MenuItem } from "@chakra-ui/react";
-import { signOut } from "firebase/auth";
-import { auth } from "@core/db/firebase";
 import { useAuth } from "@core/auth/AuthContext";
 
 export default function LogoutButton({ asMenuItem = false }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   if (!user) return null;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   if (asMenuItem) {
     return (
-      <MenuItem onClick={() => signOut(auth)}>
+      <MenuItem onClick={handleLogout}>
         Logout
       </MenuItem>
     );
@@ -21,7 +27,7 @@ export default function LogoutButton({ asMenuItem = false }) {
     <Button
       variant="link"
       colorScheme="white"
-      onClick={() => signOut(auth)}
+      onClick={handleLogout}
       _hover={{ textDecoration: "underline" }}
     >
       Logout

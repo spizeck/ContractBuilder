@@ -28,6 +28,14 @@ const nextConfig = {
       // Old /dive-packages routes redirect to new /contracts/dive-packages routes
       { source: "/dive-packages/:path*", destination: "/contracts/dive-packages/:path*", permanent: true },
       { source: "/dive-packages", destination: "/contracts/dive-packages", permanent: true },
+      // Old /hotel-staff routes redirect to new /contracts/hotel-staff routes
+      { source: "/hotel-staff/:path*", destination: "/contracts/hotel-staff/:path*", permanent: true },
+      { source: "/hotel-staff", destination: "/contracts/hotel-staff", permanent: true },
+      // Legacy /app/* routes redirect to clean URLs (for external links/bookmarks)
+      { source: "/app/admin/:path*", destination: "/admin/:path*", permanent: true },
+      { source: "/app/contracts/:path*", destination: "/contracts/:path*", permanent: true },
+      { source: "/app/dive-log/:path*", destination: "/dive-log/:path*", permanent: true },
+      { source: "/app/maintenance/:path*", destination: "/maintenance/:path*", permanent: true },
     ];
   },
 
