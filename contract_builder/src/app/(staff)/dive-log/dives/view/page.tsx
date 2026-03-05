@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
+  Badge,
   Box,
   Button,
   Card,
@@ -212,7 +213,14 @@ export default function ViewDivesPage () {
                     <Td>{dive.diveSlot.toUpperCase()}</Td>
                     <Td>{dive.diveGuide}</Td>
                     <Td>{d.boatName}</Td>
-                    <Td>{d.siteName}</Td>
+                    <Td>
+                      {d.siteName}
+                      {dive.isDrift && (
+                        <Badge ml={2} colorScheme='blue' fontSize='xs'>
+                          Drift
+                        </Badge>
+                      )}
+                    </Td>
                     <Td>{d.depthDisplay}</Td>
                     <Td>{d.tempDisplay}</Td>
                     <Td>
@@ -267,6 +275,11 @@ export default function ViewDivesPage () {
                     </Text>
                     <Text>
                       <b>Site:</b> {d.siteName}
+                      {dive.isDrift && (
+                        <Badge ml={2} colorScheme='blue' fontSize='xs'>
+                          Drift
+                        </Badge>
+                      )}
                     </Text>
                     <Text>
                       <b>Depth:</b> {d.depthDisplay}

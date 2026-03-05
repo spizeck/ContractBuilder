@@ -3,6 +3,7 @@
 
 import {
   Box,
+  Checkbox,
   FormControl,
   FormLabel,
   Input,
@@ -25,6 +26,7 @@ interface StepDiveInfoProps {
   diveSiteId: string;
   maxDepth: number;
   waterTemperature: number;
+  isDrift: boolean;
   boats: Boat[];
   sites: Site[];
   guides: Guide[];
@@ -40,6 +42,7 @@ interface StepDiveInfoProps {
     setBoatId: (v: string) => void;
     setDiveGuide: (v: string) => void;
     setDiveSiteId: (v: string) => void;
+    setIsDrift: (v: boolean) => void;
     handleDepthChange: (_: string, v: number) => void;
     handleTempChange: (_: string, v: number) => void;
   };
@@ -51,6 +54,7 @@ export function StepDiveInfo({
   boatId,
   diveGuide,
   diveSiteId,
+  isDrift,
   boats,
   sites,
   guides,
@@ -149,6 +153,15 @@ export function StepDiveInfo({
                 </option>
               ))}
             </Select>
+          </FormControl>
+
+          <FormControl>
+            <Checkbox
+              isChecked={isDrift}
+              onChange={(e) => onChange.setIsDrift(e.target.checked)}
+            >
+              Drift Dive
+            </Checkbox>
           </FormControl>
 
           <FormControl isRequired>
