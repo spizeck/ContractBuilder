@@ -127,14 +127,14 @@ export default function MaintenanceLogsPage() {
 
   const openAddForAsset = (asset: Asset | null) => {
     if (asset) {
-      router.push(`/app/maintenance/logs/new?assetId=${asset.id}`);
+      router.push(`/maintenance/logs/new?assetId=${asset.id}`);
     } else {
       router.push("/maintenance/logs/new");
     }
   };
 
   const openEditLog = (log: MaintenanceLog) => {
-    router.push(`/app/maintenance/logs/${log.id}`);
+    router.push(`/maintenance/logs/${log.id}`);
   };
 
   const openLogsForAsset = (asset: Asset) => {

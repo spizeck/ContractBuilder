@@ -64,8 +64,12 @@ export default function NavLinks() {
   const renderDesktopLinks = (links: NavLinkItem[]) => (
     <>
       {links.map((link) => (
-        <MenuItem key={link.href}>
-          <NextLink href={link.href}>{link.label}</NextLink>
+        <MenuItem
+          key={link.href}
+          as={NextLink}
+          href={link.href}
+        >
+          {link.label}
         </MenuItem>
       ))}
     </>

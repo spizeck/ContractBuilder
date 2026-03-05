@@ -19,7 +19,12 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   role: 'viewer', // Default role
   loading: true,
-  logout: async () => {}
+  logout: async () => {
+    throw new Error(
+      'AuthContext.logout called outside of AuthProvider. ' +
+        'Ensure your component tree is wrapped in <AuthProvider>.'
+    )
+  }
 })
 
 export function AuthProvider ({ children }: { children: React.ReactNode }) {
