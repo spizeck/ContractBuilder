@@ -44,29 +44,10 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
   const [periodTrends, setPeriodTrends] = useState<TemperatureTrend[]>(trends);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [containerReady, setContainerReady] = useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!mounted || !containerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setContainerReady(true);
-          resizeObserver.disconnect();
-        }
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
-  }, [mounted]);
 
   useEffect(() => {
     const fetchPeriodData = async () => {
@@ -330,8 +311,8 @@ export default function TemperatureChart({ trends }: TemperatureChartProps) {
         </HStack>
 
         {/* Line Chart */}
-        <Box h="300px" w="full" minW="0" position="relative" mb={8} ref={containerRef}>
-          {mounted && containerReady ? (
+        <Box h="300px" w="full" minW="0" position="relative" mb={8}>
+          {mounted ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
