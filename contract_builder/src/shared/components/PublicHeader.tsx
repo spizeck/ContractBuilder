@@ -4,11 +4,11 @@ import {
   Flex,
   Heading,
   Link,
-  Button,
   HStack,
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { useAuth } from '@core/auth/AuthContext'
+import NavLinks from '@shared/components/LayoutComponents/NavLinks'
 
 export default function PublicHeader() {
   const { user, loading } = useAuth()
@@ -31,28 +31,18 @@ export default function PublicHeader() {
         </Heading>
       </Link>
 
-      <HStack spacing={4}>
-        {!loading && !user && (
-          <>
-            <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
-              Login
-            </Link>
-            <Link as={NextLink} href="/register" _hover={{ textDecoration: 'underline' }}>
-              Register
-            </Link>
-          </>
-        )}
-        {!loading && user && (
-          <Button
-            as={NextLink}
-            href="/dive-log/dives/dashboard"
-            colorScheme="whiteAlpha"
-            variant="outline"
-          >
-            Go to Dashboard
-          </Button>
-        )}
-      </HStack>
+      {!loading && !user && (
+        <HStack spacing={4}>
+          <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
+            Login
+          </Link>
+          <Link as={NextLink} href="/register" _hover={{ textDecoration: 'underline' }}>
+            Register
+          </Link>
+        </HStack>
+      )}
+      
+      {!loading && user && <NavLinks />}
     </Flex>
   )
 }
