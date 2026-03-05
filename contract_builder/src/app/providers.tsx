@@ -1,48 +1,17 @@
 'use client'
 
-import {
-  ChakraProvider,
-  Flex,
-  Heading,
-  Link,
-  Box,
-} from '@chakra-ui/react'
-import NextLink from 'next/link'
+import { ChakraProvider } from '@chakra-ui/react'
 import React from 'react'
-import theme from '@/theme'
-import { AuthProvider } from '@/context/AuthContext'
-import { PermissionProvider } from '@/context/PermissionProvider'
-import NavLinks from '@/components/shared/LayoutComponents/NavLinks'
+import theme from '@shared/theme'
+import { AuthProvider } from '@core/auth/AuthContext'
+import { PermissionProvider } from '@core/permissions/PermissionProvider'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ChakraProvider theme={theme} resetCSS={true} disableGlobalStyle={false}>
       <AuthProvider>
         <PermissionProvider>
-          <Flex direction="column" minH="100vh">
-            <Flex
-              as="header"
-              bg="teal.500"
-              color="white"
-              py={4}
-              px={8}
-              align="center"
-              justify="space-between"
-              className="no-print"
-              suppressHydrationWarning={true}
-            >
-              <Link as={NextLink} href="/" _hover={{ textDecoration: 'none' }}>
-                <Heading as="h1" size="lg">
-                  Sea Saba
-                </Heading>
-              </Link>
-              <NavLinks />
-            </Flex>
-
-            <Box as="main" p={8} flex={1}>
-              {children}
-            </Box>
-          </Flex>
+          {children}
         </PermissionProvider>
       </AuthProvider>
     </ChakraProvider>
