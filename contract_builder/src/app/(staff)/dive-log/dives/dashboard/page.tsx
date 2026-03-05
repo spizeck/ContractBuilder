@@ -97,7 +97,7 @@ export default function DiveDashboardPage() {
                   patterns
                 </Text>
               </Box>
-              <HStack spacing={3}>
+              <HStack spacing={3} justify={{ base: "stretch", md: "flex-end" }} flexDirection={{ base: "column", md: "row" }} align="stretch">
                 <Button
                   colorScheme="green"
                   onClick={() => router.push("/dive-log/dives/view")}
