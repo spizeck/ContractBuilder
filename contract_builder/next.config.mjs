@@ -19,17 +19,15 @@ const nextConfig = {
 
   async redirects() {
     return [
-      { source: "/admin/:path*", destination: "/app/admin/:path*", permanent: true },
-      { source: "/contracts/:path*", destination: "/app/contracts/:path*", permanent: true },
-      { source: "/contracts", destination: "/app/contracts", permanent: true },
-      { source: "/hotels/:path*", destination: "/app/contracts/hotels/:path*", permanent: true },
-      { source: "/hotels", destination: "/app/contracts/hotels", permanent: true },
-      { source: "/dive-packages/:path*", destination: "/app/contracts/dive-packages/:path*", permanent: true },
-      { source: "/dive-packages", destination: "/app/contracts/dive-packages", permanent: true },
-      { source: "/dives/:path*", destination: "/app/dive-log/:path*", permanent: true },
-      { source: "/dives", destination: "/app/dive-log", permanent: true },
-      { source: "/maintenance/:path*", destination: "/app/maintenance/:path*", permanent: true },
-      { source: "/maintenance", destination: "/app/maintenance", permanent: true },
+      // Old /dives routes redirect to new /dive-log routes
+      { source: "/dives/:path*", destination: "/dive-log/dives/:path*", permanent: true },
+      { source: "/dives", destination: "/dive-log/dives/dashboard", permanent: true },
+      // Old /hotels routes redirect to new /contracts/hotels routes
+      { source: "/hotels/:path*", destination: "/contracts/hotels/:path*", permanent: true },
+      { source: "/hotels", destination: "/contracts/hotels", permanent: true },
+      // Old /dive-packages routes redirect to new /contracts/dive-packages routes
+      { source: "/dive-packages/:path*", destination: "/contracts/dive-packages/:path*", permanent: true },
+      { source: "/dive-packages", destination: "/contracts/dive-packages", permanent: true },
     ];
   },
 
