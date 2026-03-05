@@ -1,5 +1,5 @@
 import { UserProfile } from "@core/types/userTypes";
-import { metersToFeet, celsiusToFahrenheit } from "@/app/app/dive-log/_lib/conversions";
+import { metersToFeet, celsiusToFahrenheit } from "@/app/(staff)/dive-log/_lib/conversions";
 
 export function validateDive(
   maxDepth: number,          // stored in meters
