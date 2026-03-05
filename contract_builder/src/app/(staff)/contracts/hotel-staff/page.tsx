@@ -191,7 +191,7 @@ export default function HotelStaffDashboard() {
             <CardBody>
               <Text color="textSecondary" mb={4}>Edit your hotel details, amenities, policies, and contact information.</Text>
               <VStack spacing={2}>
-                <Link href="/hotel-staff/hotel">
+                <Link href="/contracts/hotel-staff/hotel">
                   <Button w="full">Edit Hotel Details</Button>
                 </Link>
               </VStack>
@@ -208,7 +208,7 @@ export default function HotelStaffDashboard() {
             <CardBody>
               <Text color="textSecondary" mb={4}>View and manage all contracts assigned to your hotel.</Text>
               <VStack spacing={2}>
-                <Link href="/hotel-staff/contracts">
+                <Link href="/contracts/hotel-staff/contracts">
                   <Button w="full" variant="outline">
                     View All Contracts ({contracts.length})
                   </Button>
@@ -252,7 +252,7 @@ export default function HotelStaffDashboard() {
                 ))}
                 {contracts.length > 5 && (
                   <Box textAlign="center" pt={4}>
-                    <Link href="/hotel-staff/contracts">
+                    <Link href="/contracts/hotel-staff/contracts">
                       <Button variant="outline">View All Contracts</Button>
                     </Link>
                   </Box>

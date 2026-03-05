@@ -47,7 +47,7 @@ export default function DiveActions ({
       <Button
         size='sm'
         colorScheme='teal'
-        onClick={() => router.push(`/dives/edit/${dive.id}`)}
+        onClick={() => router.push(`/dive-log/dives/edit/${dive.id}`)}
       >
         Edit
       </Button>

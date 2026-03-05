@@ -27,12 +27,12 @@ export default function EditDivePage() {
 
   const handleSave = async (data: any) => {
     await updateDive(id, data);
-    router.push("/dives/view");
+    router.push("/dive-log/dives/view");
   };
 
   const handleDelete = async () => {
     await deleteDive(id);
-    router.push("/dives/view");
+    router.push("/dive-log/dives/view");
   };
 
   return (
@@ -40,7 +40,7 @@ export default function EditDivePage() {
     <DiveForm
       initialDive={dive}
       onSave={handleSave}
-      onCancel={() => router.push("/dives/view")}
+      onCancel={() => router.push("/dive-log/dives/view")}
     />
     </ProtectedRoute>
   );
