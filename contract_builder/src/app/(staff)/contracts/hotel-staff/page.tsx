@@ -14,14 +14,9 @@ import {
   CardBody,
   CardHeader,
   Button,
-  Badge,
   SimpleGrid,
   Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Icon,
-  Divider
+  Icon
 } from '@chakra-ui/react'
 import { FileText, Calendar, Users, Hotel as HotelIcon } from 'lucide-react'
 import PaymentStatusBadge from '../components/PaymentStatusBadge'
@@ -248,22 +243,7 @@ export default function HotelStaffDashboard() {
                             <Heading size="sm" color="textPrimary" mr={3}>
                               {contract.groupName}
                             </Heading>
-                            <Badge
-                              size="sm"
-                              colorScheme={
-                                contract.paymentStatus === 'paid'
-                                  ? 'green'
-                                  : contract.paymentStatus === 'partial'
-                                  ? 'yellow'
-                                  : 'red'
-                              }
-                            >
-                              {contract.paymentStatus === 'paid'
-                                ? 'Paid'
-                                : contract.paymentStatus === 'partial'
-                                ? 'Partially Paid'
-                                : 'Unpaid'}
-                            </Badge>
+                            <PaymentStatusBadge contract={contract} size="sm" />
                           </HStack>
                           
                           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">

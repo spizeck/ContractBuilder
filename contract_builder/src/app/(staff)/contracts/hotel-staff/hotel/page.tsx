@@ -302,9 +302,9 @@ export default function HotelDetailsPage() {
                           value={
                             formData.mealCommissionRate !== undefined &&
                             formData.mealCommissionRate !== null &&
-                            [0, 5, 10, 15, 20].includes(Number(formData.mealCommissionRate))
+                            [0, 0.05, 0.1, 0.15, 0.2].includes(Number(formData.mealCommissionRate))
                               ? String(formData.mealCommissionRate)
-                              : formData.mealCommissionRate
+                              : formData.mealCommissionRate !== undefined && formData.mealCommissionRate !== null
                               ? 'other'
                               : ''
                           }
@@ -317,21 +317,23 @@ export default function HotelDetailsPage() {
                           placeholder="Select commission rate"
                         >
                           <option value="0">0%</option>
-                          <option value="5">5%</option>
-                          <option value="10">10%</option>
-                          <option value="15">15%</option>
-                          <option value="20">20%</option>
+                          <option value="0.05">5%</option>
+                          <option value="0.1">10%</option>
+                          <option value="0.15">15%</option>
+                          <option value="0.2">20%</option>
                           <option value="other">Other</option>
                         </Select>
                         {formData.mealCommissionRate !== undefined &&
                           formData.mealCommissionRate !== null &&
-                          ![0, 5, 10, 15, 20].includes(Number(formData.mealCommissionRate)) && (
+                          ![0, 0.05, 0.1, 0.15, 0.2].includes(Number(formData.mealCommissionRate)) && (
                             <NumberInput
                               mt={2}
-                              value={formData.mealCommissionRate}
-                              onChange={(valueString) =>
-                                handleInputChange('mealCommissionRate', valueString)
-                              }
+                              value={Number(formData.mealCommissionRate) * 100}
+                              onChange={(valueString) => {
+                                const percentageValue = parseFloat(valueString) || 0
+                                const decimalValue = percentageValue / 100
+                                handleInputChange('mealCommissionRate', String(decimalValue))
+                              }}
                               min={0}
                               max={100}
                               precision={2}

@@ -15,7 +15,6 @@ import {
   CardHeader,
   Button,
   Input,
-  Badge,
   InputGroup,
   InputLeftElement,
   Spinner,
@@ -243,12 +242,7 @@ export default function HotelContractsPage() {
                         <Heading size="sm" color="textPrimary" mr={3}>
                           {contract.groupName}
                         </Heading>
-                        <Badge
-                          colorScheme={contract.paymentStatus === 'paid' ? 'green' : 'yellow'}
-                          fontSize="xs"
-                        >
-                          {contract.paymentStatus ?? 'Pending'}
-                        </Badge>
+                        <PaymentStatusBadge contract={contract} size="sm" />
                       </HStack>
                       
                       <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">
