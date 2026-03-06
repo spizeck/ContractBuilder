@@ -311,7 +311,7 @@ export default function HotelDetailsPage() {
                           onChange={(e) => {
                             const value = e.target.value
                             if (value !== 'other') {
-                              handleInputChange('mealCommissionRate', value)
+                              setFormData(prev => ({ ...prev, mealCommissionRate: Number(value) }))
                             }
                           }}
                           placeholder="Select commission rate"
@@ -332,7 +332,7 @@ export default function HotelDetailsPage() {
                               onChange={(valueString) => {
                                 const percentageValue = parseFloat(valueString) || 0
                                 const decimalValue = percentageValue / 100
-                                handleInputChange('mealCommissionRate', String(decimalValue))
+                                setFormData(prev => ({ ...prev, mealCommissionRate: decimalValue }))
                               }}
                               min={0}
                               max={100}
