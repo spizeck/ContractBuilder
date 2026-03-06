@@ -38,7 +38,7 @@ export default function HotelContractsPage() {
     if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadContracts()
     } else if (!loading && !user) {
-      window.location.href = '/login?redirect=/hotel-staff/contracts'
+      window.location.href = '/login?redirect=/contracts/hotel-staff/contracts'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       window.location.href = '/'
     }

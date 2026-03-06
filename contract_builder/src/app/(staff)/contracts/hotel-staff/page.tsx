@@ -37,7 +37,7 @@ export default function HotelStaffDashboard() {
       loadDashboardData()
     } else if (!loading && !user) {
       // Redirect to login if not authenticated
-      window.location.href = '/login?redirect=/hotel-staff'
+      window.location.href = '/login?redirect=/contracts/hotel-staff'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       // Redirect to dashboard if wrong role
       window.location.href = '/'
