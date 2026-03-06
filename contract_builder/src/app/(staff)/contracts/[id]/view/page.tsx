@@ -35,7 +35,11 @@ export default function ViewContractPage () {
   const params = useParams()
   const router = useRouter()
   const { id } = params // Firestore contract id
-  const { user } = useAuth()
+  const { user, role, loading: authLoading } = useAuth()
+
+  // Check if user is hotel staff. While auth is loading, treat as staff to keep admin-only actions hidden.
+  const isHotelStaff =
+    authLoading || role === 'hotel-staff' || role === 'hotel-manager'
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
@@ -180,13 +184,15 @@ export default function ViewContractPage () {
       <HStack justify='space-between' align='center'>
         <Heading size='lg'>Group Contract</Heading>
         <HStack spacing={3} className='no-print'>
-          <Button 
-            onClick={handleEditContract}
-            colorScheme='teal'
-            variant='outline'
-          >
-            Edit Contract
-          </Button>
+          {!isHotelStaff && (
+            <Button 
+              onClick={handleEditContract}
+              colorScheme='teal'
+              variant='outline'
+            >
+              Edit Contract
+            </Button>
+          )}
           <Button 
             onClick={handlePrintToPDF}
             colorScheme='blue'
@@ -406,13 +412,15 @@ export default function ViewContractPage () {
         <VStack spacing={4} align="stretch">
           <HStack justify="space-between" align="center">
             <Heading size="md">Payment Tracking</Heading>
-            <Button 
-              colorScheme="blue" 
-              onClick={onPaymentModalOpen}
-              isDisabled={!contract}
-            >
-              Add Payment
-            </Button>
+            {!isHotelStaff && (
+              <Button 
+                colorScheme="blue" 
+                onClick={onPaymentModalOpen}
+                isDisabled={!contract}
+              >
+                Add Payment
+              </Button>
+            )}
           </HStack>
           
           {contract && (
@@ -421,6 +429,7 @@ export default function ViewContractPage () {
               contractTotalCost={contract.totalCost}
               onPaymentDeleted={handlePaymentDeleted}
               refreshKey={paymentRefreshKey}
+              isHotelStaff={isHotelStaff}
             />
           )}
         </VStack>
@@ -428,20 +437,22 @@ export default function ViewContractPage () {
 
       {/* Notes Section */}
       <Box mt={6} className='no-print'>
-        <ContractNotes contractId={id as string} />
+        <ContractNotes contractId={id as string} isHotelStaff={isHotelStaff} />
       </Box>
 
       {/* Signed Contract Upload */}
-      <Box mt={6} className='no-print'>
-        <SignedContractUpload
-          contractId={id as string}
-          currentUrl={contract?.signedContractUrl}
-          uploadedAt={contract?.signedContractUploadedAt}
-          uploadedByName={contract?.signedContractUploadedByName}
-          onUploadSuccess={handleUploadSuccess}
-          onDeleteSuccess={handleDeleteSuccess}
-        />
-      </Box>
+      {!isHotelStaff && (
+        <Box mt={6} className='no-print'>
+          <SignedContractUpload
+            contractId={id as string}
+            currentUrl={contract?.signedContractUrl}
+            uploadedAt={contract?.signedContractUploadedAt}
+            uploadedByName={contract?.signedContractUploadedByName}
+            onUploadSuccess={handleUploadSuccess}
+            onDeleteSuccess={handleDeleteSuccess}
+          />
+        </Box>
+      )}
 
       {/* Payment Modal */}
       {contract && (

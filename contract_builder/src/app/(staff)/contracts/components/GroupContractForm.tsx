@@ -29,10 +29,12 @@ export default function GroupContractForm({
   initialData,
   onNext,
   onCancel,
+  isHotelStaff = false,
 }: {
   initialData?: Partial<GroupContractData>;
   onNext: (data: GroupContractData) => void;
   onCancel: () => void;
+  isHotelStaff?: boolean;
 }) {
   const toast = useToast();
   const [groupName, setGroupName] = useState(initialData?.groupName || "");
@@ -165,6 +167,7 @@ export default function GroupContractForm({
                 value={hotelId}
                 onChange={(e) => setHotelId(e.target.value)}
                 placeholder="Select a hotel"
+                isDisabled={isHotelStaff}
               >
                 {hotels.map((hotel) => (
                   <option key={hotel.id} value={hotel.id}>
@@ -172,6 +175,11 @@ export default function GroupContractForm({
                   </option>
                 ))}
               </Select>
+              {isHotelStaff && (
+                <Text fontSize="sm" color="blue.600" mt={1}>
+                  Hotel is pre-selected for your account
+                </Text>
+              )}
               <FormErrorMessage>{errors.hotelId}</FormErrorMessage>
               {bookingType === "directHotelBooking" && (
                 <Text fontSize="sm" color="gray.600" mt={1}>

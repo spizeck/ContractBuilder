@@ -8,13 +8,19 @@ import TotalCostCalculation from './TotalCostCalculation'
 
 export default function GroupContractWizard ({
   onCancel,
-  initialData = null
+  initialData = null,
+  prefilledHotelId,
+  isHotelStaff = false
 }: {
   onCancel: () => void
   initialData?: any
+  prefilledHotelId?: string
+  isHotelStaff?: boolean
 }) {
   const [step, setStep] = useState(1)
-  const [contractData, setContractData] = useState<any>(initialData || {})
+  const [contractData, setContractData] = useState<any>(
+    initialData || (prefilledHotelId ? { hotelId: prefilledHotelId } : {})
+  )
 
   const nextStep = (data: any) => {
     setContractData((prev: any) => {
@@ -60,6 +66,7 @@ export default function GroupContractWizard ({
           initialData={contractData}
           onNext={nextStep}
           onCancel={onCancel}
+          isHotelStaff={isHotelStaff}
         />
       )
     case 2:

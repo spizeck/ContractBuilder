@@ -15,7 +15,6 @@ import {
   CardHeader,
   Button,
   Input,
-  Badge,
   InputGroup,
   InputLeftElement,
   Spinner,
@@ -25,6 +24,7 @@ import {
 } from '@chakra-ui/react'
 import { ArrowLeft, FileText, Calendar, Users, Search, Download } from 'lucide-react'
 import Link from 'next/link'
+import PaymentStatusBadge from '../../components/PaymentStatusBadge'
 
 export default function HotelContractsPage() {
   const { user, role, loading } = useAuth()
@@ -38,7 +38,7 @@ export default function HotelContractsPage() {
     if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
       loadContracts()
     } else if (!loading && !user) {
-      window.location.href = '/login?redirect=/hotel-staff/contracts'
+      window.location.href = '/login?redirect=/contracts/hotel-staff/contracts'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       window.location.href = '/'
     }
@@ -58,7 +58,15 @@ export default function HotelContractsPage() {
       contract.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.seasonName.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    setFilteredContracts(filtered)
+
+    // Sort chronologically: upcoming = earliest first, past = latest first
+    const sorted = filtered.sort((a, b) => {
+      const dateA = new Date(a.startDate).getTime()
+      const dateB = new Date(b.startDate).getTime()
+      return viewMode === 'upcoming' ? dateA - dateB : dateB - dateA
+    })
+
+    setFilteredContracts(sorted)
   }, [searchTerm, contracts, viewMode])
 
   const loadContracts = async () => {
@@ -75,21 +83,6 @@ export default function HotelContractsPage() {
     }
   }
 
-  const getStatusBadge = (contract: GroupContract) => {
-    if (contract.archived) {
-      return <Badge variant="secondary">Archived</Badge>
-    }
-    
-    if (contract.paymentStatus === 'paid-in-full') {
-      return <Badge variant="default" className="bg-green-600">Paid in Full</Badge>
-    }
-    
-    if (contract.paymentStatus === 'deposit-paid') {
-      return <Badge variant="default" className="bg-yellow-600">Deposit Paid</Badge>
-    }
-    
-    return <Badge variant="outline">Unpaid</Badge>
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString()
@@ -205,14 +198,14 @@ export default function HotelContractsPage() {
                 </Text>
               </HStack>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <Icon as={Search} h={4} w={4} color="gray.400" />
                 </InputLeftElement>
                 <Input
                   placeholder="Search contracts by group name, hotel, or season..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  pl={10}
+                  paddingLeft="2.5rem"
                 />
               </InputGroup>
             </VStack>
@@ -249,7 +242,7 @@ export default function HotelContractsPage() {
                         <Heading size="sm" color="textPrimary" mr={3}>
                           {contract.groupName}
                         </Heading>
-                        {getStatusBadge(contract)}
+                        <PaymentStatusBadge contract={contract} size="sm" />
                       </HStack>
                       
                       <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">
@@ -289,7 +282,7 @@ export default function HotelContractsPage() {
                     
                     <VStack align="end" spacing={1} ml={6}>
                       <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
-                        ${contract.totalCost.toLocaleString()}
+                        ${contract.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                       <Text fontSize="sm" color="textMuted">
                         Total Cost

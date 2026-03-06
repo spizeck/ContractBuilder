@@ -26,9 +26,10 @@ import { formatDateTime } from "@shared/utils/dateHelpers";
 
 interface ContractNotesProps {
   contractId: string;
+  isHotelStaff?: boolean;
 }
 
-export default function ContractNotes({ contractId }: ContractNotesProps) {
+export default function ContractNotes({ contractId, isHotelStaff = false }: ContractNotesProps) {
   const { user } = useAuth();
   const toast = useToast();
 
@@ -158,14 +159,16 @@ export default function ContractNotes({ contractId }: ContractNotesProps) {
                       {formatDateTime(note.createdAt)}
                     </Text>
                   </VStack>
-                  <IconButton
-                    aria-label="Delete note"
-                    icon={<DeleteIcon />}
-                    size="sm"
-                    colorScheme="red"
-                    variant="ghost"
-                    onClick={() => handleDeleteNote(note.id)}
-                  />
+                  {!isHotelStaff && (
+                    <IconButton
+                      aria-label="Delete note"
+                      icon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      variant="ghost"
+                      onClick={() => handleDeleteNote(note.id)}
+                    />
+                  )}
                 </HStack>
               </Box>
             ))}

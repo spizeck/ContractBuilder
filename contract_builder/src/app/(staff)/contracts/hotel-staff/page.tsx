@@ -14,16 +14,12 @@ import {
   CardBody,
   CardHeader,
   Button,
-  Badge,
   SimpleGrid,
   Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Icon,
-  Divider
+  Icon
 } from '@chakra-ui/react'
-import { Hotel as HotelIcon, FileText, Calendar, Users } from 'lucide-react'
+import { FileText, Calendar, Users, Hotel as HotelIcon } from 'lucide-react'
+import PaymentStatusBadge from '../components/PaymentStatusBadge'
 import Link from 'next/link'
 
 export default function HotelStaffDashboard() {
@@ -37,7 +33,7 @@ export default function HotelStaffDashboard() {
       loadDashboardData()
     } else if (!loading && !user) {
       // Redirect to login if not authenticated
-      window.location.href = '/login?redirect=/hotel-staff'
+      window.location.href = '/login?redirect=/contracts/hotel-staff'
     } else if (!loading && user && role !== 'hotel-staff' && role !== 'hotel-manager') {
       // Redirect to dashboard if wrong role
       window.location.href = '/'
@@ -118,7 +114,13 @@ export default function HotelStaffDashboard() {
   }
 
   const recentContracts = contracts.slice(0, 5)
-  const activeContracts = contracts.filter(c => !c.archived)
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const upcomingContracts = contracts.filter(c => {
+    const endDateStr = c.endDate.slice(0, 10)
+    return endDateStr >= todayStr && !c.archived
+  })
+  const totalGuests = contracts.reduce((sum, c) => sum + c.totalGuests, 0)
 
   return (
     <Box maxW="6xl" mx="auto" px={4} py={8}>
@@ -158,8 +160,8 @@ export default function HotelStaffDashboard() {
               <HStack>
                 <Icon as={Calendar} h={8} w={8} color="info" mr={3} />
                 <VStack align="start" spacing={1}>
-                  <Text fontSize="sm" color="textSecondary" fontWeight="medium">Active Contracts</Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="textPrimary">{activeContracts.length}</Text>
+                  <Text fontSize="sm" color="textSecondary" fontWeight="medium">Upcoming Contracts</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="textPrimary">{upcomingContracts.length}</Text>
                 </VStack>
               </HStack>
             </CardBody>
@@ -172,7 +174,7 @@ export default function HotelStaffDashboard() {
                 <VStack align="start" spacing={1}>
                   <Text fontSize="sm" color="textSecondary" fontWeight="medium">Total Guests</Text>
                   <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
-                    {contracts.reduce((sum, c) => sum + c.totalGuests, 0)}
+                    {totalGuests}
                   </Text>
                 </VStack>
               </HStack>
@@ -206,10 +208,15 @@ export default function HotelStaffDashboard() {
               </HStack>
             </CardHeader>
             <CardBody>
-              <Text color="textSecondary" mb={4}>View and manage all contracts assigned to your hotel.</Text>
+              <Text color="textSecondary" mb={4}>Create new contracts and view existing contracts for your hotel.</Text>
               <VStack spacing={2}>
-                <Link href="/contracts/hotel-staff/contracts">
-                  <Button w="full" variant="outline">
+                <Link href="/contracts/hotel-staff/create" style={{ width: '100%' }}>
+                  <Button w="full" colorScheme="blue">
+                    Create New Contract
+                  </Button>
+                </Link>
+                <Link href="/contracts/hotel-staff/contracts" style={{ width: '100%' }}>
+                  <Button w="full" variant="outline" colorScheme="gray">
                     View All Contracts ({contracts.length})
                   </Button>
                 </Link>
@@ -228,27 +235,71 @@ export default function HotelStaffDashboard() {
             ) : (
               <VStack spacing={4} align="stretch">
                 {recentContracts.map((contract) => (
-                  <Box key={contract.id} p={4} borderWidth={1} borderRadius="lg">
-                    <HStack justify="space-between" align="start">
-                      <VStack align="start" spacing={1}>
-                        <Heading size="md" color="textPrimary">{contract.groupName}</Heading>
-                        <Text fontSize="sm" color="gray.600">
-                          {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
-                        </Text>
-                        <Text fontSize="sm" color="gray.600">
-                          <span style={{ color: 'var(--chakra-colors-textSecondary)' }}>{contract.totalGuests} guests</span> • {contract.numDivers} divers
-                        </Text>
-                      </VStack>
-                      <VStack align="end" spacing={1}>
-                        <Badge variant={contract.archived ? "subtle" : "solid"} colorScheme={contract.archived ? "gray" : "blue"}>
-                          {contract.archived ? "Archived" : "Active"}
-                        </Badge>
-                        <Text fontSize="sm" fontWeight="bold">
-                          ${contract.totalCost.toLocaleString()}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  </Box>
+                  <Card key={contract.id} _hover={{ shadow: 'md' }} transition="shadow 0.2s">
+                    <CardBody p={6}>
+                      <HStack justify="space-between" align="start">
+                        <VStack align="start" spacing={2} flex={1}>
+                          <HStack mb={2}>
+                            <Heading size="sm" color="textPrimary" mr={3}>
+                              {contract.groupName}
+                            </Heading>
+                            <PaymentStatusBadge contract={contract} size="sm" />
+                          </HStack>
+                          
+                          <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">
+                            <HStack>
+                              <Icon as={Calendar} h={4} w={4} color="gray.400" />
+                              <Text>
+                                {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
+                              </Text>
+                            </HStack>
+                            
+                            <HStack>
+                              <Icon as={Users} h={4} w={4} color="gray.400" />
+                              <Text>
+                                {contract.totalGuests} guests ({contract.numDivers} divers)
+                              </Text>
+                            </HStack>
+                            
+                            <Text>
+                              <Text as="span" fontWeight="medium">Season:</Text> {contract.seasonName}
+                            </Text>
+                          </SimpleGrid>
+
+                          <Text fontSize="sm" color="textSecondary">
+                            <Text as="span" fontWeight="medium">Hotel:</Text> {contract.hotelName}
+                            {contract.divePackageName && (
+                              <Text as="span" ml={4}>
+                                <Text as="span" fontWeight="medium">Dive Package:</Text> {contract.divePackageName}
+                              </Text>
+                            )}
+                            {contract.mealPackageName && (
+                              <Text as="span" ml={4}>
+                                <Text as="span" fontWeight="medium">Meal Package:</Text> {contract.mealPackageName}
+                              </Text>
+                            )}
+                          </Text>
+                        </VStack>
+                        
+                        <VStack align="end" spacing={1} ml={6}>
+                          <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
+                            ${contract.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </Text>
+                          <Text fontSize="sm" color="textMuted">
+                            Total Cost
+                          </Text>
+                          
+                          <Box mt={3}>
+                            <Link href={`/contracts/${contract.id}/view`}>
+                              <Button variant="outline" size="sm">
+                                View Details
+                              </Button>
+                            </Link>
+                          </Box>
+                        </VStack>
+                      </HStack>
+                    </CardBody>
+                  </Card>
                 ))}
                 {contracts.length > 5 && (
                   <Box textAlign="center" pt={4}>

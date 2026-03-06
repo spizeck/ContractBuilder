@@ -20,22 +20,22 @@ const nextConfig = {
   async redirects() {
     return [
       // Old /dives routes redirect to new /dive-log routes
-      { source: "/dives/:path*", destination: "/dive-log/dives/:path*", permanent: true },
-      { source: "/dives", destination: "/dive-log/dives/dashboard", permanent: true },
+      { source: "/dives/:path*", destination: "/dive-log/dives/:path*", permanent: false },
+      { source: "/dives", destination: "/dive-log/dives/dashboard", permanent: false },
       // Old /hotels routes redirect to new /contracts/hotels routes
-      { source: "/hotels/:path*", destination: "/contracts/hotels/:path*", permanent: true },
-      { source: "/hotels", destination: "/contracts/hotels", permanent: true },
+      { source: "/hotels/:path*", destination: "/contracts/hotels/:path*", permanent: false },
+      { source: "/hotels", destination: "/contracts/hotels", permanent: false },
       // Old /dive-packages routes redirect to new /contracts/dive-packages routes
-      { source: "/dive-packages/:path*", destination: "/contracts/dive-packages/:path*", permanent: true },
-      { source: "/dive-packages", destination: "/contracts/dive-packages", permanent: true },
+      { source: "/dive-packages/:path*", destination: "/contracts/dive-packages/:path*", permanent: false },
+      { source: "/dive-packages", destination: "/contracts/dive-packages", permanent: false },
       // Old /hotel-staff routes redirect to new /contracts/hotel-staff routes
-      { source: "/hotel-staff/:path*", destination: "/contracts/hotel-staff/:path*", permanent: true },
-      { source: "/hotel-staff", destination: "/contracts/hotel-staff", permanent: true },
+      { source: "/hotel-staff/:path*", destination: "/contracts/hotel-staff/:path*", permanent: false },
+      { source: "/hotel-staff", destination: "/contracts/hotel-staff", permanent: false },
       // Legacy /app/* routes redirect to clean URLs (for external links/bookmarks)
-      { source: "/app/admin/:path*", destination: "/admin/:path*", permanent: true },
-      { source: "/app/contracts/:path*", destination: "/contracts/:path*", permanent: true },
-      { source: "/app/dive-log/:path*", destination: "/dive-log/:path*", permanent: true },
-      { source: "/app/maintenance/:path*", destination: "/maintenance/:path*", permanent: true },
+      { source: "/app/admin/:path*", destination: "/admin/:path*", permanent: false },
+      { source: "/app/contracts/:path*", destination: "/contracts/:path*", permanent: false },
+      { source: "/app/dive-log/:path*", destination: "/dive-log/:path*", permanent: false },
+      { source: "/app/maintenance/:path*", destination: "/maintenance/:path*", permanent: false },
     ];
   },
 
