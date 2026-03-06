@@ -58,7 +58,15 @@ export default function HotelContractsPage() {
       contract.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.seasonName.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    setFilteredContracts(filtered)
+
+    // Sort chronologically: upcoming = earliest first, past = latest first
+    const sorted = filtered.sort((a, b) => {
+      const dateA = new Date(a.startDate).getTime()
+      const dateB = new Date(b.startDate).getTime()
+      return viewMode === 'upcoming' ? dateA - dateB : dateB - dateA
+    })
+
+    setFilteredContracts(sorted)
   }, [searchTerm, contracts, viewMode])
 
   const loadContracts = async () => {
@@ -289,7 +297,7 @@ export default function HotelContractsPage() {
                     
                     <VStack align="end" spacing={1} ml={6}>
                       <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
-                        ${contract.totalCost.toLocaleString()}
+                        ${contract.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                       <Text fontSize="sm" color="textMuted">
                         Total Cost
