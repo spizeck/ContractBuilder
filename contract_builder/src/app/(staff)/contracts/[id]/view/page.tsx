@@ -35,11 +35,11 @@ export default function ViewContractPage () {
   const params = useParams()
   const router = useRouter()
   const { id } = params // Firestore contract id
-  const { user, role } = useAuth()
-  
-  // Check if user is hotel staff (read-only) or hotel manager (full access)
-  const isHotelStaff = role === 'hotel-staff'
-  const isHotelManager = role === 'hotel-manager'
+  const { user, role, loading: authLoading } = useAuth()
+
+  // Check if user is hotel staff. While auth is loading, treat as staff to keep admin-only actions hidden.
+  const isHotelStaff =
+    authLoading || role === 'hotel-staff' || role === 'hotel-manager'
 
   const [contract, setContract] = useState<GroupContract | null>(null)
   const [hotel, setHotel] = useState<Hotel | null>(null)
