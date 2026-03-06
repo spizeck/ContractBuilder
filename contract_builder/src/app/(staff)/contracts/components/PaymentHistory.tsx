@@ -25,13 +25,15 @@ interface PaymentHistoryProps {
   contractTotalCost: number
   onPaymentDeleted?: () => void
   refreshKey?: number
+  isHotelStaff?: boolean
 }
 
 export default function PaymentHistory({ 
   contractId, 
   contractTotalCost, 
   onPaymentDeleted, 
-  refreshKey 
+  refreshKey,
+  isHotelStaff = false
 }: PaymentHistoryProps) {
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
@@ -160,14 +162,16 @@ export default function PaymentHistory({
                 )}
               </VStack>
               
-              <IconButton
-                aria-label="Delete payment"
-                icon={<DeleteIcon />}
-                size="sm"
-                colorScheme="red"
-                variant="ghost"
-                onClick={() => handleDeletePayment(payment.id, contractId)}
-              />
+              {!isHotelStaff && (
+                <IconButton
+                  aria-label="Delete payment"
+                  icon={<DeleteIcon />}
+                  size="sm"
+                  colorScheme="red"
+                  variant="ghost"
+                  onClick={() => handleDeletePayment(payment.id, contractId)}
+                />
+              )}
             </HStack>
           </Box>
         ))}
