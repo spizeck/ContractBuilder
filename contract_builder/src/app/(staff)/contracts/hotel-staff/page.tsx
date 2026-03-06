@@ -23,7 +23,8 @@ import {
   Icon,
   Divider
 } from '@chakra-ui/react'
-import { Hotel as HotelIcon, FileText, Calendar, Users } from 'lucide-react'
+import { ArrowLeft, FileText, Calendar, Users, Hotel as HotelIcon } from 'lucide-react'
+import PaymentStatusBadge from '../components/PaymentStatusBadge'
 import Link from 'next/link'
 
 export default function HotelStaffDashboard() {
@@ -239,27 +240,71 @@ export default function HotelStaffDashboard() {
             ) : (
               <VStack spacing={4} align="stretch">
                 {recentContracts.map((contract) => (
-                  <Box key={contract.id} p={4} borderWidth={1} borderRadius="lg">
-                    <HStack justify="space-between" align="start">
-                      <VStack align="start" spacing={1}>
-                        <Heading size="md" color="textPrimary">{contract.groupName}</Heading>
-                        <Text fontSize="sm" color="gray.600">
-                          {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
-                        </Text>
-                        <Text fontSize="sm" color="gray.600">
-                          <span style={{ color: 'var(--chakra-colors-textSecondary)' }}>{contract.totalGuests} guests</span> • {contract.numDivers} divers
-                        </Text>
-                      </VStack>
-                      <VStack align="end" spacing={1}>
-                        <Badge variant={contract.archived ? "subtle" : "solid"} colorScheme={contract.archived ? "gray" : "blue"}>
-                          {contract.archived ? "Archived" : "Active"}
-                        </Badge>
-                        <Text fontSize="sm" fontWeight="bold">
-                          ${contract.totalCost.toLocaleString()}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  </Box>
+                  <Card key={contract.id} _hover={{ shadow: 'md' }} transition="shadow 0.2s">
+                    <CardBody p={6}>
+                      <HStack justify="space-between" align="start">
+                        <VStack align="start" spacing={2} flex={1}>
+                          <HStack mb={2}>
+                            <Heading size="sm" color="textPrimary" mr={3}>
+                              {contract.groupName}
+                            </Heading>
+                            <PaymentStatusBadge contract={contract} size="sm" />
+                          </HStack>
+                          
+                          <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">
+                            <HStack>
+                              <Icon as={Calendar} h={4} w={4} color="gray.400" />
+                              <Text>
+                                {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
+                              </Text>
+                            </HStack>
+                            
+                            <HStack>
+                              <Icon as={Users} h={4} w={4} color="gray.400" />
+                              <Text>
+                                {contract.totalGuests} guests ({contract.numDivers} divers)
+                              </Text>
+                            </HStack>
+                            
+                            <Text>
+                              <Text as="span" fontWeight="medium">Season:</Text> {contract.seasonName}
+                            </Text>
+                          </SimpleGrid>
+
+                          <Text fontSize="sm" color="textSecondary">
+                            <Text as="span" fontWeight="medium">Hotel:</Text> {contract.hotelName}
+                            {contract.divePackageName && (
+                              <Text as="span" ml={4}>
+                                <Text as="span" fontWeight="medium">Dive Package:</Text> {contract.divePackageName}
+                              </Text>
+                            )}
+                            {contract.mealPackageName && (
+                              <Text as="span" ml={4}>
+                                <Text as="span" fontWeight="medium">Meal Package:</Text> {contract.mealPackageName}
+                              </Text>
+                            )}
+                          </Text>
+                        </VStack>
+                        
+                        <VStack align="end" spacing={1} ml={6}>
+                          <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
+                            ${contract.totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </Text>
+                          <Text fontSize="sm" color="textMuted">
+                            Total Cost
+                          </Text>
+                          
+                          <Box mt={3}>
+                            <Link href={`/contracts/${contract.id}/view`}>
+                              <Button variant="outline" size="sm">
+                                View Details
+                              </Button>
+                            </Link>
+                          </Box>
+                        </VStack>
+                      </HStack>
+                    </CardBody>
+                  </Card>
                 ))}
                 {contracts.length > 5 && (
                   <Box textAlign="center" pt={4}>
