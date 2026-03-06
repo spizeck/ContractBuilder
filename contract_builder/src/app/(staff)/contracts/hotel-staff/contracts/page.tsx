@@ -213,14 +213,14 @@ export default function HotelContractsPage() {
                 </Text>
               </HStack>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <Icon as={Search} h={4} w={4} color="gray.400" />
                 </InputLeftElement>
                 <Input
                   placeholder="Search contracts by group name, hotel, or season..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  pl={10}
+                  paddingLeft="2.5rem"
                 />
               </InputGroup>
             </VStack>
