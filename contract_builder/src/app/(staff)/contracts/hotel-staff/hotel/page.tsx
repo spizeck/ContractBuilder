@@ -28,6 +28,8 @@ import {
   Tab,
   TabPanel,
   Select,
+  NumberInput,
+  NumberInputField,
 } from '@chakra-ui/react'
 import { ArrowLeft, Save, Hotel as HotelIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -297,8 +299,21 @@ export default function HotelDetailsPage() {
                       <FormControl>
                         <FormLabel>Meal Commission Rate (%)</FormLabel>
                         <Select
-                          value={formData.mealCommissionRate || ''}
-                          onChange={(e) => handleInputChange('mealCommissionRate', e.target.value)}
+                          value={
+                            formData.mealCommissionRate !== undefined &&
+                            formData.mealCommissionRate !== null &&
+                            [0, 5, 10, 15, 20].includes(Number(formData.mealCommissionRate))
+                              ? String(formData.mealCommissionRate)
+                              : formData.mealCommissionRate
+                              ? 'other'
+                              : ''
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value !== 'other') {
+                              handleInputChange('mealCommissionRate', value)
+                            }
+                          }}
                           placeholder="Select commission rate"
                         >
                           <option value="0">0%</option>
@@ -306,8 +321,25 @@ export default function HotelDetailsPage() {
                           <option value="10">10%</option>
                           <option value="15">15%</option>
                           <option value="20">20%</option>
+                          <option value="other">Other</option>
                         </Select>
-                        <FormHelperText>Enter percentage (e.g., 10 for 10% commission)</FormHelperText>
+                        {formData.mealCommissionRate !== undefined &&
+                          formData.mealCommissionRate !== null &&
+                          ![0, 5, 10, 15, 20].includes(Number(formData.mealCommissionRate)) && (
+                            <NumberInput
+                              mt={2}
+                              value={formData.mealCommissionRate}
+                              onChange={(valueString) =>
+                                handleInputChange('mealCommissionRate', valueString)
+                              }
+                              min={0}
+                              max={100}
+                              precision={2}
+                            >
+                              <NumberInputField placeholder="Enter custom commission rate (%)" />
+                            </NumberInput>
+                          )}
+                        <FormHelperText>Select a standard rate or choose Other to enter a custom percentage</FormHelperText>
                       </FormControl>
                     </VStack>
                   </CardBody>

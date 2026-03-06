@@ -123,7 +123,7 @@ export default function HotelStaffDashboard() {
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const upcomingContracts = contracts.filter(c => {
     const endDateStr = c.endDate.slice(0, 10)
-    return endDateStr >= todayStr
+    return endDateStr >= todayStr && !c.archived
   })
   const totalGuests = contracts.reduce((sum, c) => sum + c.totalGuests, 0)
 
