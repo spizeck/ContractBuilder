@@ -270,11 +270,13 @@ export default function HotelDetailsPage() {
                           onChange={(e) => handleInputChange('focRule', e.target.value)}
                           placeholder="Select FOC rule"
                         >
+                          <option value="4+1">4+1</option>
+                          <option value="5+1">5+1</option>
+                          <option value="6+1">6+1</option>
                           <option value="7+1">7+1</option>
+                          <option value="8+1">8+1</option>
+                          <option value="9+1">9+1</option>
                           <option value="10+1">10+1</option>
-                          <option value="14+1">14+1</option>
-                          <option value="15+1">15+1</option>
-                          <option value="20+1">20+1</option>
                         </Select>
                         <FormHelperText>Format: X+Y (Y free for every X paying guests)</FormHelperText>
                       </FormControl>

@@ -118,7 +118,13 @@ export default function HotelStaffDashboard() {
   }
 
   const recentContracts = contracts.slice(0, 5)
-  const activeContracts = contracts.filter(c => !c.archived)
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const upcomingContracts = contracts.filter(c => {
+    const endDateStr = c.endDate.slice(0, 10)
+    return endDateStr >= todayStr
+  })
+  const totalGuests = contracts.reduce((sum, c) => sum + c.totalGuests, 0)
 
   return (
     <Box maxW="6xl" mx="auto" px={4} py={8}>
@@ -158,8 +164,8 @@ export default function HotelStaffDashboard() {
               <HStack>
                 <Icon as={Calendar} h={8} w={8} color="info" mr={3} />
                 <VStack align="start" spacing={1}>
-                  <Text fontSize="sm" color="textSecondary" fontWeight="medium">Active Contracts</Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="textPrimary">{activeContracts.length}</Text>
+                  <Text fontSize="sm" color="textSecondary" fontWeight="medium">Upcoming Contracts</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="textPrimary">{upcomingContracts.length}</Text>
                 </VStack>
               </HStack>
             </CardBody>
@@ -172,7 +178,7 @@ export default function HotelStaffDashboard() {
                 <VStack align="start" spacing={1}>
                   <Text fontSize="sm" color="textSecondary" fontWeight="medium">Total Guests</Text>
                   <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
-                    {contracts.reduce((sum, c) => sum + c.totalGuests, 0)}
+                    {totalGuests}
                   </Text>
                 </VStack>
               </HStack>
@@ -208,13 +214,13 @@ export default function HotelStaffDashboard() {
             <CardBody>
               <Text color="textSecondary" mb={4}>Create new contracts and view existing contracts for your hotel.</Text>
               <VStack spacing={2}>
-                <Link href="/contracts/hotel-staff/create">
+                <Link href="/contracts/hotel-staff/create" style={{ width: '100%' }}>
                   <Button w="full" colorScheme="blue">
                     Create New Contract
                   </Button>
                 </Link>
-                <Link href="/contracts/hotel-staff/contracts">
-                  <Button w="full" variant="outline">
+                <Link href="/contracts/hotel-staff/contracts" style={{ width: '100%' }}>
+                  <Button w="full" variant="outline" colorScheme="gray">
                     View All Contracts ({contracts.length})
                   </Button>
                 </Link>

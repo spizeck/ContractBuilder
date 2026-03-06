@@ -25,6 +25,7 @@ import {
 } from '@chakra-ui/react'
 import { ArrowLeft, FileText, Calendar, Users, Search, Download } from 'lucide-react'
 import Link from 'next/link'
+import PaymentStatusBadge from '../../components/PaymentStatusBadge'
 
 export default function HotelContractsPage() {
   const { user, role, loading } = useAuth()
@@ -83,21 +84,6 @@ export default function HotelContractsPage() {
     }
   }
 
-  const getStatusBadge = (contract: GroupContract) => {
-    if (contract.archived) {
-      return <Badge variant="secondary">Archived</Badge>
-    }
-    
-    if (contract.paymentStatus === 'paid-in-full') {
-      return <Badge variant="default" className="bg-green-600">Paid in Full</Badge>
-    }
-    
-    if (contract.paymentStatus === 'deposit-paid') {
-      return <Badge variant="default" className="bg-yellow-600">Deposit Paid</Badge>
-    }
-    
-    return <Badge variant="outline">Unpaid</Badge>
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString()
@@ -257,7 +243,7 @@ export default function HotelContractsPage() {
                         <Heading size="sm" color="textPrimary" mr={3}>
                           {contract.groupName}
                         </Heading>
-                        {getStatusBadge(contract)}
+                        <PaymentStatusBadge contract={contract} size="sm" />
                       </HStack>
                       
                       <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} fontSize="sm" color="textSecondary">
