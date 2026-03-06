@@ -31,6 +31,8 @@ export default function NavLinks() {
   const { user, role, loading } = useAuth()
   const { canAccessModule } = usePermissions()
 
+  const isHotelStaffRole = role === 'hotel-staff' || role === 'hotel-manager'
+
   // Define link data separately from rendering
   const diveLogLinksData: NavLinkItem[] = [
     { href: '/dive-log/dives/dashboard', label: 'Dashboard' },
@@ -112,7 +114,7 @@ export default function NavLinks() {
         ) : user ? (
           <>
             {/* Dive Log Section */}
-            {canAccessModule('diveLog') && !(role === 'hotel-staff' || role === 'hotel-manager') && (
+            {canAccessModule('diveLog') && !isHotelStaffRole && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Dive Log
@@ -122,7 +124,7 @@ export default function NavLinks() {
             )}
 
             {/* Maintenance Section */}
-            {canAccessModule('maintenance') && !(role === 'hotel-staff' || role === 'hotel-manager') && (
+            {canAccessModule('maintenance') && !isHotelStaffRole && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Maintenance
@@ -132,7 +134,7 @@ export default function NavLinks() {
             )}
 
             {/* Contracts Section */}
-            {!(role === 'hotel-staff' || role === 'hotel-manager') && (
+            {!isHotelStaffRole && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Contracts
@@ -181,7 +183,7 @@ export default function NavLinks() {
             ) : user && (
               <Accordion allowToggle>
                 {/* Dive Log Section */}
-                {canAccessModule('diveLog') && !(role === 'hotel-staff' || role === 'hotel-manager') && (
+                {canAccessModule('diveLog') && !isHotelStaffRole && (
                   <AccordionItem border="none">
                     <AccordionButton>
                       <Box flex="1" textAlign="left">Dive Log</Box>
@@ -191,7 +193,7 @@ export default function NavLinks() {
                 )}
 
                 {/* Maintenance Section */}
-                {canAccessModule('maintenance') && !(role === 'hotel-staff' || role === 'hotel-manager') && (
+                {canAccessModule('maintenance') && !isHotelStaffRole && (
                   <AccordionItem border="none">
                     <AccordionButton>
                       <Box flex="1" textAlign="left">Maintenance</Box>
@@ -201,7 +203,7 @@ export default function NavLinks() {
                 )}
 
                 {/* Contracts Section */}
-                {!(role === 'hotel-staff' || role === 'hotel-manager') && (
+                {!isHotelStaffRole && (
                   <AccordionItem border="none">
                     <AccordionButton>
                       <Box flex="1" textAlign="left">Contracts</Box>
