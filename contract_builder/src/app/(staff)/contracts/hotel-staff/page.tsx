@@ -206,8 +206,13 @@ export default function HotelStaffDashboard() {
               </HStack>
             </CardHeader>
             <CardBody>
-              <Text color="textSecondary" mb={4}>View and manage all contracts assigned to your hotel.</Text>
+              <Text color="textSecondary" mb={4}>Create new contracts and view existing contracts for your hotel.</Text>
               <VStack spacing={2}>
+                <Link href="/contracts/hotel-staff/create">
+                  <Button w="full" colorScheme="blue">
+                    Create New Contract
+                  </Button>
+                </Link>
                 <Link href="/contracts/hotel-staff/contracts">
                   <Button w="full" variant="outline">
                     View All Contracts ({contracts.length})
