@@ -27,6 +27,7 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Select,
 } from '@chakra-ui/react'
 import { ArrowLeft, Save, Hotel as HotelIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -34,6 +35,8 @@ import RoomCategoriesList from '@/app/(staff)/contracts/hotels/components/RoomCa
 import RoomTypesList from '@/app/(staff)/contracts/hotels/components/RoomTypesList'
 import SeasonsList from '@/app/(staff)/contracts/hotels/components/SeasonsList'
 import RatesList from '@/app/(staff)/contracts/hotels/components/RatesList'
+import { getRoomTypes } from '@/app/(staff)/contracts/_lib/roomTypesRepo'
+import { RoomType } from '@/app/(staff)/contracts/_types'
 
 export default function HotelDetailsPage() {
   const { user, role, loading } = useAuth()
@@ -42,6 +45,7 @@ export default function HotelDetailsPage() {
   const [loadingData, setLoadingData] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
 
   useEffect(() => {
     if (!loading && user && (role === 'hotel-staff' || role === 'hotel-manager')) {
@@ -61,6 +65,9 @@ export default function HotelDetailsPage() {
       if (hotelData) {
         setHotel(hotelData)
         setFormData(hotelData)
+        // Load room types for the dropdown
+        const roomTypesData = await getRoomTypes(hotelData.id)
+        setRoomTypes(roomTypesData)
       }
     } catch (error) {
       console.error('Error loading hotel data:', error)
@@ -258,30 +265,46 @@ export default function HotelDetailsPage() {
                     <VStack spacing={4}>
                       <FormControl>
                         <FormLabel>Free of Charge Rule</FormLabel>
-                        <Input
+                        <Select
                           value={formData.focRule || ''}
                           onChange={(e) => handleInputChange('focRule', e.target.value)}
-                          placeholder="e.g., 7+1, 10+1"
-                        />
+                          placeholder="Select FOC rule"
+                        >
+                          <option value="7+1">7+1</option>
+                          <option value="10+1">10+1</option>
+                          <option value="14+1">14+1</option>
+                          <option value="15+1">15+1</option>
+                          <option value="20+1">20+1</option>
+                        </Select>
                         <FormHelperText>Format: X+Y (Y free for every X paying guests)</FormHelperText>
                       </FormControl>
                       <FormControl>
                         <FormLabel>FOC Base Room Type</FormLabel>
-                        <Input
+                        <Select
                           value={formData.focBaseRate || ''}
                           onChange={(e) => handleInputChange('focBaseRate', e.target.value)}
-                          placeholder="Base room type for FOC calculation"
-                        />
+                          placeholder="Select base room type"
+                        >
+                          {roomTypes.map((roomType) => (
+                            <option key={roomType.id} value={roomType.id}>
+                              {roomType.name}
+                            </option>
+                          ))}
+                        </Select>
                       </FormControl>
                       <FormControl>
                         <FormLabel>Meal Commission Rate (%)</FormLabel>
-                        <Input
-                          type="number"
-                          step="0.01"
+                        <Select
                           value={formData.mealCommissionRate || ''}
                           onChange={(e) => handleInputChange('mealCommissionRate', e.target.value)}
-                          placeholder="e.g., 10 for 10%"
-                        />
+                          placeholder="Select commission rate"
+                        >
+                          <option value="0">0%</option>
+                          <option value="5">5%</option>
+                          <option value="10">10%</option>
+                          <option value="15">15%</option>
+                          <option value="20">20%</option>
+                        </Select>
                         <FormHelperText>Enter percentage (e.g., 10 for 10% commission)</FormHelperText>
                       </FormControl>
                     </VStack>
@@ -307,8 +330,8 @@ export default function HotelDetailsPage() {
                         <Icon as={Save} h={4} w={4} mr={2} />
                         Save Changes
                       </Button>
-                      <Link href="/contracts/hotel-staff">
-                        <Button w="full" variant="outline">Cancel</Button>
+                      <Link href="/contracts/hotel-staff" style={{ width: '100%' }}>
+                        <Button w="full" variant="outline" colorScheme="gray">Cancel</Button>
                       </Link>
                     </VStack>
                   </CardBody>
