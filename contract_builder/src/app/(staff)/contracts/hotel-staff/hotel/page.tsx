@@ -37,6 +37,7 @@ import RoomCategoriesList from '@/app/(staff)/contracts/hotels/components/RoomCa
 import RoomTypesList from '@/app/(staff)/contracts/hotels/components/RoomTypesList'
 import SeasonsList from '@/app/(staff)/contracts/hotels/components/SeasonsList'
 import RatesList from '@/app/(staff)/contracts/hotels/components/RatesList'
+import MealPackagesList from '@/app/(staff)/contracts/hotels/components/MealPackagesList'
 import { getRoomTypes } from '@/app/(staff)/contracts/_lib/roomTypesRepo'
 import { RoomType } from '@/app/(staff)/contracts/_types'
 
@@ -178,6 +179,7 @@ export default function HotelDetailsPage() {
             <Tab>Room Types</Tab>
             <Tab>Seasons</Tab>
             <Tab>Rates</Tab>
+            <Tab>Meal Packages</Tab>
           </TabList>
 
           <TabPanels>
@@ -393,6 +395,11 @@ export default function HotelDetailsPage() {
             {/* ── Rates ── */}
             <TabPanel px={0} pt={6}>
               <RatesList hotelId={hotel.id} onBack={() => {}} />
+            </TabPanel>
+
+            {/* ── Meal Packages ── */}
+            <TabPanel px={0} pt={6}>
+              <MealPackagesList hotelId={hotel.id} onBack={() => {}} />
             </TabPanel>
           </TabPanels>
         </Tabs>
