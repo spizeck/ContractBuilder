@@ -573,6 +573,17 @@ if (typeof window !== 'undefined') {
       .signature-section {
         page-break-inside: avoid;
         margin-top: 2rem;
+        width: 100%;
+      }
+      
+      .signature-section .chakra-stack {
+        width: 100%;
+      }
+      
+      .signature-section .chakra-stack > div {
+        display: flex !important;
+        width: 100%;
+        align-items: center;
       }
       
       /* Reduce spacing between sections */
