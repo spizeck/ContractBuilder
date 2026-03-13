@@ -35,27 +35,14 @@ service cloud.firestore {
     // Admins bypass all permission checks
     // Permission hierarchy: edit (3) > create (2) > view (1)
     function hasPermission(module, level) {
-      let user = getUserData();
-      
-      // Admins have all permissions
-      if (user.role == 'admin') {
-        return true;
-      }
-      
-      // Check if user has permissions object
-      if (!('permissions' in user)) {
-        return false;
-      }
-      
-      // Get the permission level for the module
-      let userLevel = user.permissions[module];
-      
-      // Map permission levels to numeric values
-      let levelValue = level == 'edit' ? 3 : (level == 'create' ? 2 : (level == 'view' ? 1 : 0));
-      let userLevelValue = userLevel == 'edit' ? 3 : (userLevel == 'create' ? 2 : (userLevel == 'view' ? 1 : 0));
-      
-      // User must have equal or higher permission level
-      return userLevelValue >= levelValue;
+      return getUserData().role == 'admin' ||
+        (('permissions' in getUserData()) &&
+         getPermissionValue(getUserData().permissions[module]) >= getPermissionValue(level));
+    }
+    
+    // Convert permission level to numeric value
+    function getPermissionValue(level) {
+      return level == 'edit' ? 3 : (level == 'create' ? 2 : (level == 'view' ? 1 : 0));
     }
     
     // ============================================================================
