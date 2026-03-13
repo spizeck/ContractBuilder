@@ -42,12 +42,10 @@ export default function HotelStaffDashboard() {
 
   const loadDashboardData = async () => {
     if (!user) {
-      console.log('No user available for dashboard load')
       return
     }
 
     try {
-      console.log('Starting dashboard data load for user:', user.uid)
       setLoadingData(true)
       
       const [hotelData, contractsData] = await Promise.all([
@@ -55,7 +53,6 @@ export default function HotelStaffDashboard() {
         getContractsForStaff(user.uid)
       ])
       
-      console.log('Dashboard data loaded:', { hotelData, contractsCount: contractsData.length })
       setHotel(hotelData)
       setContracts(contractsData)
     } catch (error) {

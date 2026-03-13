@@ -183,13 +183,12 @@ export default function ViewContractPage () {
     <VStack p={10} spacing={6} align='stretch' className="print-container">
       {/* Logo Header - Print Only */}
       <HStack 
-        justify="center" 
+        justify="space-between" 
         align="center" 
-        spacing={8} 
         py={4} 
         className="print-only logo-header"
       >
-        {/* Sea Saba Logo - Always shown */}
+        {/* Sea Saba Logo - Left aligned */}
         <Box>
           <img 
             src="/SS_blue.svg" 
@@ -198,7 +197,7 @@ export default function ViewContractPage () {
           />
         </Box>
         
-        {/* Hotel Logo - Shown if available */}
+        {/* Hotel Logo - Right aligned if available */}
         {hotel?.logoUrl && (
           <Box>
             <img 

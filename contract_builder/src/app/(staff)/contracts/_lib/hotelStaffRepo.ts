@@ -16,11 +16,8 @@ import { UserProfile } from '@core/types/userTypes'
 // Get hotel assigned to a staff user
 export async function getHotelByStaffId(staffId: string): Promise<Hotel | null> {
   try {
-    console.log('Getting hotel for staff:', staffId)
-    
     // First get the user to find their assigned hotel
     const userRef = doc(db, 'users', staffId)
-    console.log('Fetching user document...')
     const userSnap = await getDoc(userRef)
     
     if (!userSnap.exists()) {
@@ -29,7 +26,6 @@ export async function getHotelByStaffId(staffId: string): Promise<Hotel | null> 
     }
 
     const userData = userSnap.data() as UserProfile
-    console.log('User data:', { uid: userData.uid, role: userData.role, hotelId: userData.hotelId })
     
     if (!userData.hotelId) {
       console.error('Staff user has no assigned hotel:', staffId)
@@ -37,13 +33,11 @@ export async function getHotelByStaffId(staffId: string): Promise<Hotel | null> 
     }
 
     // Get the hotel details
-    console.log('Fetching hotel details for:', userData.hotelId)
     const hotelRef = doc(db, 'hotels', userData.hotelId)
     const hotelSnap = await getDoc(hotelRef)
     
     if (hotelSnap.exists()) {
       const hotelData = { id: hotelSnap.id, ...(hotelSnap.data() as Omit<Hotel, 'id'>) }
-      console.log('Hotel data retrieved:', hotelData.name)
       return hotelData
     } else {
       console.error('Assigned hotel not found:', userData.hotelId)
@@ -79,17 +73,12 @@ export async function getContractsByHotelId(hotelId: string): Promise<GroupContr
 // Get contracts for a staff user (by their assigned hotel)
 export async function getContractsForStaff(staffId: string): Promise<GroupContract[]> {
   try {
-    console.log('Getting contracts for staff:', staffId)
-    
     const hotel = await getHotelByStaffId(staffId)
     if (!hotel) {
-      console.log('No hotel found for staff, returning empty contracts')
       return []
     }
     
-    console.log('Fetching contracts for hotel:', hotel.id)
     const contracts = await getContractsByHotelId(hotel.id)
-    console.log('Contracts retrieved:', contracts.length)
     return contracts
   } catch (e) {
     console.error('Error getting contracts for staff:', e)
@@ -113,7 +102,6 @@ export async function updateHotelDetails(
 
     const hotelRef = doc(db, 'hotels', hotelId)
     await updateDoc(hotelRef, hotelData)
-    console.log('Hotel updated successfully:', hotelId)
     return true
   } catch (e) {
     console.error('Error updating hotel:', e)
