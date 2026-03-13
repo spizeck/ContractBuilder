@@ -209,34 +209,30 @@ export default function ViewContractPage () {
         )}
       </HStack>
 
-      <HStack justify='space-between' align='center'>
-        <Heading size='lg'>Group Contract</Heading>
-        <HStack spacing={3} className='no-print'>
-          {!isHotelStaff && (
-            <Button 
-              onClick={handleEditContract}
-              colorScheme='teal'
-              variant='outline'
-            >
-              Edit Contract
-            </Button>
-          )}
+      <HStack justify='flex-end' spacing={3} className='no-print'>
+        {!isHotelStaff && (
           <Button 
-            onClick={handlePrintToPDF}
-            colorScheme='blue'
+            onClick={handleEditContract}
+            colorScheme='teal'
             variant='outline'
           >
-            Print to PDF
+            Edit Contract
           </Button>
-          <Button 
-            onClick={handleGoBack}
-            colorScheme='gray'
-          >
-            Go Back
-          </Button>
-        </HStack>
+        )}
+        <Button 
+          onClick={handlePrintToPDF}
+          colorScheme='blue'
+          variant='outline'
+        >
+          Print to PDF
+        </Button>
+        <Button 
+          onClick={handleGoBack}
+          colorScheme='gray'
+        >
+          Go Back
+        </Button>
       </HStack>
-      <Divider />
 
       {/* Contract Details */}
       <Box>
