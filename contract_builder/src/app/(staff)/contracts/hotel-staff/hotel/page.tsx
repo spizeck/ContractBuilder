@@ -38,6 +38,7 @@ import RoomTypesList from '@/app/(staff)/contracts/hotels/components/RoomTypesLi
 import SeasonsList from '@/app/(staff)/contracts/hotels/components/SeasonsList'
 import RatesList from '@/app/(staff)/contracts/hotels/components/RatesList'
 import MealPackagesList from '@/app/(staff)/contracts/hotels/components/MealPackagesList'
+import LogoUpload from '@/app/(staff)/contracts/hotels/components/LogoUpload'
 import { getRoomTypes } from '@/app/(staff)/contracts/_lib/roomTypesRepo'
 import { RoomType } from '@/app/(staff)/contracts/_types'
 
@@ -259,6 +260,21 @@ export default function HotelDetailsPage() {
                           rows={3}
                         />
                       </FormControl>
+                    </VStack>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader><Heading size="md">Branding</Heading></CardHeader>
+                  <CardBody>
+                    <VStack spacing={4}>
+                      {hotel && (
+                        <LogoUpload
+                          hotelId={hotel.id}
+                          currentLogoUrl={formData.logoUrl}
+                          onLogoChange={(url) => handleInputChange('logoUrl', url || '')}
+                        />
+                      )}
                     </VStack>
                   </CardBody>
                 </Card>

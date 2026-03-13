@@ -13,6 +13,12 @@ service firebase.storage {
       allow write: if request.auth != null;
     }
 
+    // Hotel logos - authenticated users can read, admins and hotel staff can write
+    match /hotels/{hotelId}/logo/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
     // Deny all other paths by default (no wildcard rule)
   }
 }

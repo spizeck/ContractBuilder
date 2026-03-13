@@ -181,6 +181,35 @@ export default function ViewContractPage () {
 
   return (
     <VStack p={10} spacing={6} align='stretch' className="print-container">
+      {/* Logo Header - Print Only */}
+      <HStack 
+        justify="center" 
+        align="center" 
+        spacing={8} 
+        py={4} 
+        className="print-only logo-header"
+      >
+        {/* Sea Saba Logo - Always shown */}
+        <Box>
+          <img 
+            src="/SS_blue.svg" 
+            alt="Sea Saba Logo" 
+            style={{ height: '80px', width: 'auto' }}
+          />
+        </Box>
+        
+        {/* Hotel Logo - Shown if available */}
+        {hotel?.logoUrl && (
+          <Box>
+            <img 
+              src={hotel.logoUrl} 
+              alt={`${hotel.name} Logo`} 
+              style={{ height: '80px', maxWidth: '240px', objectFit: 'contain' }}
+            />
+          </Box>
+        )}
+      </HStack>
+
       <HStack justify='space-between' align='center'>
         <Heading size='lg'>Group Contract</Heading>
         <HStack spacing={3} className='no-print'>
@@ -499,7 +528,22 @@ if (typeof window !== 'undefined') {
       
       /* Show print-only content during printing */
       .print-only {
-        display: block !important;
+        display: flex !important;
+      }
+      
+      /* Logo header styling */
+      .logo-header {
+        page-break-inside: avoid;
+        page-break-after: avoid;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      
+      .logo-header img {
+        max-height: 80px;
+        width: auto;
+        object-fit: contain;
       }
       
       /* Reduce top margin for first page */

@@ -59,6 +59,7 @@ export interface Hotel {
   focRule?: string; // Free of Charge rule, e.g. "7+1"
   focBaseRate?: string; // Base room type for FOC rule
   mealCommissionRate?: number; // Commission rate for meal packages
+  logoUrl?: string; // Hotel logo URL (recommended: 300x100px)
   archived?: boolean;
 }
 
