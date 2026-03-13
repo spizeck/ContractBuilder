@@ -189,21 +189,21 @@ export default function ViewContractPage () {
         className="print-only logo-header"
       >
         {/* Sea Saba Logo - Left aligned */}
-        <Box>
+        <Box display="flex" alignItems="center" height="80px">
           <img 
             src="/SS_blue.svg" 
             alt="Sea Saba Logo" 
-            style={{ height: '80px', width: 'auto' }}
+            style={{ height: '80px', width: 'auto', display: 'block' }}
           />
         </Box>
         
         {/* Hotel Logo - Right aligned if available */}
         {hotel?.logoUrl && (
-          <Box>
+          <Box display="flex" alignItems="center" justifyContent="flex-end" height="80px">
             <img 
               src={hotel.logoUrl} 
               alt={`${hotel.name} Logo`} 
-              style={{ height: '80px', maxWidth: '240px', objectFit: 'contain' }}
+              style={{ maxHeight: '80px', maxWidth: '240px', objectFit: 'contain', display: 'block' }}
             />
           </Box>
         )}
