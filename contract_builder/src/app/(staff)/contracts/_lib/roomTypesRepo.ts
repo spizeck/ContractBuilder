@@ -16,10 +16,12 @@ const roomTypesRef = collection(db, 'roomTypes')
 export async function getRoomTypes (hotelId: string): Promise<RoomType[]> {
   const q = query(roomTypesRef, where('hotelId', '==', hotelId))
   const querySnapshot = await getDocs(q)
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<RoomType, 'id'>)
-  }))
+  return querySnapshot.docs
+    .map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<RoomType, 'id'>)
+    }))
+    .filter(roomType => !roomType.archived)
 }
 
 export async function addRoomType (
