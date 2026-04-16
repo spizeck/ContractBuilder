@@ -1,20 +1,27 @@
 import {
   DivePackage,
   Hotel,
+  HotelSheetCategoryRateRow,
   HotelSheetConfig,
+  HotelSheetRoomInventoryRow,
   HotelSheetSeasonRates,
   HotelSheetViewModel,
   MealPackage,
   Rate,
   RoomCategory,
+  RoomType,
   Season,
 } from '../../_types'
+import { getOccupancyCountFromLabel } from './getOccupancyCountFromLabel'
 
 const OCCUPANCY_ORDER = ['Single', 'Double', 'Triple', 'Quad']
 
 /**
  * Builds the view model used to render the hotel price sheet preview.
- * Joins selected seasons, rates, and room categories into structured data.
+ *
+ * Produces two distinct room-related sections:
+ *  - roomInventory: one row per RoomType (what physical rooms exist)
+ *  - seasons[].categoryRates: one row per unique category+occupancy (what rates apply)
  */
 export function buildHotelSheetViewModel(
   config: HotelSheetConfig,
@@ -22,6 +29,7 @@ export function buildHotelSheetViewModel(
   seasons: Season[],
   rates: Rate[],
   roomCategories: RoomCategory[],
+  roomTypes: RoomType[],
   divePackages: DivePackage[],
   mealPackages: MealPackage[]
 ): HotelSheetViewModel {
@@ -32,40 +40,77 @@ export function buildHotelSheetViewModel(
     roomCategories.map(c => [c.id, c])
   )
 
-  // Find each selected season and build rate rows for it
+  // ── 1. Room inventory ──────────────────────────────────────────────────────
+  // One row per non-archived RoomType, sorted by category name → room type name
+  const roomInventory: HotelSheetRoomInventoryRow[] = roomTypes
+    .filter(rt => !rt.archived)
+    .map(rt => ({
+      roomTypeId: rt.id,
+      roomTypeName: rt.name,
+      roomCategoryId: rt.categoryId,
+      roomCategoryName: categoryMap.get(rt.categoryId)?.name ?? 'Unknown',
+      quantity: rt.quantity,
+      description: rt.description || undefined,
+    }))
+    .sort((a, b) => {
+      const catCmp = a.roomCategoryName.localeCompare(b.roomCategoryName)
+      if (catCmp !== 0) return catCmp
+      return a.roomTypeName.localeCompare(b.roomTypeName)
+    })
+
+  // ── 2. Seasonal category rates ─────────────────────────────────────────────
+  // One row per unique (categoryId + occupancyType) combination per season —
+  // no expansion by room type to avoid repetition.
   const selectedSeasons: HotelSheetSeasonRates[] = config.seasonIds
     .map(seasonId => {
       const season = seasons.find(s => s.id === seasonId)
       if (!season) return null
 
-      // Find all non-archived rates for this season
-      const seasonRates = rates
-        .filter(r => r.seasonId === seasonId && !r.archived)
-        .map(r => ({
-          categoryId: r.categoryId,
-          categoryName: categoryMap.get(r.categoryId)?.name ?? 'Unknown',
-          occupancyType: r.occupancyType,
-          price: r.price,
-        }))
-        .sort((a, b) => {
-          // Sort by category name first, then by occupancy order
-          const catCmp = a.categoryName.localeCompare(b.categoryName)
-          if (catCmp !== 0) return catCmp
-          const oA = OCCUPANCY_ORDER.indexOf(a.occupancyType)
-          const oB = OCCUPANCY_ORDER.indexOf(b.occupancyType)
-          return oA - oB
+      // Rates for this season, excluding archived
+      const seasonRates = rates.filter(r => r.seasonId === seasonId && !r.archived)
+
+      // Deduplicate by categoryId+occupancyType — keep the first price found if
+      // duplicates exist (data integrity issue, not expected in practice)
+      const seen = new Set<string>()
+      const categoryRates: HotelSheetCategoryRateRow[] = []
+
+      for (const rate of seasonRates) {
+        const key = `${rate.categoryId}__${rate.occupancyType}`
+        if (seen.has(key)) continue
+        seen.add(key)
+
+        const personCount = getOccupancyCountFromLabel(rate.occupancyType)
+        const sevenNightTotal = rate.price * 7
+
+        categoryRates.push({
+          roomCategoryId: rate.categoryId,
+          roomCategoryName: categoryMap.get(rate.categoryId)?.name ?? 'Unknown',
+          occupancyType: rate.occupancyType,
+          nightlyRate: rate.price,
+          sevenNightTotal,
+          sevenNightPerPerson: sevenNightTotal / personCount,
         })
+      }
+
+      // Sort: category name → occupancy order
+      categoryRates.sort((a, b) => {
+        const catCmp = a.roomCategoryName.localeCompare(b.roomCategoryName)
+        if (catCmp !== 0) return catCmp
+        const oA = OCCUPANCY_ORDER.indexOf(a.occupancyType)
+        const oB = OCCUPANCY_ORDER.indexOf(b.occupancyType)
+        return oA - oB
+      })
 
       return {
         seasonId: season.id,
         seasonName: season.name,
         startDate: season.startDate,
         endDate: season.endDate,
-        rates: seasonRates,
+        categoryRates,
       } satisfies HotelSheetSeasonRates
     })
     .filter((s): s is HotelSheetSeasonRates => s !== null)
-    // Sort seasons by start date ascending
+    // Sort seasons chronologically
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
 
   const selectedDivePackages = divePackages
@@ -78,6 +123,7 @@ export function buildHotelSheetViewModel(
 
   return {
     hotel,
+    roomInventory,
     seasons: selectedSeasons,
     divePackages: selectedDivePackages,
     mealPackages: selectedMealPackages,

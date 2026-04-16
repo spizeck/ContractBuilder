@@ -18,6 +18,7 @@ import {
   MealPackage,
   Rate,
   RoomCategory,
+  RoomType,
   Season,
   defaultHotelSheetConfig,
 } from '../_types'
@@ -25,6 +26,7 @@ import { getHotels } from '../_lib/hotelsRepo'
 import { getSeasons } from '../_lib/seasonsRepo'
 import { getRates } from '../_lib/ratesRepo'
 import { getRoomCategories } from '../_lib/roomCategoriesRepo'
+import { getRoomTypes } from '../_lib/roomTypesRepo'
 import { getDivePackages } from '../_lib/divePackagesRepo'
 import { getMealPackages } from '../_lib/mealPackagesRepo'
 import { buildHotelSheetViewModel } from './utils/buildHotelSheetViewModel'
@@ -49,6 +51,7 @@ function HotelSheetsContent() {
   const [seasons, setSeasons] = useState<Season[]>([])
   const [rates, setRates] = useState<Rate[]>([])
   const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([])
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [mealPackages, setMealPackages] = useState<MealPackage[]>([])
   const [loadingHotel, setLoadingHotel] = useState(false)
 
@@ -79,18 +82,22 @@ function HotelSheetsContent() {
     setSeasons([])
     setRates([])
     setRoomCategories([])
+    setRoomTypes([])
     setMealPackages([])
     try {
-      const [seasonData, rateData, categoryData, mealData] = await Promise.all([
+      const [seasonData, rateData, categoryData, roomTypeData, mealData] = await Promise.all([
         getSeasons(hotelId),
         getRates(hotelId),
         getRoomCategories(hotelId),
+        getRoomTypes(hotelId),
         getMealPackages(hotelId),
       ])
       // getSeasons already filters archived via its query
+      // getRoomTypes already filters archived client-side
       setSeasons(seasonData)
       setRates(rateData.filter(r => !r.archived))
       setRoomCategories(categoryData.filter(c => !c.archived))
+      setRoomTypes(roomTypeData)
       setMealPackages(mealData.filter(p => !p.archived))
     } finally {
       setLoadingHotel(false)
@@ -106,10 +113,11 @@ function HotelSheetsContent() {
       seasons,
       rates,
       roomCategories,
+      roomTypes,
       divePackages,
       mealPackages
     )
-  }, [config, hotels, seasons, rates, roomCategories, divePackages, mealPackages])
+  }, [config, hotels, seasons, rates, roomCategories, roomTypes, divePackages, mealPackages])
 
   const handlePrint = () => window.print()
 
@@ -124,12 +132,14 @@ function HotelSheetsContent() {
 
   return (
     <Box p={{ base: 4, md: 8 }} maxW="1400px" mx="auto">
-      <Heading as="h1" size="xl" mb={2}>
-        Hotel Price &amp; Info Sheet Generator
-      </Heading>
-      <Text color="textMuted" mb={6} fontSize="sm">
-        Configure and preview a printable hotel price sheet.
-      </Text>
+      <Box className="no-print">
+        <Heading as="h1" size="xl" mb={2}>
+          Hotel Price &amp; Info Sheet Generator
+        </Heading>
+        <Text color="textMuted" mb={6} fontSize="sm">
+          Configure and preview a printable hotel price sheet.
+        </Text>
+      </Box>
 
       {/* 2-column layout on desktop, stacked on mobile */}
       <Grid

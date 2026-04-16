@@ -200,11 +200,22 @@ export interface HotelSheetConfig {
   includeMealCommissionInfo: boolean;
 }
 
-export interface HotelSheetRateRow {
-  categoryId: string;
-  categoryName: string;
+export interface HotelSheetRoomInventoryRow {
+  roomTypeId: string;
+  roomTypeName: string;
+  roomCategoryId: string;
+  roomCategoryName: string;
+  quantity: number;
+  description?: string;
+}
+
+export interface HotelSheetCategoryRateRow {
+  roomCategoryId: string;
+  roomCategoryName: string;
   occupancyType: string;
-  price: number;
+  nightlyRate: number;
+  sevenNightTotal: number;
+  sevenNightPerPerson: number;
 }
 
 export interface HotelSheetSeasonRates {
@@ -212,7 +223,7 @@ export interface HotelSheetSeasonRates {
   seasonName: string;
   startDate: string;
   endDate: string;
-  rates: HotelSheetRateRow[];
+  categoryRates: HotelSheetCategoryRateRow[];
 }
 
 export interface HotelSheetOptions {
@@ -227,6 +238,7 @@ export interface HotelSheetOptions {
 
 export interface HotelSheetViewModel {
   hotel: Hotel | null;
+  roomInventory: HotelSheetRoomInventoryRow[];
   seasons: HotelSheetSeasonRates[];
   divePackages: DivePackage[];
   mealPackages: MealPackage[];
