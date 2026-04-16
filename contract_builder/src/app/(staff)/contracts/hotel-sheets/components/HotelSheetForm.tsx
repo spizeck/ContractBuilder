@@ -47,11 +47,11 @@ export default function HotelSheetForm({
 }: HotelSheetFormProps) {
   // Local toggle state for all dive packages / meal packages selected
   const allDiveSelected = useMemo(
-    () => divePackages.length > 0 && config.divePackageIds.length === divePackages.length,
+    () => divePackages.length > 0 && divePackages.every(p => config.divePackageIds.includes(p.id)),
     [divePackages, config.divePackageIds]
   )
   const allMealSelected = useMemo(
-    () => mealPackages.length > 0 && config.mealPackageIds.length === mealPackages.length,
+    () => mealPackages.length > 0 && mealPackages.every(p => config.mealPackageIds.includes(p.id)),
     [mealPackages, config.mealPackageIds]
   )
 

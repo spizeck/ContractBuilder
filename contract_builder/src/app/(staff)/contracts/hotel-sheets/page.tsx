@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Grid,
@@ -54,6 +54,7 @@ function HotelSheetsContent() {
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [mealPackages, setMealPackages] = useState<MealPackage[]>([])
   const [loadingHotel, setLoadingHotel] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   // ── Config state ──────────────────────────────────────────────────────────
   const [config, setConfig] = useState<HotelSheetConfig>(defaultHotelSheetConfig)
@@ -69,6 +70,9 @@ function HotelSheetsContent() {
         // Exclude archived records client-side
         setHotels(hotelData.filter(h => !h.archived))
         setDivePackages(diveData.filter(p => !p.archived))
+      } catch (err) {
+        console.error('Failed to load hotel/dive package data:', err)
+        setLoadError('Failed to load data. Please refresh the page.')
       } finally {
         setLoadingGlobal(false)
       }
@@ -77,8 +81,9 @@ function HotelSheetsContent() {
   }, [])
 
   // Load hotel-specific data when a hotel is selected
-  const loadHotelData = async (hotelId: string) => {
+  const loadHotelData = useCallback(async (hotelId: string) => {
     setLoadingHotel(true)
+    setLoadError(null)
     setSeasons([])
     setRates([])
     setRoomCategories([])
@@ -99,10 +104,13 @@ function HotelSheetsContent() {
       setRoomCategories(categoryData.filter(c => !c.archived))
       setRoomTypes(roomTypeData)
       setMealPackages(mealData.filter(p => !p.archived))
+    } catch (err) {
+      console.error('Failed to load hotel data:', err)
+      setLoadError('Failed to load hotel data. Please try selecting the hotel again.')
     } finally {
       setLoadingHotel(false)
     }
-  }
+  }, [])
 
   // Build view model reactively whenever config or data changes
   const viewModel = useMemo(() => {
@@ -126,6 +134,14 @@ function HotelSheetsContent() {
       <VStack spacing={4} p={10} align="center">
         <Spinner size="xl" color="info" />
         <Text>Loading hotel data…</Text>
+      </VStack>
+    )
+  }
+
+  if (loadError && !loadingGlobal && hotels.length === 0) {
+    return (
+      <VStack spacing={4} p={10} align="center">
+        <Text color="red.500">{loadError}</Text>
       </VStack>
     )
   }
@@ -164,6 +180,11 @@ function HotelSheetsContent() {
               <Box mb={4} display="flex" alignItems="center" gap={2}>
                 <Spinner size="sm" color="info" />
                 <Text fontSize="sm" color="textMuted">Loading hotel data…</Text>
+              </Box>
+            )}
+            {loadError && !loadingHotel && (
+              <Box mb={4}>
+                <Text fontSize="sm" color="red.500">{loadError}</Text>
               </Box>
             )}
             <HotelSheetForm

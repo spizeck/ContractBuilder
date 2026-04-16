@@ -8,14 +8,16 @@ interface RoomInventorySectionProps {
 export default function RoomInventorySection({ roomInventory }: RoomInventorySectionProps) {
   if (roomInventory.length === 0) return null
 
-  // Group rows by category name for a cleaner read
+  // Group rows by category name for a cleaner read.
+  // roomInventory is already sorted by category name (locale-aware) from the view model,
+  // so we preserve insertion order instead of re-sorting to avoid locale divergence.
   const grouped = new Map<string, HotelSheetRoomInventoryRow[]>()
   for (const row of roomInventory) {
     const existing = grouped.get(row.roomCategoryName) ?? []
     existing.push(row)
     grouped.set(row.roomCategoryName, existing)
   }
-  const categoryNames = Array.from(grouped.keys()).sort()
+  const categoryNames = Array.from(grouped.keys())
 
   return (
     <Box className="sheet-section">

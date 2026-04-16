@@ -14,9 +14,9 @@ import {
 } from '../../_types'
 import { getOccupancyCountFromLabel } from './getOccupancyCountFromLabel'
 
-const OCCUPANCY_ORDER = ['Single', 'Double', 'Triple', 'Quad']
+const OCCUPANCY_ORDER = ['single', 'double', 'triple', 'quad']
 const occupancyWeight = (label: string) => {
-  const idx = OCCUPANCY_ORDER.indexOf(label)
+  const idx = OCCUPANCY_ORDER.indexOf(label.trim().toLowerCase())
   return idx === -1 ? Number.MAX_SAFE_INTEGER : idx
 }
 
@@ -83,7 +83,7 @@ export function buildHotelSheetViewModel(
         if (seen.has(key)) continue
         seen.add(key)
 
-        const personCount = getOccupancyCountFromLabel(rate.occupancyType)
+        const personCount = Math.max(1, getOccupancyCountFromLabel(rate.occupancyType))
         const sevenNightTotal = rate.price * 7
 
         categoryRates.push({
