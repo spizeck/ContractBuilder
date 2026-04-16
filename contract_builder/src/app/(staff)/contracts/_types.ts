@@ -185,3 +185,65 @@ export interface ContractNote {
   createdBy: string;
   createdByName?: string;
 }
+
+export interface HotelSheetConfig {
+  hotelId: string;
+  seasonIds: string[];
+  divePackageIds: string[];
+  mealPackageIds: string[];
+  includeDescription: boolean;
+  includeContactInfo: boolean;
+  includeAmenities: boolean;
+  includePolicies: boolean;
+  includeRestrictions: boolean;
+  includeLogo: boolean;
+  includeMealCommissionInfo: boolean;
+}
+
+export interface HotelSheetRateRow {
+  categoryId: string;
+  categoryName: string;
+  occupancyType: string;
+  price: number;
+}
+
+export interface HotelSheetSeasonRates {
+  seasonId: string;
+  seasonName: string;
+  startDate: string;
+  endDate: string;
+  rates: HotelSheetRateRow[];
+}
+
+export interface HotelSheetOptions {
+  includeDescription: boolean;
+  includeContactInfo: boolean;
+  includeAmenities: boolean;
+  includePolicies: boolean;
+  includeRestrictions: boolean;
+  includeLogo: boolean;
+  includeMealCommissionInfo: boolean;
+}
+
+export interface HotelSheetViewModel {
+  hotel: Hotel | null;
+  seasons: HotelSheetSeasonRates[];
+  divePackages: DivePackage[];
+  mealPackages: MealPackage[];
+  generatedAt: string;
+  options: HotelSheetOptions;
+}
+
+export const defaultHotelSheetConfig: HotelSheetConfig = {
+  hotelId: '',
+  seasonIds: [],
+  divePackageIds: [],
+  mealPackageIds: [],
+  includeDescription: true,
+  includeContactInfo: true,
+  includeAmenities: true,
+  includePolicies: true,
+  includeRestrictions: false,
+  includeLogo: true,
+  includeMealCommissionInfo: false,
+};
