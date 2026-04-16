@@ -185,3 +185,77 @@ export interface ContractNote {
   createdBy: string;
   createdByName?: string;
 }
+
+export interface HotelSheetConfig {
+  hotelId: string;
+  seasonIds: string[];
+  divePackageIds: string[];
+  mealPackageIds: string[];
+  includeDescription: boolean;
+  includeContactInfo: boolean;
+  includeAmenities: boolean;
+  includePolicies: boolean;
+  includeRestrictions: boolean;
+  includeLogo: boolean;
+  includeMealCommissionInfo: boolean;
+}
+
+export interface HotelSheetRoomInventoryRow {
+  roomTypeId: string;
+  roomTypeName: string;
+  roomCategoryId: string;
+  roomCategoryName: string;
+  quantity: number;
+  description?: string;
+}
+
+export interface HotelSheetCategoryRateRow {
+  roomCategoryId: string;
+  roomCategoryName: string;
+  occupancyType: string;
+  nightlyRate: number;
+  sevenNightTotal: number;
+  sevenNightPerPerson: number;
+}
+
+export interface HotelSheetSeasonRates {
+  seasonId: string;
+  seasonName: string;
+  startDate: string;
+  endDate: string;
+  categoryRates: HotelSheetCategoryRateRow[];
+}
+
+export interface HotelSheetOptions {
+  includeDescription: boolean;
+  includeContactInfo: boolean;
+  includeAmenities: boolean;
+  includePolicies: boolean;
+  includeRestrictions: boolean;
+  includeLogo: boolean;
+  includeMealCommissionInfo: boolean;
+}
+
+export interface HotelSheetViewModel {
+  hotel: Hotel | null;
+  roomInventory: HotelSheetRoomInventoryRow[];
+  seasons: HotelSheetSeasonRates[];
+  divePackages: DivePackage[];
+  mealPackages: MealPackage[];
+  generatedAt: string;
+  options: HotelSheetOptions;
+}
+
+export const defaultHotelSheetConfig: HotelSheetConfig = {
+  hotelId: '',
+  seasonIds: [],
+  divePackageIds: [],
+  mealPackageIds: [],
+  includeDescription: true,
+  includeContactInfo: true,
+  includeAmenities: true,
+  includePolicies: true,
+  includeRestrictions: false,
+  includeLogo: true,
+  includeMealCommissionInfo: false,
+};

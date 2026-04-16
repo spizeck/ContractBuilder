@@ -37,6 +37,7 @@ The Sea Saba Business App is an integrated management system that combines multi
 - **FOC Logic**: Automatic Free of Charge calculations (7+1 diver rule for dives)
 - **Commission Engine**: Multi-tier commission structure for different booking types
 - **PDF Generation**: Professional contract documents with client confirmation sections
+- **Hotel Price Sheet Generator**: Generate branded printable hotel price & info sheets with seasonal room rates, dive packages, and meal packages
 - **Permission-Based Access**: Contract creation and management controlled by granular permissions
 
 ### 🔧 **Maintenance & Asset Tracking**
@@ -131,7 +132,8 @@ src/app/
 │   └── edit/[id]/     # Edit existing dive records
 ├── contracts/
 │   ├── page.tsx       # Contract listing and management
-│   └── [id]/view/     # Individual contract viewing
+│   ├── [id]/view/     # Individual contract viewing
+│   └── hotel-sheets/  # Hotel price & info sheet generator
 ├── hotels/            # Hotel and room management
 ├── dive-packages/     # Dive package configuration
 ├── maintenance/
@@ -193,6 +195,7 @@ The application will be available at `http://localhost:3000`
 - Follow React functional component patterns
 - Implement proper error boundaries and loading states
 - Use Chakra UI components for consistency
+- Use semantic color tokens from `theme.ts` (e.g. `textPrimary`, `textMuted`, `cardBg`, `warning`) — never hardcode hex or Chakra palette values
 - Maintain responsive design principles
 
 ### **Firebase Integration**
@@ -281,6 +284,8 @@ For debugging permission issues, check browser console for detailed permission c
 ### **✅ Completed Features**
 - Contract wizard with automated calculations
 - Hotel and dive package management
+- Hotel price & info sheet generator (printable)
+- Contract revision history with data carry-forward
 - Firebase authentication with role-based access
 - Dive logging and history viewing
 - Maintenance tracking system

@@ -55,6 +55,7 @@ export default function NavLinks() {
     { href: '/contracts', label: 'Dashboard' },
     { href: '/contracts/hotels', label: 'Manage Hotels' },
     { href: '/contracts/dive-packages', label: 'Manage Dive Packages' },
+    { href: '/contracts/hotel-sheets', label: 'Hotel Price Sheets' },
   ]
 
   const userLinksData: NavLinkItem[] = [
