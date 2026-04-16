@@ -48,13 +48,13 @@ export default function RoomInventorySection({ roomInventory }: RoomInventorySec
             <Text
               fontSize="11px"
               fontWeight="700"
-              color="gray.500"
+              color="textMuted"
               textTransform="uppercase"
               letterSpacing="wider"
               mb={2}
               pb={1.5}
               borderBottomWidth="1px"
-              borderBottomColor="gray.200"
+              borderBottomColor="border"
             >
               {categoryName}
             </Text>
@@ -62,14 +62,14 @@ export default function RoomInventorySection({ roomInventory }: RoomInventorySec
             {/* Room type entries */}
             {(grouped.get(categoryName) ?? []).map(row => (
               <Box key={row.roomTypeId} mb={3.5}>
-                <Text fontSize="sm" fontWeight="600" color="gray.800" lineHeight="snug">
+                <Text fontSize="sm" fontWeight="600" color="textPrimary" lineHeight="snug">
                   {row.roomTypeName}
                 </Text>
-                <Text fontSize="xs" color="gray.400" mt={0.5} lineHeight="snug">
+                <Text fontSize="xs" color="textMuted" mt={0.5} lineHeight="snug">
                   {Number(row.quantity)} {Number(row.quantity) === 1 ? 'unit' : 'units'}
                 </Text>
                 {row.description && (
-                  <Text fontSize="xs" color="gray.500" mt={0.5} lineHeight="short" fontStyle="italic">
+                  <Text fontSize="xs" color="textMuted" mt={0.5} lineHeight="short" fontStyle="italic">
                     {row.description}
                   </Text>
                 )}

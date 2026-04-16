@@ -15,12 +15,12 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
         fontWeight="semibold"
         letterSpacing="widest"
         textTransform="uppercase"
-        color="gray.400"
+        color="textMuted"
         mb={1}
       >
         {label}
       </Text>
-      <Text fontSize="sm" color="gray.700" whiteSpace="pre-wrap" lineHeight="tall">
+      <Text fontSize="sm" color="textSecondary" whiteSpace="pre-wrap" lineHeight="tall">
         {value}
       </Text>
     </Box>

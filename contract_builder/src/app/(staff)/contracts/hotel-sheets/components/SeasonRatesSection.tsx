@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Box, Heading, Text, VStack } from '@chakra-ui/react'
 import { HotelSheetSeasonRates } from '../../_types'
 import { formatCurrency, formatDateRange } from '@shared/utils/formatters'
@@ -23,7 +24,7 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
       >
         Room Rates by Season
       </Heading>
-      <Text fontSize="xs" color="gray.400" fontStyle="italic" mb={6}>
+      <Text fontSize="xs" color="textMuted" fontStyle="italic" mb={6}>
         Rates shown per person, based on a 7-night stay.
       </Text>
 
@@ -35,17 +36,17 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
             style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}
           >
             {/* Season name + date range */}
-            <Box mb={4} pb={2} borderBottomWidth="2px" borderBottomColor="gray.100">
-              <Text fontWeight="700" fontSize="md" color="gray.800" letterSpacing="tight">
+            <Box mb={4} pb={2} borderBottomWidth="2px" borderBottomColor="border">
+              <Text fontWeight="700" fontSize="md" color="textPrimary" letterSpacing="tight">
                 {season.seasonName}
               </Text>
-              <Text fontSize="xs" color="gray.400" mt={0.5}>
+              <Text fontSize="xs" color="textMuted" mt={0.5}>
                 {formatDateRange(season.startDate, season.endDate)}
               </Text>
             </Box>
 
             {season.categoryRates.length === 0 ? (
-              <Text fontSize="sm" color="orange.500" fontStyle="italic">
+              <Text fontSize="sm" color="warning" fontStyle="italic">
                 No room pricing found for this season.
               </Text>
             ) : (
@@ -84,7 +85,7 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
   )
 }
 
-const thLeft: React.CSSProperties = {
+const thLeft: CSSProperties = {
   textAlign: 'left',
   padding: '7px 12px',
   fontSize: '11px',
@@ -95,18 +96,18 @@ const thLeft: React.CSSProperties = {
   borderBottom: '1px solid #e2e8f0',
 }
 
-const thRight: React.CSSProperties = {
+const thRight: CSSProperties = {
   ...thLeft,
   textAlign: 'right',
 }
 
-const tdLeft: React.CSSProperties = {
+const tdLeft: CSSProperties = {
   textAlign: 'left',
   padding: '8px 12px',
   color: '#2d3748',
 }
 
-const tdRight: React.CSSProperties = {
+const tdRight: CSSProperties = {
   ...tdLeft,
   textAlign: 'right',
 }

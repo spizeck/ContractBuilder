@@ -43,8 +43,8 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
   const totalRooms = roomInventory.reduce((sum, r) => sum + Number(r.quantity), 0)
   const uniqueCategories = new Set(roomInventory.map(r => r.roomCategoryId)).size
 
-  // Compact page-1 description (first 300 chars if long)
-  const shortDescription = hotel.description
+  // Compact page-1 description — gated on the same flag as the full description
+  const shortDescription = options.includeDescription && hotel.description
     ? hotel.description.length > 300
       ? hotel.description.slice(0, 300).trimEnd() + '…'
       : hotel.description
@@ -126,11 +126,11 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
               {hotel.name}
             </Heading>
             {hotel.location && (
-              <Text fontSize="sm" color="gray.500" mb={1}>
+              <Text fontSize="sm" color="textMuted" mb={1}>
                 {hotel.location}
               </Text>
             )}
-            <Text fontSize="10px" color="gray.400">
+            <Text fontSize="10px" color="textMuted">
               Generated {generatedAt}
             </Text>
           </Box>
@@ -162,7 +162,7 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
             fontWeight="700"
             letterSpacing="widest"
             textTransform="uppercase"
-            color="gray.400"
+            color="textMuted"
             mb={4}
           >
             At a Glance
@@ -268,13 +268,13 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
         {/* ══ Seasonal room rates ══ */}
         <SheetDivider />
         {seasons.length === 0 ? (
-          <Text color="orange.500" fontStyle="italic" fontSize="sm" mb={6}>
+          <Text color="warning" fontStyle="italic" fontSize="sm" mb={6}>
             No seasons selected. Select one or more seasons to display room rates.
           </Text>
         ) : (
           <>
             {!hasAnyRates && (
-              <Text color="orange.500" fontStyle="italic" fontSize="sm" mb={4}>
+              <Text color="warning" fontStyle="italic" fontSize="sm" mb={4}>
                 Warning: No room rates found for the selected seasons.
               </Text>
             )}
@@ -311,10 +311,10 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
           justifyContent="space-between"
           alignItems="center"
         >
-          <Text fontSize="xs" color="gray.400" fontWeight="semibold">
+          <Text fontSize="xs" color="textMuted" fontWeight="semibold">
             Sea Saba
           </Text>
-          <Text fontSize="xs" color="gray.400">
+          <Text fontSize="xs" color="textMuted">
             {hotel.name} &mdash; Reference Sheet
           </Text>
         </Box>

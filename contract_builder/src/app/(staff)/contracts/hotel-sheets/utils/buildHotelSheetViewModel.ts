@@ -15,6 +15,10 @@ import {
 import { getOccupancyCountFromLabel } from './getOccupancyCountFromLabel'
 
 const OCCUPANCY_ORDER = ['Single', 'Double', 'Triple', 'Quad']
+const occupancyWeight = (label: string) => {
+  const idx = OCCUPANCY_ORDER.indexOf(label)
+  return idx === -1 ? Number.MAX_SAFE_INTEGER : idx
+}
 
 /**
  * Builds the view model used to render the hotel price sheet preview.
@@ -96,9 +100,7 @@ export function buildHotelSheetViewModel(
       categoryRates.sort((a, b) => {
         const catCmp = a.roomCategoryName.localeCompare(b.roomCategoryName)
         if (catCmp !== 0) return catCmp
-        const oA = OCCUPANCY_ORDER.indexOf(a.occupancyType)
-        const oB = OCCUPANCY_ORDER.indexOf(b.occupancyType)
-        return oA - oB
+        return occupancyWeight(a.occupancyType) - occupancyWeight(b.occupancyType)
       })
 
       return {
