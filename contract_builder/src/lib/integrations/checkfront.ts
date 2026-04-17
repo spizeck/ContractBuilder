@@ -13,7 +13,8 @@
  *
  * Environment Variables Required:
  * - CHECKFRONT_API_BASE_URL
- * - CHECKFRONT_API_TOKEN
+ * - CHECKFRONT_API_KEY
+ * - CHECKFRONT_API_SECRET
  */
 
 import { GroupContract, CheckfrontSyncInfo } from '@/app/(staff)/contracts/_types'
@@ -24,35 +25,41 @@ import { GroupContract, CheckfrontSyncInfo } from '@/app/(staff)/contracts/_type
 
 export interface CheckfrontConfig {
   baseUrl: string
-  apiToken: string
+  apiKey: string
+  apiSecret: string
 }
 
 export function getCheckfrontConfig(): CheckfrontConfig {
   const baseUrl = process.env.CHECKFRONT_API_BASE_URL
-  const apiToken = process.env.CHECKFRONT_API_TOKEN
+  const apiKey = process.env.CHECKFRONT_API_KEY
+  const apiSecret = process.env.CHECKFRONT_API_SECRET
 
-  if (!baseUrl || !apiToken) {
+  if (!baseUrl || !apiKey || !apiSecret) {
     throw new Error(
-      'Checkfront not configured. Set CHECKFRONT_API_BASE_URL and CHECKFRONT_API_TOKEN environment variables.'
+      'Checkfront not configured. Set CHECKFRONT_API_BASE_URL, CHECKFRONT_API_KEY, and CHECKFRONT_API_SECRET environment variables.'
     )
   }
 
-  return { baseUrl, apiToken }
+  return { baseUrl, apiKey, apiSecret }
 }
 
 export function isCheckfrontConfigured(): boolean {
   return !!(
     process.env.CHECKFRONT_API_BASE_URL &&
-    process.env.CHECKFRONT_API_TOKEN
+    process.env.CHECKFRONT_API_KEY &&
+    process.env.CHECKFRONT_API_SECRET
   )
 }
 
 export function buildCheckfrontHeaders(): Record<string, string> {
-  const { apiToken } = getCheckfrontConfig()
+  const { apiKey, apiSecret } = getCheckfrontConfig()
+
+  // Checkfront uses Basic Authentication with API key as username and secret as password
+  const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
 
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${apiToken}`,
+    'Authorization': `Basic ${credentials}`,
     'Accept': 'application/json',
   }
 }
