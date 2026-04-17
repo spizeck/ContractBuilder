@@ -745,3 +745,90 @@ export async function syncContractToCheckfront(
     return syncInfo
   }
 }
+
+// ============================================================================
+// Test Function - Checkfront API Connection
+// ============================================================================
+
+/**
+ * Test function to verify Checkfront API connectivity and fetch items
+ * Call this from a server context (Server Action or API route) to test the connection
+ */
+export async function testCheckfrontConnection(): Promise<{
+  success: boolean
+  message: string
+  items?: any[]
+  error?: string
+}> {
+  const config = getCheckfrontConfig()
+
+  // Check if credentials are configured
+  if (!config.apiKey || !config.apiSecret) {
+    return {
+      success: false,
+      message: 'Checkfront API credentials not configured',
+      error: 'Missing CHECKFRONT_API_KEY or CHECKFRONT_API_SECRET environment variables',
+    }
+  }
+
+  console.log('[Checkfront Test] API Base URL:', config.baseUrl)
+  console.log('[Checkfront Test] API Key present:', !!config.apiKey)
+
+  // Build Basic Auth header
+  const authHeader = `Basic ${Buffer.from(`${config.apiKey}:${config.apiSecret}`).toString('base64')}`
+
+  try {
+    // Try to fetch items from Checkfront
+    // Common endpoints to try: /item, /inventory, /booking
+    const endpoints = ['item', 'inventory/index', 'booking/index']
+
+    for (const endpoint of endpoints) {
+      try {
+        const url = `${config.baseUrl}/${endpoint}`
+        console.log(`[Checkfront Test] Trying endpoint: ${url}`)
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        })
+
+        console.log(`[Checkfront Test] Response status: ${response.status}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log(`[Checkfront Test] Success! Response:`, JSON.stringify(data).substring(0, 500))
+
+          return {
+            success: true,
+            message: `Successfully connected to Checkfront API (endpoint: ${endpoint})`,
+            items: data.items || data.inventory || data.bookings || data,
+          }
+        } else {
+          const errorText = await response.text()
+          console.log(`[Checkfront Test] Error from ${endpoint}:`, errorText.substring(0, 200))
+        }
+      } catch (endpointError) {
+        console.log(`[Checkfront Test] Failed to fetch ${endpoint}:`, endpointError)
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Could not connect to any Checkfront API endpoint',
+      error: 'All tested endpoints returned errors. Check API credentials and base URL.',
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('[Checkfront Test] Connection error:', errorMessage)
+
+    return {
+      success: false,
+      message: 'Failed to connect to Checkfront API',
+      error: errorMessage,
+    }
+  }
+}

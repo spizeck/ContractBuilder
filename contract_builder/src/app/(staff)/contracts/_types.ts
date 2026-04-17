@@ -71,6 +71,12 @@ export interface RoomCategory {
   name: string;
   occupancyTypes: string[]; // e.g., ["Single", "Double", "Triple", "Quad"]
   archived?: boolean;
+  checkfrontItemIds?: {
+    Single?: string;
+    Double?: string;
+    Triple?: string;
+    Quad?: string;
+  };
 }
 
 export interface Totals {
