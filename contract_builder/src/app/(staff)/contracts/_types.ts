@@ -130,6 +130,8 @@ export interface GroupContract {
   paidInFullAt?: Date; // When contract was paid in full
   paidInFullBy?: string; // Who marked as paid in full
   paymentStatus?: 'unpaid' | 'deposit-paid' | 'paid-in-full'; // Overall payment status
+  // Checkfront integration
+  checkfrontSync?: CheckfrontSyncInfo;
 }
 
 export interface Rate {
@@ -259,3 +261,65 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeLogo: true,
   includeMealCommissionInfo: false,
 };
+
+// ============================================================================
+// Checkfront Integration Types
+// ============================================================================
+
+export type CheckfrontSyncStatus =
+  | 'not_linked'
+  | 'pending_create'
+  | 'linked'
+  | 'sync_error';
+
+export interface CheckfrontSyncInfo {
+  bookingId?: string;
+  bookingUrl?: string;
+  status?: CheckfrontSyncStatus;
+  lastSyncedAt?: Date | null;
+  lastSyncDirection?: 'app_to_checkfront' | 'checkfront_to_app';
+  lastError?: string | null;
+  sessionId?: string | null;
+  customerId?: string | null;
+}
+
+// Default Checkfront sync state for new contracts
+export const defaultCheckfrontSync: CheckfrontSyncInfo = {
+  status: 'not_linked',
+  lastError: null,
+  lastSyncedAt: null,
+};
+
+export type CheckfrontMappingEntityType =
+  | 'hotel'
+  | 'roomCategory'
+  | 'roomType'
+  | 'mealPackage'
+  | 'divePackage'
+  | 'addon';
+
+export interface CheckfrontItemMapping {
+  id?: string;
+  hotelId?: string | null;
+  localEntityType: CheckfrontMappingEntityType;
+  localEntityId: string;
+  checkfrontItemId: string;
+  checkfrontCategoryId?: string | null;
+  itemType: 'room' | 'dive' | 'meal' | 'addon';
+  optionMappings?: Record<string, string>;
+  rateSource?: 'manual_map' | 'synced_catalog';
+  active: boolean;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface CheckfrontSyncLog {
+  id?: string;
+  action: 'create_booking' | 'update_booking';
+  success: boolean;
+  requestSummary?: Record<string, unknown>;
+  responseSummary?: Record<string, unknown>;
+  error?: string | null;
+  createdAt?: Date;
+}

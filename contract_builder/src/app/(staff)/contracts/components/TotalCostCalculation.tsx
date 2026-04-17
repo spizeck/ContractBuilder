@@ -20,6 +20,7 @@ import {
   RoomCategory,
   RoomType,
   Season,
+  defaultCheckfrontSync,
 } from "@/app/(staff)/contracts/_types";
 import { getSeasons } from "@/app/(staff)/contracts/_lib/seasonsRepo";
 import { getRates } from "@/app/(staff)/contracts/_lib/ratesRepo";
@@ -349,12 +350,20 @@ export default function TotalCostCalculation({
       let revisionOfContractId: string | undefined;
       let rootContractId: string | undefined;
       let revisionNumber: number | undefined;
+      let existingCheckfrontSync = defaultCheckfrontSync;
 
       if (contractData.id) {
         const previousContract = await getGroupContractById(contractData.id);
         revisionOfContractId = contractData.id;
         rootContractId = previousContract?.rootContractId || contractData.id;
         revisionNumber = (previousContract?.revisionNumber || 0) + 1;
+        // Preserve existing Checkfront sync data when editing (revising) a contract
+        if (previousContract?.checkfrontSync?.bookingId) {
+          existingCheckfrontSync = {
+            ...previousContract.checkfrontSync,
+            status: previousContract.checkfrontSync.status || 'linked',
+          };
+        }
       }
 
       // Clean customRates data
@@ -429,6 +438,8 @@ export default function TotalCostCalculation({
         hotelAddons: contractData.hotelAddons || [],
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
+        // Checkfront integration: preserve existing sync for edits, default for new
+        checkfrontSync: existingCheckfrontSync,
       };
 
       const newContractId = await addGroupContract(groupContract);
@@ -437,6 +448,16 @@ export default function TotalCostCalculation({
         await cloneContractDataForRevision(contractData.id, newContractId);
         await archiveGroupContract(contractData.id);
       }
+
+      // TODO: Phase 2 - Trigger Checkfront sync after successful contract save
+      // This is a non-blocking stub that will be implemented in Phase 2
+      // if (groupContract.checkfrontSync?.bookingId) {
+      //   // Future: Update linked Checkfront booking
+      //   console.log('[Checkfront] Would update booking:', groupContract.checkfrontSync.bookingId);
+      // } else {
+      //   // Future: Create Checkfront booking and save returned bookingId
+      //   console.log('[Checkfront] Would create new booking for contract:', newContractId);
+      // }
 
       alert("Contract saved successfully!");
       onConfirm();
