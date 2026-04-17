@@ -21,6 +21,8 @@ export interface ContractData {
   customRates?: Record<number, number>; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
   focOverrideIndex?: number | null; // Room cost index selected as FOC base rate override
+  // Checkfront integration
+  checkfrontBookingId?: string; // Manually entered Checkfront booking ID
 }
 
 export interface RoomSelection {
@@ -272,15 +274,21 @@ export type CheckfrontSyncStatus =
   | 'linked'
   | 'sync_error';
 
+export type CheckfrontSyncDirection =
+  | 'app_to_checkfront'
+  | 'checkfront_to_app'
+  | 'manual_link';
+
 export interface CheckfrontSyncInfo {
   bookingId?: string;
   bookingUrl?: string;
   status?: CheckfrontSyncStatus;
   lastSyncedAt?: Date | null;
-  lastSyncDirection?: 'app_to_checkfront' | 'checkfront_to_app';
+  lastSyncDirection?: CheckfrontSyncDirection;
   lastError?: string | null;
   sessionId?: string | null;
   customerId?: string | null;
+  manuallyLinked?: boolean; // True if bookingId was manually entered by staff
 }
 
 // Default Checkfront sync state for new contracts
