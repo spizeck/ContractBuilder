@@ -312,7 +312,15 @@ export default function Home() {
                 - Manage diving options and pricing for groups
               </ListItem>
               <ListItem>
-                Automatic FOC rules and commission calculations
+                <Link
+                  as={NextLink}
+                  href="/contracts/hotel-sheets"
+                  color="blue.500"
+                  fontWeight="bold"
+                >
+                  Hotel Price Sheets
+                </Link>{" "}
+                - Generate printable hotel price and info sheets
               </ListItem>
 
               <ListItem>

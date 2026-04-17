@@ -135,7 +135,7 @@ export default function NavLinks() {
             )}
 
             {/* Contracts Section */}
-            {!isHotelStaffRole && (
+            {canAccessModule('contracts') && !isHotelStaffRole && (
               <Menu>
                 <MenuButton as={Button} variant="link" color="white">
                   Contracts
@@ -204,7 +204,7 @@ export default function NavLinks() {
                 )}
 
                 {/* Contracts Section */}
-                {!isHotelStaffRole && (
+                {canAccessModule('contracts') && !isHotelStaffRole && (
                   <AccordionItem border="none">
                     <AccordionButton>
                       <Box flex="1" textAlign="left">Contracts</Box>
