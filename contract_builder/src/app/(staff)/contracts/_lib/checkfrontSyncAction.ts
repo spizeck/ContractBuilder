@@ -8,7 +8,7 @@
  */
 
 import { syncContractToCheckfront } from '@/lib/integrations/checkfront'
-import { getGroupContractById } from './groupContractsRepo'
+import { getGroupContractByIdServer } from './checkfrontServerRepos'
 import { GroupContract } from '../_types'
 
 export interface CheckfrontSyncActionResult {
@@ -25,19 +25,33 @@ export interface CheckfrontSyncActionResult {
 export async function syncContractToCheckfrontAction(
   contractId: string
 ): Promise<CheckfrontSyncActionResult> {
+  console.log(`[CheckfrontSyncAction] Starting sync for contract: ${contractId}`)
+
   try {
-    // Fetch the contract from Firestore
-    const contract = await getGroupContractById(contractId)
+    // Fetch the contract from Firestore using server-safe admin SDK
+    console.log(`[CheckfrontSyncAction] Loading contract from Firestore...`)
+    const contract = await getGroupContractByIdServer(contractId)
 
     if (!contract) {
+      console.log(`[CheckfrontSyncAction] Contract not found: ${contractId}`)
       return {
         success: false,
         error: 'Contract not found',
       }
     }
 
+    console.log(`[CheckfrontSyncAction] Contract loaded: ${contract.groupName}`)
+    console.log(`[CheckfrontSyncAction] Calling Checkfront sync...`)
+
     // Call the Checkfront sync function (server-side only)
     const syncResult = await syncContractToCheckfront(contractId, contract)
+
+    console.log(`[CheckfrontSyncAction] Sync result:`, {
+      success: syncResult.status === 'linked',
+      status: syncResult.status,
+      bookingId: syncResult.bookingId,
+      error: syncResult.lastError,
+    })
 
     return {
       success: syncResult.status === 'linked',
@@ -47,7 +61,8 @@ export async function syncContractToCheckfrontAction(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('[CheckfrontSyncAction] Error:', errorMessage)
+    console.error(`[CheckfrontSyncAction] Error during sync:`, errorMessage)
+    console.error(`[CheckfrontSyncAction] Full error:`, error)
 
     return {
       success: false,

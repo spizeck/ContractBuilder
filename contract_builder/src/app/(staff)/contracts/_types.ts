@@ -37,6 +37,7 @@ export interface DivePackage {
   description: string;
   price: number;
   archived?: boolean;
+  checkfrontItemId?: string | null;
 }
 
 export interface MealPackage {
@@ -47,6 +48,7 @@ export interface MealPackage {
   price: number; // Price per person total
   commissionRate: number; // Commission rate as a decimal (e.g., 0.1 for 10%)
   archived?: boolean;
+  checkfrontItemId?: string | null;
 }
 
 export interface Hotel {

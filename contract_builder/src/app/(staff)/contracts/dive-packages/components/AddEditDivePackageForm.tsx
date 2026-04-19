@@ -31,6 +31,7 @@ export default function AddEditDivePackageForm({
     name: "",
     description: "",
     price: 0,
+    checkfrontItemId: null,
   });
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function AddEditDivePackageForm({
         name: divePackage.name || "",
         description: divePackage.description || "",
         price: divePackage.price || 0,
+        checkfrontItemId: divePackage.checkfrontItemId || null,
       });
     }
   }, [divePackage]);
@@ -108,6 +110,15 @@ export default function AddEditDivePackageForm({
               min="0"
               value={divePackageData.price}
               onChange={handleInputChange}
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>Checkfront Item ID</FormLabel>
+            <Input
+              name="checkfrontItemId"
+              value={divePackageData.checkfrontItemId || ""}
+              onChange={handleInputChange}
+              placeholder="Enter Checkfront Item ID (e.g., 284)"
             />
           </FormControl>
           <HStack spacing={4} mt={2} width={"100%"}>

@@ -1,5 +1,5 @@
 import {db} from "@core/db/firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where,} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where,} from "firebase/firestore";
 import {RoomCategory} from "../_types";
 
 export async function getRoomCategories(hotelId: string): Promise<RoomCategory[]> {
@@ -9,6 +9,18 @@ export async function getRoomCategories(hotelId: string): Promise<RoomCategory[]
     id: doc.id,
     ...(doc.data() as Omit<RoomCategory, "id">),
   }));
+}
+
+export async function getRoomCategoryById(categoryId: string): Promise<RoomCategory | null> {
+  const docRef = doc(db, "roomCategories", categoryId);
+  const docSnap = await getDoc(docRef);
+  if (!docSnap.exists()) {
+    return null;
+  }
+  return {
+    id: docSnap.id,
+    ...(docSnap.data() as Omit<RoomCategory, "id">),
+  };
 }
 
 export async function addRoomCategory(categoryData: Omit<RoomCategory, "id">): Promise<string> {

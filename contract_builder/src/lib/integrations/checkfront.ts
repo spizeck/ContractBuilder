@@ -23,10 +23,13 @@ import {
   CheckfrontItemMapping,
 } from '@/app/(staff)/contracts/_types'
 import {
-  getCheckfrontItemMappingByLocalEntity,
-  createCheckfrontSyncLog,
-} from '@/app/(staff)/contracts/_lib/checkfrontRepo'
-import { updateGroupContract } from '@/app/(staff)/contracts/_lib/groupContractsRepo'
+  getGroupContractByIdServer,
+  updateGroupContractServer,
+  getRoomCategoryByIdServer,
+  getDivePackageByIdServer,
+  getMealPackageByIdServer,
+  createCheckfrontSyncLogServer,
+} from '@/app/(staff)/contracts/_lib/checkfrontServerRepos'
 
 // ============================================================================
 // Configuration
@@ -112,6 +115,11 @@ export interface CheckfrontPayload {
 /**
  * Build a Checkfront payload from a GroupContract by looking up mappings.
  * Returns null if required mappings are missing.
+ * 
+ * Uses the new data model:
+ * - Room categories: roomCategories.checkfrontItemIds[occupancy]
+ * - Dive packages: divePackages.checkfrontItemId
+ * - Meal packages: mealPackages.checkfrontItemId
  */
 export async function buildCheckfrontPayloadFromContract(
   contract: GroupContract
@@ -119,25 +127,45 @@ export async function buildCheckfrontPayloadFromContract(
   const items: CheckfrontPayloadItem[] = []
   const errors: string[] = []
 
-  // Map rooms to Checkfront items
+  console.log(`[Checkfront] Building payload for contract: ${contract.groupName} (${contract.id || 'new'})`)
+  console.log(`[Checkfront] Hotel ID: ${contract.hotelId}, Rooms: ${contract.rooms?.length || 0}`)
+
+  // Map rooms to Checkfront items using roomCategories.checkfrontItemIds
   if (contract.rooms && contract.rooms.length > 0) {
+    console.log(`[Checkfront] Resolving ${contract.rooms.length} room lines...`)
+    
     for (const room of contract.rooms) {
       if (room.numRooms <= 0) continue
 
-      // Look up room category mapping
-      const mapping = await getCheckfrontItemMappingByLocalEntity(
-        'roomCategory',
-        room.categoryId,
-        contract.hotelId
-      )
+      // Load room category directly from Firestore
+      const category = await getRoomCategoryByIdServer(room.categoryId)
 
-      if (!mapping) {
-        errors.push(`No Checkfront mapping for room category ${room.categoryId}`)
+      if (!category) {
+        errors.push(`Room category not found: ${room.categoryId}`)
+        console.error(`[Checkfront] Room category not found: ${room.categoryId}`)
         continue
       }
 
+      // Resolve Checkfront item ID from category.checkfrontItemIds[occupancy]
+      const checkfrontItemId = category.checkfrontItemIds?.[room.occupancyType as keyof typeof category.checkfrontItemIds]
+
+      if (!checkfrontItemId) {
+        errors.push(
+          `Missing Checkfront room mapping for category "${category.name}" occupancy "${room.occupancyType}"`
+        )
+        console.error(
+          `[Checkfront] Missing mapping: ${category.name} / ${room.occupancyType} => ` +
+          `category.checkfrontItemIds = ${JSON.stringify(category.checkfrontItemIds)}`
+        )
+        continue
+      }
+
+      console.log(
+        `[Checkfront] Room resolved: ${category.name} / ${room.occupancyType} => Item ID: ${checkfrontItemId}`
+      )
+
       items.push({
-        checkfrontItemId: mapping.checkfrontItemId,
+        checkfrontItemId,
         quantity: room.numRooms,
         startDate: contract.startDate,
         endDate: contract.endDate,
@@ -145,43 +173,59 @@ export async function buildCheckfrontPayloadFromContract(
     }
   }
 
-  // Map dive package if present
+  // Map dive package if present using divePackages.checkfrontItemId
   if (contract.divePackageId) {
-    const diveMapping = await getCheckfrontItemMappingByLocalEntity(
-      'divePackage',
-      contract.divePackageId,
-      contract.hotelId
-    )
+    console.log(`[Checkfront] Resolving dive package: ${contract.divePackageId}`)
+    
+    const divePackage = await getDivePackageByIdServer(contract.divePackageId)
 
-    if (diveMapping) {
-      items.push({
-        checkfrontItemId: diveMapping.checkfrontItemId,
-        quantity: contract.numDivers || contract.totalGuests || 1,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
-      })
+    if (!divePackage) {
+      errors.push(`Dive package not found: ${contract.divePackageId}`)
+      console.error(`[Checkfront] Dive package not found: ${contract.divePackageId}`)
     } else {
-      errors.push(`No Checkfront mapping for dive package ${contract.divePackageId}`)
+      const checkfrontItemId = divePackage.checkfrontItemId
+
+      if (!checkfrontItemId) {
+        errors.push(`Missing Checkfront mapping for dive package "${divePackage.name}"`)
+        console.error(`[Checkfront] Dive package missing checkfrontItemId: ${divePackage.name}`)
+      } else {
+        console.log(`[Checkfront] Dive package resolved: ${divePackage.name} => Item ID: ${checkfrontItemId}`)
+        
+        items.push({
+          checkfrontItemId,
+          quantity: contract.numDivers || contract.totalGuests || 1,
+          startDate: contract.startDate,
+          endDate: contract.endDate,
+        })
+      }
     }
   }
 
-  // Map meal package if present
+  // Map meal package if present using mealPackages.checkfrontItemId
   if (contract.mealPackageId) {
-    const mealMapping = await getCheckfrontItemMappingByLocalEntity(
-      'mealPackage',
-      contract.mealPackageId,
-      contract.hotelId
-    )
+    console.log(`[Checkfront] Resolving meal package: ${contract.mealPackageId}`)
+    
+    const mealPackage = await getMealPackageByIdServer(contract.mealPackageId)
 
-    if (mealMapping) {
-      items.push({
-        checkfrontItemId: mealMapping.checkfrontItemId,
-        quantity: contract.totalGuests || 1,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
-      })
+    if (!mealPackage) {
+      errors.push(`Meal package not found: ${contract.mealPackageId}`)
+      console.error(`[Checkfront] Meal package not found: ${contract.mealPackageId}`)
     } else {
-      errors.push(`No Checkfront mapping for meal package ${contract.mealPackageId}`)
+      const checkfrontItemId = mealPackage.checkfrontItemId
+
+      if (!checkfrontItemId) {
+        errors.push(`Missing Checkfront mapping for meal package "${mealPackage.name}"`)
+        console.error(`[Checkfront] Meal package missing checkfrontItemId: ${mealPackage.name}`)
+      } else {
+        console.log(`[Checkfront] Meal package resolved: ${mealPackage.name} => Item ID: ${checkfrontItemId}`)
+        
+        items.push({
+          checkfrontItemId,
+          quantity: contract.totalGuests || 1,
+          startDate: contract.startDate,
+          endDate: contract.endDate,
+        })
+      }
     }
   }
 
@@ -190,6 +234,8 @@ export async function buildCheckfrontPayloadFromContract(
   if (errors.length > 0) {
     console.warn('[Checkfront] Payload build warnings:', errors)
   }
+
+  console.log(`[Checkfront] Payload complete: ${items.length} items, ${errors.length} errors`)
 
   if (items.length === 0) {
     return null
@@ -632,7 +678,7 @@ export async function syncContractToCheckfront(
     }
 
     // Log the skipped sync attempt
-    await createCheckfrontSyncLog(contractId, {
+    await createCheckfrontSyncLogServer(contractId, {
       action: contract.checkfrontSync?.bookingId ? 'update_booking' : 'create_booking',
       success: false,
       error: 'Checkfront not configured',
@@ -661,7 +707,7 @@ export async function syncContractToCheckfront(
     }
 
     // Log the sync attempt
-    await createCheckfrontSyncLog(contractId, {
+    await createCheckfrontSyncLogServer(contractId, {
       action,
       success: result.success,
       requestSummary: {
@@ -695,7 +741,7 @@ export async function syncContractToCheckfront(
       }
 
       // Update Firestore with new sync info
-      await updateGroupContract(contractId, { checkfrontSync: syncInfo })
+      await updateGroupContractServer(contractId, { checkfrontSync: syncInfo })
 
       return syncInfo
     } else {
@@ -710,7 +756,7 @@ export async function syncContractToCheckfront(
       }
 
       // Update Firestore with error state
-      await updateGroupContract(contractId, { checkfrontSync: syncInfo })
+      await updateGroupContractServer(contractId, { checkfrontSync: syncInfo })
 
       return syncInfo
     }
@@ -719,7 +765,7 @@ export async function syncContractToCheckfront(
     console.error('[Checkfront] Sync error:', errorMessage)
 
     // Log the error
-    await createCheckfrontSyncLog(contractId, {
+    await createCheckfrontSyncLogServer(contractId, {
       action: existingBookingId ? 'update_booking' : 'create_booking',
       success: false,
       error: errorMessage,
@@ -737,7 +783,7 @@ export async function syncContractToCheckfront(
 
     // Update Firestore with error state
     try {
-      await updateGroupContract(contractId, { checkfrontSync: syncInfo })
+      await updateGroupContractServer(contractId, { checkfrontSync: syncInfo })
     } catch (updateError) {
       console.error('[Checkfront] Failed to update contract with sync error:', updateError)
     }

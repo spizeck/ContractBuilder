@@ -46,6 +46,7 @@ import {
 import { formatCurrency, formatDate, parseFocRule } from "@shared/utils/formatters";
 import { getRoomTypes } from "@/app/(staff)/contracts/_lib/roomTypesRepo";
 import { syncContractToCheckfrontAction } from "@/app/(staff)/contracts/_lib/checkfrontSyncAction";
+import { checkfrontDryRunAction, CheckfrontDryRunResult } from "@/app/(staff)/contracts/_lib/checkfrontDryRunAction";
 
 export default function TotalCostCalculation({
   contractData,
@@ -85,6 +86,8 @@ export default function TotalCostCalculation({
   const [checkfrontBookingId, setCheckfrontBookingId] = useState<string>(
     contractData.checkfrontBookingId || ''
   );
+  const [dryRunLoading, setDryRunLoading] = useState(false);
+  const [dryRunResult, setDryRunResult] = useState<CheckfrontDryRunResult | null>(null);
 
   // Handler functions for rate editing
   const handleStartEditingRates = () => {
@@ -486,15 +489,21 @@ export default function TotalCostCalculation({
             console.log('[Checkfront] Sync completed:', result);
           } else {
             console.error('[Checkfront] Sync failed:', result.error);
+            // Show non-fatal warning about sync failure
+            alert(`Contract saved, but Checkfront sync failed.\n\nError: ${result.error || 'Unknown error'}\n\nYou can retry the sync from the Checkfront Integration section.`);
           }
         }).catch((syncError) => {
           console.error('[Checkfront] Sync error:', syncError);
+          alert('Contract saved, but Checkfront sync encountered an error. You can retry the sync manually.');
         });
       } else {
         console.log('[Checkfront] First-time manual link - skipping auto-sync');
       }
 
-      alert("Contract saved successfully!");
+      // Only show success alert if sync didn't already show a message
+      if (isFirstTimeManualLink) {
+        alert("Contract saved successfully!");
+      }
       onConfirm();
     } catch (error) {
       console.error("Error saving contract:", error);
@@ -1065,6 +1074,48 @@ export default function TotalCostCalculation({
               Enter an existing Checkfront booking ID to link, or leave blank to create a new booking on save.
             </Text>
 
+            {/* Dry Run Button - only shown if contract is saved (has an ID) */}
+            {contractData.id && (
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="teal"
+                isLoading={dryRunLoading}
+                loadingText="Testing..."
+                onClick={async () => {
+                  if (!contractData.id) return;
+                  setDryRunLoading(true);
+                  setDryRunResult(null);
+                  try {
+                    const result = await checkfrontDryRunAction(contractData.id);
+                    setDryRunResult(result);
+                    console.log('[CheckfrontDryRun] Result:', result);
+
+                    // Build summary message
+                    const summary = [
+                      `Dry Run Result: ${result.success ? 'SUCCESS' : 'FAILED'}`,
+                      ``,
+                      `Room Lines: ${result.roomLinesResolved}/${result.roomLines} resolved`,
+                      `Dive Package: ${result.divePackageResolved ? 'OK' : 'Not mapped'}`,
+                      `Meal Package: ${result.mealPackageResolved ? 'OK' : 'Not mapped'}`,
+                      `Missing Mappings: ${result.missingMappingsCount}`,
+                      ``,
+                      result.errors.length > 0 ? `Errors:\n${result.errors.join('\n')}` : '',
+                    ].filter(Boolean).join('\n');
+
+                    alert(summary);
+                  } catch (error) {
+                    console.error('[CheckfrontDryRun] Error:', error);
+                    alert('Dry run failed. See console for details.');
+                  } finally {
+                    setDryRunLoading(false);
+                  }
+                }}
+              >
+                Checkfront Dry Run
+              </Button>
+            )}
+
             {/* Explicit Sync Button - only shown if contract has a booking ID and is saved */}
             {contractData.id && checkfrontBookingId.trim() && (
               <Button
@@ -1086,7 +1137,7 @@ export default function TotalCostCalculation({
                   }
                 }}
               >
-                Sync to Checkfront
+                Sync to Checkfront (Live)
               </Button>
             )}
           </VStack>

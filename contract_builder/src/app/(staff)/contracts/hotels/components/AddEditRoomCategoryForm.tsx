@@ -8,7 +8,8 @@ import {
   VStack,
   HStack,
   CheckboxGroup,
-  Checkbox
+  Checkbox,
+  Text
 } from '@chakra-ui/react'
 import { addRoomCategory, updateRoomCategory } from '@/app/(staff)/contracts/_lib/roomCategoriesRepo'
 import { ensureRatesForCategory } from '@/app/(staff)/contracts/_lib/rateSyncRepo'
@@ -29,14 +30,16 @@ export default function AddEditRoomCategoryForm ({
     Omit<RoomCategory, 'id' | 'hotelId'>
   >({
     name: '',
-    occupancyTypes: []
+    occupancyTypes: [],
+    checkfrontItemIds: {}
   })
 
   useEffect(() => {
     if (category) {
       setCategoryData({
         name: category.name || '',
-        occupancyTypes: category.occupancyTypes || []
+        occupancyTypes: category.occupancyTypes || [],
+        checkfrontItemIds: category.checkfrontItemIds || {}
       })
     }
   }, [category])
@@ -45,6 +48,16 @@ export default function AddEditRoomCategoryForm ({
     setCategoryData({
       ...categoryData,
       [e.target.name]: e.target.value
+    })
+  }
+
+  const handleCheckfrontItemIdChange = (occupancy: string, value: string) => {
+    setCategoryData({
+      ...categoryData,
+      checkfrontItemIds: {
+        ...categoryData.checkfrontItemIds,
+        [occupancy]: value || undefined
+      }
     })
   }
 
@@ -112,6 +125,26 @@ export default function AddEditRoomCategoryForm ({
               </HStack>
             </CheckboxGroup>
           </FormControl>
+
+          {/* Checkfront Item IDs - only show for selected occupancy types */}
+          {categoryData.occupancyTypes.length > 0 && (
+            <FormControl>
+              <FormLabel>Checkfront Item IDs</FormLabel>
+              <VStack spacing={2} align="stretch">
+                {categoryData.occupancyTypes.map((occupancy) => (
+                  <HStack key={occupancy} spacing={2}>
+                    <Text w="80px" fontSize="sm">{occupancy}:</Text>
+                    <Input
+                      size="sm"
+                      placeholder={`Checkfront Item ID for ${occupancy}`}
+                      value={categoryData.checkfrontItemIds?.[occupancy as keyof typeof categoryData.checkfrontItemIds] || ''}
+                      onChange={(e) => handleCheckfrontItemIdChange(occupancy, e.target.value)}
+                    />
+                  </HStack>
+                ))}
+              </VStack>
+            </FormControl>
+          )}
           <HStack spacing={4} mt={2} width={'100%'}>
             <Button type='submit' colorScheme='teal' flex={'1'}>
               {category ? 'Update Category' : 'Add Category'}

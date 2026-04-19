@@ -30,7 +30,8 @@ export default function AddEditMealPackageForm ({
     name: '',
     description: '',
     commissionRate: 0,
-    price: 0
+    price: 0,
+    checkfrontItemId: null
   })
 
   useEffect(() => {
@@ -39,7 +40,8 @@ export default function AddEditMealPackageForm ({
         name: mealPackage.name || '',
         description: mealPackage.description || '',
         commissionRate: mealPackage.commissionRate || 0,
-        price: mealPackage.price || 0
+        price: mealPackage.price || 0,
+        checkfrontItemId: mealPackage.checkfrontItemId || null
       })
     }
   }, [mealPackage])
@@ -127,6 +129,15 @@ export default function AddEditMealPackageForm ({
               step='0.01'
               value={mealPackageData.price}
               onChange={handleInputChange}
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>Checkfront Item ID</FormLabel>
+            <Input
+              name='checkfrontItemId'
+              value={mealPackageData.checkfrontItemId || ''}
+              onChange={handleInputChange}
+              placeholder='Enter Checkfront Item ID (e.g., 284)'
             />
           </FormControl>
           <HStack spacing={4} mt={2} align={'stretch'}>
