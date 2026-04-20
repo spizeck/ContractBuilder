@@ -731,7 +731,8 @@ export async function syncContractToCheckfront(
     if (result.success && result.bookingId) {
       const syncInfo: CheckfrontSyncInfo = {
         bookingId: result.bookingId,
-        bookingUrl: result.bookingUrl,
+        // Only include bookingUrl if it has a real value - Firestore rejects undefined
+        ...(result.bookingUrl ? { bookingUrl: result.bookingUrl } : {}),
         status: 'linked',
         lastSyncedAt: now,
         lastSyncDirection: 'app_to_checkfront',
@@ -747,12 +748,13 @@ export async function syncContractToCheckfront(
     } else {
       // Sync failed but preserve existing bookingId and manuallyLinked
       const syncInfo: CheckfrontSyncInfo = {
-        bookingId: existingBookingId, // Preserve existing
+        // Only include bookingId if it has a real value - Firestore rejects undefined
+        ...(existingBookingId ? { bookingId: existingBookingId } : {}),
         status: existingBookingId ? 'sync_error' : 'not_linked',
         lastSyncedAt: now,
         lastSyncDirection: 'app_to_checkfront',
         lastError: result.error || 'Unknown error during sync',
-        manuallyLinked: isManuallyLinked, // Preserve
+        manuallyLinked: isManuallyLinked,
       }
 
       // Update Firestore with error state
@@ -773,12 +775,13 @@ export async function syncContractToCheckfront(
 
     // Return error state but preserve existing data
     const syncInfo: CheckfrontSyncInfo = {
-      bookingId: existingBookingId, // Preserve existing
+      // Only include bookingId if it has a real value - Firestore rejects undefined
+      ...(existingBookingId ? { bookingId: existingBookingId } : {}),
       status: existingBookingId ? 'sync_error' : 'not_linked',
       lastSyncedAt: now,
       lastSyncDirection: 'app_to_checkfront',
       lastError: errorMessage,
-      manuallyLinked: isManuallyLinked, // Preserve
+      manuallyLinked: isManuallyLinked,
     }
 
     // Update Firestore with error state
