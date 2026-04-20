@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
+  Badge,
   Box,
   Button,
   Divider,
@@ -463,6 +464,55 @@ export default function ViewContractPage () {
       <Box mt={6} className='no-print'>
         <ContractNotes contractId={id as string} isHotelStaff={isHotelStaff} />
       </Box>
+
+      {/* Checkfront Integration - Staff Only, no-print */}
+      {!isHotelStaff && contract.checkfrontSync && (
+        <Box mt={6} className='no-print'>
+          <Heading size='md' mb={3}>Checkfront Integration</Heading>
+          <VStack align='stretch' spacing={1}>
+            <HStack>
+              <Text fontWeight='semibold' minW='160px'>Booking ID:</Text>
+              {contract.checkfrontSync.bookingId ? (
+                <HStack>
+                  <Text fontFamily='mono'>{contract.checkfrontSync.bookingId}</Text>
+                  {contract.checkfrontSync.bookingUrl && (
+                    <Text as='a' href={contract.checkfrontSync.bookingUrl} target='_blank' color='blue.500' fontSize='sm'>
+                      View in Checkfront
+                    </Text>
+                  )}
+                </HStack>
+              ) : (
+                <Text color='gray.500'>Not linked</Text>
+              )}
+            </HStack>
+            <HStack>
+              <Text fontWeight='semibold' minW='160px'>Sync Status:</Text>
+              <Badge
+                colorScheme={
+                  contract.checkfrontSync.status === 'linked' ? 'green'
+                  : contract.checkfrontSync.status === 'sync_error' ? 'red'
+                  : contract.checkfrontSync.status === 'pending_create' ? 'yellow'
+                  : 'gray'
+                }
+              >
+                {contract.checkfrontSync.status ?? 'not_linked'}
+              </Badge>
+            </HStack>
+            {contract.checkfrontSync.lastSyncDirection && (
+              <HStack>
+                <Text fontWeight='semibold' minW='160px'>Last Sync Direction:</Text>
+                <Text fontSize='sm'>{contract.checkfrontSync.lastSyncDirection}</Text>
+              </HStack>
+            )}
+            {contract.checkfrontSync.lastError && (
+              <HStack align='start'>
+                <Text fontWeight='semibold' minW='160px'>Last Error:</Text>
+                <Text fontSize='sm' color='red.600'>{contract.checkfrontSync.lastError}</Text>
+              </HStack>
+            )}
+          </VStack>
+        </Box>
+      )}
 
       {/* Signed Contract Upload */}
       {!isHotelStaff && (

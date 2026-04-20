@@ -63,6 +63,22 @@ export function isCheckfrontConfigured(): boolean {
   )
 }
 
+/**
+ * Build a Checkfront API URL, normalizing /api/3.0 so it appears exactly once.
+ * Handles baseUrl with or without trailing slash, and with or without /api/3.0.
+ * Handles endpoint path with or without leading slash.
+ */
+export function buildCheckfrontUrl(endpoint: string): string {
+  const { baseUrl } = getCheckfrontConfig()
+  // Strip trailing slash from base
+  const base = baseUrl.replace(/\/+$/, '')
+  // Strip /api/3.0 suffix if already present in base, so we always add it once
+  const normalizedBase = base.replace(/\/api\/3\.0$/, '')
+  // Strip leading slash from endpoint
+  const normalizedEndpoint = endpoint.replace(/^\/+/, '')
+  return `${normalizedBase}/api/3.0/${normalizedEndpoint}`
+}
+
 export function buildCheckfrontHeaders(): Record<string, string> {
   const { apiKey, apiSecret } = getCheckfrontConfig()
 
@@ -189,13 +205,52 @@ export async function buildCheckfrontPayloadFromContract(
         errors.push(`Missing Checkfront mapping for dive package "${divePackage.name}"`)
         console.error(`[Checkfront] Dive package missing checkfrontItemId: ${divePackage.name}`)
       } else {
-        console.log(`[Checkfront] Dive package resolved: ${divePackage.name} => Item ID: ${checkfrontItemId}`)
-        
+        // Dive package dates: start = arrival + 1 day, end = diveStart + (durationDays - 1)
+        // This matches Checkfront's duration limits (e.g. 5-Day package = exactly 5 days)
+        let durationDays = divePackage.durationDays
+        if (!durationDays) {
+          // Fallback: parse duration from package name (e.g. "5-Day Dive Package" -> 5)
+          const match = divePackage.name.match(/(\d+)[- ]?day/i)
+          if (match) {
+            durationDays = parseInt(match[1], 10)
+            console.warn(
+              `[Checkfront] Dive package "${divePackage.name}" has no durationDays field. ` +
+              `Parsed ${durationDays} from name. Set durationDays in the dive package editor to remove this warning.`
+            )
+          } else {
+            console.warn(
+              `[Checkfront] Dive package "${divePackage.name}" has no durationDays and name could not be parsed. ` +
+              `Falling back to full contract date range. This may cause INVALID_DURATION errors.`
+            )
+          }
+        }
+
+        let diveStartDate: string
+        let diveEndDate: string
+        if (durationDays) {
+          // diveStart = contract arrival + 1 day
+          const arrivalDate = new Date(contract.startDate)
+          arrivalDate.setDate(arrivalDate.getDate() + 1)
+          diveStartDate = arrivalDate.toISOString().slice(0, 10)
+          // diveEnd = diveStart + (durationDays - 1) days
+          const endDate = new Date(arrivalDate)
+          endDate.setDate(endDate.getDate() + durationDays - 1)
+          diveEndDate = endDate.toISOString().slice(0, 10)
+        } else {
+          diveStartDate = contract.startDate
+          diveEndDate = contract.endDate
+        }
+
+        console.log(
+          `[Checkfront] Dive package resolved: "${divePackage.name}" => Item ID: ${checkfrontItemId} ` +
+          `durationDays=${durationDays ?? 'unknown'} diveStart=${diveStartDate} diveEnd=${diveEndDate}`
+        )
+
         items.push({
           checkfrontItemId,
           quantity: contract.numDivers || contract.totalGuests || 1,
-          startDate: contract.startDate,
-          endDate: contract.endDate,
+          startDate: diveStartDate,
+          endDate: diveEndDate,
         })
       }
     }
@@ -262,39 +317,60 @@ async function checkfrontApiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<CheckfrontApiResult<T>> {
-  try {
-    const { baseUrl } = getCheckfrontConfig()
-    const url = `${baseUrl}/api/3.0/${endpoint}`
+  const url = buildCheckfrontUrl(endpoint)
 
-    const response = await fetch(url, {
+  console.log(`[Checkfront] ${options.method || 'GET'} ${url}`)
+
+  let response: Response
+  try {
+    response = await fetch(url, {
       ...options,
       headers: {
         ...buildCheckfrontHeaders(),
         ...options.headers,
       },
     })
+  } catch (networkError) {
+    const msg = networkError instanceof Error ? networkError.message : String(networkError)
+    console.error(`[Checkfront] Network error for ${endpoint}:`, msg)
+    return { success: false, error: `Network error: ${msg}` }
+  }
 
-    const data = await response.json()
+  // Read response body as text first so we never lose it
+  let rawBody: string
+  try {
+    rawBody = await response.text()
+  } catch (readError) {
+    console.error(`[Checkfront] Failed to read response body for ${endpoint}`)
+    return { success: false, error: `Checkfront API ${response.status}: (unreadable response)` }
+  }
 
-    if (!response.ok) {
-      return {
-        success: false,
-        error: data.error || `Checkfront API error: ${response.status}`,
-      }
-    }
+  console.log(`[Checkfront] ${endpoint} => HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
 
-    return {
-      success: true,
-      data: data as T,
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error(`[Checkfront] API request failed for ${endpoint}:`, errorMessage)
+  // Parse JSON
+  let data: any
+  try {
+    data = JSON.parse(rawBody)
+  } catch {
+    // Non-JSON response
     return {
       success: false,
-      error: errorMessage,
+      error: `Checkfront API ${response.status}: ${rawBody.substring(0, 200)}`,
     }
   }
+
+  if (!response.ok) {
+    // Checkfront may use different error keys
+    const errorMsg =
+      data?.error ||
+      data?.message ||
+      data?.errors?.[0] ||
+      (typeof data === 'string' ? data : null) ||
+      `Checkfront API error: ${response.status}`
+    return { success: false, error: errorMsg }
+  }
+
+  return { success: true, data: data as T }
 }
 
 // ============================================================================
@@ -331,67 +407,120 @@ async function ensureCheckfrontCustomer(
 }
 
 // ============================================================================
-// Session & Slip Operations
+// Rated Item + Session + Booking Operations
 // ============================================================================
 
-interface CheckfrontSession {
-  session_id: string
-}
-
-interface CheckfrontSlip {
-  slip_id: string
-  item_id: string
+/**
+ * Format a date string (YYYY-MM-DD or ISO) to Checkfront's required YYYYMMDD format.
+ */
+function toCheckfrontDate(date: string): string {
+  return date.replace(/-/g, '').substring(0, 8)
 }
 
 /**
- * Create a booking session in Checkfront.
- * TODO: Verify exact endpoint and payload format with Checkfront API docs.
+ * Step 1: GET /api/3.0/item/{item_id}?start_date=YYYYMMDD&end_date=YYYYMMDD&param[qty]=N
+ * Returns the SLIP token needed to create a booking session.
+ * The slip lives at item.rate.slip in the response.
  */
-async function createCheckfrontSession(): Promise<CheckfrontApiResult<CheckfrontSession>> {
-  // TODO: Verify endpoint - may be /session/create or different
-  const result = await checkfrontApiRequest<CheckfrontSession>('session/create', {
-    method: 'POST',
-    body: JSON.stringify({}),
-  })
-
-  if (!result.success) {
-    return {
-      success: false,
-      error: `Failed to create session: ${result.error}`,
-    }
-  }
-
-  return result
-}
-
-/**
- * Add an item as a slip to a Checkfront session.
- * TODO: Verify exact endpoint and required fields.
- */
-async function addSlipToSession(
-  sessionId: string,
+async function getRatedItemSlip(
   item: CheckfrontPayloadItem
-): Promise<CheckfrontApiResult<CheckfrontSlip>> {
-  // TODO: Verify endpoint format - may be /item/{item_id}/slip or /session/{id}/slip
-  const result = await checkfrontApiRequest<CheckfrontSlip>(`item/${item.checkfrontItemId}/slip`, {
-    method: 'POST',
-    body: JSON.stringify({
-      session_id: sessionId,
-      quantity: item.quantity,
-      start_date: item.startDate,
-      end_date: item.endDate,
-      // TODO: Add option mappings if needed
-    }),
+): Promise<CheckfrontApiResult<{ slip: string }>> {
+  const startDate = toCheckfrontDate(item.startDate)
+  const endDate = toCheckfrontDate(item.endDate)
+  const params = new URLSearchParams({
+    start_date: startDate,
+    end_date: endDate,
+    'param[qty]': String(item.quantity),
   })
+  const endpoint = `item/${item.checkfrontItemId}?${params.toString()}`
+  const url = buildCheckfrontUrl(endpoint)
+  console.log(`[Checkfront][Step: rated_item] GET ${url}`)
+
+  const result = await checkfrontApiRequest<any>(`item/${item.checkfrontItemId}?${params.toString()}`)
 
   if (!result.success) {
+    console.error(`[Checkfront][Step: rated_item] FAILED item=${item.checkfrontItemId}: ${result.error}`)
+    return { success: false, error: `[rated_item item=${item.checkfrontItemId}] ${result.error}` }
+  }
+
+  console.log(`[Checkfront][Step: rated_item] Raw response item=${item.checkfrontItemId}:`, JSON.stringify(result.data).substring(0, 500))
+
+  const slip: string | undefined = result.data?.item?.rate?.slip
+  if (!slip) {
+    const status = result.data?.item?.rate?.status
+    console.error(`[Checkfront][Step: rated_item] No slip returned for item=${item.checkfrontItemId} rate.status=${status}`)
     return {
       success: false,
-      error: `Failed to add slip for item ${item.checkfrontItemId}: ${result.error}`,
+      error: `[rated_item item=${item.checkfrontItemId}] No slip in response (rate.status=${status}). Check availability and date range.`,
     }
   }
 
-  return result
+  console.log(`[Checkfront][Step: rated_item] OK item=${item.checkfrontItemId} slip=${slip}`)
+  return { success: true, data: { slip } }
+}
+
+/**
+ * Step 2: POST /api/3.0/booking/session with slip[]=<slip1>&slip[]=<slip2>
+ * Checkfront requires form-encoded body (not JSON) for slip arrays.
+ * Returns session_id.
+ */
+async function createBookingSession(
+  slips: string[]
+): Promise<CheckfrontApiResult<{ session_id: string }>> {
+  // Build form-encoded body: slip[]=value&slip[]=value
+  const body = slips.map(s => `slip[]=${encodeURIComponent(s)}`).join('&')
+  console.log(`[Checkfront][Step: booking_session] POST booking/session slips=${slips.length} body=${body.substring(0, 200)}`)
+
+  const { apiKey, apiSecret } = getCheckfrontConfig()
+  const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
+  const url = buildCheckfrontUrl('booking/session')
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`,
+        'Accept': 'application/json',
+      },
+      body,
+    })
+  } catch (networkError) {
+    const msg = networkError instanceof Error ? networkError.message : String(networkError)
+    console.error(`[Checkfront][Step: booking_session] Network error: ${msg}`)
+    return { success: false, error: `[booking_session] Network error: ${msg}` }
+  }
+
+  const rawBody = await response.text()
+  console.log(`[Checkfront][Step: booking_session] HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
+
+  let data: any
+  try { data = JSON.parse(rawBody) } catch {
+    return { success: false, error: `[booking_session] HTTP ${response.status}: ${rawBody.substring(0, 200)}` }
+  }
+
+  if (!response.ok) {
+    const errMsg = data?.error || data?.message || data?.errors?.[0] || `HTTP ${response.status}`
+    return { success: false, error: `[booking_session] ${errMsg}` }
+  }
+
+  const sessionId: string | undefined =
+    data?.booking?.session?.id ||   // actual Checkfront shape: booking.session.id
+    data?.session?.session_id ||
+    data?.session_id ||
+    data?.request?.session_id
+
+  if (!sessionId) {
+    console.error(`[Checkfront][Step: booking_session] No session_id in response:`, JSON.stringify(data).substring(0, 300))
+    return {
+      success: false,
+      error: `[booking_session] No session_id in response: ${JSON.stringify(data).substring(0, 300)}`,
+    }
+  }
+
+  console.log(`[Checkfront][Step: booking_session] OK session_id=${sessionId} (from booking.session.id)`)
+  return { success: true, data: { session_id: sessionId } }
 }
 
 // ============================================================================
@@ -406,47 +535,82 @@ interface CheckfrontBooking {
 }
 
 /**
- * Create a Checkfront booking from a prepared session.
- * TODO: Verify exact endpoint and required fields.
+ * Step 3: POST /api/3.0/booking/create with session_id and customer form fields.
+ * form[customer_name] is the minimum required field.
  */
 async function createBookingFromSession(
   sessionId: string,
-  customerId?: string
+  customerName: string
 ): Promise<CheckfrontApiResult<CheckfrontBooking>> {
-  const result = await checkfrontApiRequest<CheckfrontBooking>('booking/create', {
-    method: 'POST',
-    body: JSON.stringify({
-      session_id: sessionId,
-      // TODO: Add customer_id when customer handling implemented
-      // TODO: Add any other required fields (payment info, notes, etc.)
-    }),
-  })
+  console.log(`[Checkfront][Step: create_booking] session_id=${sessionId} customer="${customerName}"`)
 
-  if (!result.success) {
+  // booking/create requires form-encoded body with form[] fields
+  const body = new URLSearchParams({
+    session_id: sessionId,
+    'form[customer_name]': customerName,
+  }).toString()
+
+  const { apiKey, apiSecret, baseUrl } = getCheckfrontConfig()
+  const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
+  const url = buildCheckfrontUrl('booking/create')
+  console.log(`[Checkfront][Step: create_booking] POST ${url}`)
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${credentials}`,
+        'Accept': 'application/json',
+      },
+      body,
+    })
+  } catch (networkError) {
+    const msg = networkError instanceof Error ? networkError.message : String(networkError)
+    console.error(`[Checkfront][Step: create_booking] Network error: ${msg}`)
+    return { success: false, error: `[create_booking] Network error: ${msg}` }
+  }
+
+  const rawBody = await response.text()
+  console.log(`[Checkfront][Step: create_booking] HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
+
+  let data: any
+  try { data = JSON.parse(rawBody) } catch {
+    return { success: false, error: `[create_booking] HTTP ${response.status}: ${rawBody.substring(0, 200)}` }
+  }
+
+  if (!response.ok) {
+    const errMsg = data?.error || data?.message || data?.errors?.[0] || `HTTP ${response.status}`
+    console.error(`[Checkfront][Step: create_booking] FAILED: ${errMsg}`)
+    return { success: false, error: `[create_booking] ${errMsg}` }
+  }
+
+  const frontendBase = baseUrl.replace(/\/api\/3\.0\/?$/, '').replace(/\/+$/, '')
+  const bookingId: string | undefined =
+    data?.booking?.booking_id ||
+    data?.booking_id ||
+    data?.request?.booking_id
+  const bookingCode: string | undefined =
+    data?.booking?.code ||
+    data?.code ||
+    data?.request?.code
+  const bookingUrl = bookingCode ? `${frontendBase}/booking/${bookingCode}` : undefined
+
+  if (!bookingId) {
+    console.error('[Checkfront][Step: create_booking] No booking_id in response:', JSON.stringify(data).substring(0, 300))
     return {
       success: false,
-      error: `Failed to create booking: ${result.error}`,
+      error: `[create_booking] No booking_id in response: ${JSON.stringify(data).substring(0, 300)}`,
     }
   }
 
-  // Build booking URL from base URL and booking code/ID
-  const { baseUrl } = getCheckfrontConfig()
-  const bookingData = result.data
-  const bookingUrl = bookingData?.code
-    ? `${baseUrl}/booking/${bookingData.code}`
-    : undefined
-
-  return {
-    success: true,
-    bookingId: bookingData?.booking_id,
-    bookingUrl,
-    data: bookingData,
-  }
+  console.log(`[Checkfront][Step: create_booking] OK booking_id=${bookingId} code=${bookingCode || 'none'}`)
+  return { success: true, bookingId, bookingUrl, data }
 }
 
 /**
- * Update an existing Checkfront booking.
- * TODO: Checkfront booking update has limitations - some fields may not be updatable.
+ * Update an existing Checkfront booking (notes only for now).
  * TODO: For item changes, may need to delete and recreate slips.
  */
 async function updateCheckfrontBooking(
@@ -475,10 +639,12 @@ async function updateCheckfrontBooking(
     }
   }
 
+  // Strip /api/3.0 from baseUrl - booking URLs are frontend links, not API paths
   const { baseUrl } = getCheckfrontConfig()
+  const frontendBase = baseUrl.replace(/\/api\/3\.0\/?$/, '').replace(/\/+$/, '')
   const bookingData = result.data
   const bookingUrl = bookingData?.code
-    ? `${baseUrl}/booking/${bookingData.code}`
+    ? `${frontendBase}/booking/${bookingData.code}`
     : undefined
 
   return {
@@ -500,97 +666,99 @@ async function updateCheckfrontBooking(
 export async function createBookingFromContract(
   contract: GroupContract,
   _mappings?: CheckfrontItemMapping[] // Optional: pre-fetched mappings
-): Promise<CheckfrontApiResult> {
-  console.log('[Checkfront] createBookingFromContract called for contract:', contract.id)
+): Promise<CheckfrontApiResult & { lastStep?: string }> {
+  console.log(`[Checkfront][createBookingFromContract] START contract=${contract.id} group="${contract.groupName}"`)
 
   // Check if already has a booking ID (manual link)
   if (contract.checkfrontSync?.bookingId) {
-    console.log('[Checkfront] Contract already has bookingId:', contract.checkfrontSync.bookingId)
-    console.log('[Checkfront] Skipping creation - use update flow instead')
+    console.log('[Checkfront][createBookingFromContract] Already has bookingId:', contract.checkfrontSync.bookingId, '- use update flow')
     return {
       success: false,
       error: 'Contract already has a linked Checkfront booking. Use update flow instead.',
+      lastStep: 'pre_check',
     }
   }
 
   // Build payload from contract
+  console.log('[Checkfront][Step: build_payload] Building payload...')
   const payload = await buildCheckfrontPayloadFromContract(contract)
   if (!payload) {
+    console.error('[Checkfront][Step: build_payload] FAILED: returned null')
     return {
       success: false,
-      error: 'Could not build Checkfront payload: missing item mappings or no bookable items',
+      error: '[build_payload] Could not build Checkfront payload: missing item mappings or no bookable items',
+      lastStep: 'build_payload',
     }
   }
-
-  // TODO: Implement full customer -> session -> slips -> booking flow
-  // This is a conservative implementation with clear TODOs for remaining work
+  console.log(`[Checkfront][Step: build_payload] OK - ${payload.items.length} items, customer="${payload.customer.name}"`)
 
   try {
-    // Step 1: Ensure customer exists
-    const customerResult = await ensureCheckfrontCustomer(
-      payload.customer.name,
-      payload.customer.email
-    )
-    if (!customerResult.success) {
-      // TODO: Decide if we should proceed without customer or fail
-      // For now, log and continue (customer may be optional or created during booking)
-      console.warn('[Checkfront] Customer handling:', customerResult.error)
+    // Step 1: Rated item calls - GET /item/{id}?start_date=...&end_date=...&param[qty]=N
+    // Each item call returns a SLIP token encoding availability + pricing for that date range.
+    const slips: string[] = []
+    const slipErrors: string[] = []
+    for (const item of payload.items) {
+      const ratedResult = await getRatedItemSlip(item)
+      if (ratedResult.success && ratedResult.data?.slip) {
+        slips.push(ratedResult.data.slip)
+      } else {
+        slipErrors.push(ratedResult.error || `item=${item.checkfrontItemId} no slip returned`)
+      }
     }
 
-    // Step 2: Create session
-    const sessionResult = await createCheckfrontSession()
+    if (slips.length === 0) {
+      const combinedErrors = slipErrors.join('; ')
+      console.error(`[Checkfront][Step: rated_items] FAILED - no slips obtained. Errors: ${combinedErrors}`)
+      return {
+        success: false,
+        error: `[rated_items] No slips returned for any item. Errors: ${combinedErrors}`,
+        lastStep: 'rated_items',
+      }
+    }
+    console.log(`[Checkfront][Step: rated_items] OK - ${slips.length}/${payload.items.length} slips obtained`)
+    if (slipErrors.length > 0) {
+      console.warn(`[Checkfront][Step: rated_items] ${slipErrors.length} item(s) failed: ${slipErrors.join('; ')}`)
+    }
+
+    // Step 2: POST /booking/session with slip[]=... (form-encoded)
+    const sessionResult = await createBookingSession(slips)
     if (!sessionResult.success) {
       return {
         success: false,
         error: sessionResult.error,
+        lastStep: 'booking_session',
       }
     }
     const sessionId = sessionResult.data!.session_id
 
-    // Step 3: Add all items as slips
-    const slipResults: string[] = []
-    for (const item of payload.items) {
-      const slipResult = await addSlipToSession(sessionId, item)
-      if (slipResult.success) {
-        slipResults.push(slipResult.data!.slip_id)
-      } else {
-        console.warn('[Checkfront] Failed to add slip:', slipResult.error)
-        // Continue with other items - partial booking may still be useful
-      }
-    }
-
-    if (slipResults.length === 0) {
-      return {
-        success: false,
-        error: 'Failed to add any items to Checkfront session',
-      }
-    }
-
-    // Step 4: Create booking from session
+    // Step 3: POST /booking/create with session_id + form[customer_name]
     const bookingResult = await createBookingFromSession(
       sessionId,
-      customerResult.data?.customer_id
+      payload.customer.name
     )
 
     if (!bookingResult.success) {
       return {
         success: false,
         error: bookingResult.error,
+        lastStep: 'create_booking',
       }
     }
 
-    console.log('[Checkfront] Booking created:', bookingResult.bookingId)
+    console.log(`[Checkfront][createBookingFromContract] SUCCESS booking_id=${bookingResult.bookingId}`)
     return {
       success: true,
       bookingId: bookingResult.bookingId,
       bookingUrl: bookingResult.bookingUrl,
+      lastStep: 'create_booking',
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('[Checkfront] Create booking error:', errorMessage)
+    console.error('[Checkfront][createBookingFromContract] EXCEPTION:', errorMessage)
     return {
       success: false,
-      error: errorMessage,
+      error: `[exception] ${errorMessage}`,
+      lastStep: 'exception',
     }
   }
 }
@@ -667,9 +835,11 @@ export async function syncContractToCheckfront(
   contract: GroupContract
 ): Promise<CheckfrontSyncInfo> {
   const now = new Date()
+  console.log(`[Checkfront][syncContractToCheckfront] START contractId=${contractId} group="${contract.groupName}"`)
 
   // Check if Checkfront is configured
   if (!isCheckfrontConfigured()) {
+    console.warn('[Checkfront][syncContractToCheckfront] Not configured - skipping sync')
     const syncInfo: CheckfrontSyncInfo = {
       status: 'not_linked',
       lastError: 'Checkfront not configured',
@@ -677,7 +847,6 @@ export async function syncContractToCheckfront(
       lastSyncDirection: 'app_to_checkfront',
     }
 
-    // Log the skipped sync attempt
     await createCheckfrontSyncLogServer(contractId, {
       action: contract.checkfrontSync?.bookingId ? 'update_booking' : 'create_booking',
       success: false,
@@ -690,23 +859,23 @@ export async function syncContractToCheckfront(
   const existingBookingId = contract.checkfrontSync?.bookingId
   const isManuallyLinked = contract.checkfrontSync?.manuallyLinked || false
 
-  let result: CheckfrontApiResult
+  let result: CheckfrontApiResult & { lastStep?: string }
   let action: 'create_booking' | 'update_booking'
 
   try {
     if (existingBookingId) {
-      // Update existing booking
       action = 'update_booking'
-      console.log('[Checkfront] Updating linked booking:', existingBookingId)
+      console.log(`[Checkfront][syncContractToCheckfront] Action=update_booking bookingId=${existingBookingId}`)
       result = await updateBookingFromContract(contract)
     } else {
-      // Create new booking
       action = 'create_booking'
-      console.log('[Checkfront] Creating new booking for contract:', contractId)
+      console.log(`[Checkfront][syncContractToCheckfront] Action=create_booking contractId=${contractId}`)
       result = await createBookingFromContract(contract)
     }
 
-    // Log the sync attempt
+    console.log(`[Checkfront][syncContractToCheckfront] Result: success=${result.success} lastStep=${(result as any).lastStep} bookingId=${result.bookingId} error=${result.error}`)
+
+    // Log the sync attempt with step detail
     await createCheckfrontSyncLogServer(contractId, {
       action,
       success: result.success,
@@ -721,13 +890,15 @@ export async function syncContractToCheckfront(
       responseSummary: result.success
         ? {
             bookingId: result.bookingId,
-            bookingUrl: result.bookingUrl,
+            // Only include bookingUrl if defined - Firestore rejects undefined values
+            ...(result.bookingUrl ? { bookingUrl: result.bookingUrl } : {}),
           }
-        : undefined,
+        : { lastStep: (result as any).lastStep },
       error: result.error || null,
     })
 
     // Build sync info based on result
+    // Note: result.success can be true but result.bookingId undefined if API returned no booking_id
     if (result.success && result.bookingId) {
       const syncInfo: CheckfrontSyncInfo = {
         bookingId: result.bookingId,
@@ -753,7 +924,9 @@ export async function syncContractToCheckfront(
         status: existingBookingId ? 'sync_error' : 'not_linked',
         lastSyncedAt: now,
         lastSyncDirection: 'app_to_checkfront',
-        lastError: result.error || 'Unknown error during sync',
+        lastError: result.error
+          || (result.success ? 'Sync succeeded but no bookingId returned from Checkfront' : 'Sync failed with no error detail')
+          ,
         manuallyLinked: isManuallyLinked,
       }
 

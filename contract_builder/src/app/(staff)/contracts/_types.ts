@@ -23,6 +23,7 @@ export interface ContractData {
   focOverrideIndex?: number | null; // Room cost index selected as FOC base rate override
   // Checkfront integration
   checkfrontBookingId?: string; // Manually entered Checkfront booking ID
+  checkfrontSync?: CheckfrontSyncInfo; // Synced from Firestore on edit
 }
 
 export interface RoomSelection {
@@ -38,6 +39,7 @@ export interface DivePackage {
   price: number;
   archived?: boolean;
   checkfrontItemId?: string | null;
+  durationDays?: number;
 }
 
 export interface MealPackage {

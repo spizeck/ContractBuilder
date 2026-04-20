@@ -7,7 +7,11 @@
  * Never import this directly in client components.
  */
 
-import { syncContractToCheckfront } from '@/lib/integrations/checkfront'
+import {
+  syncContractToCheckfront,
+  buildCheckfrontPayloadFromContract,
+  isCheckfrontConfigured,
+} from '@/lib/integrations/checkfront'
 import { getGroupContractByIdServer } from './checkfrontServerRepos'
 import { GroupContract } from '../_types'
 
@@ -22,6 +26,81 @@ export interface CheckfrontSyncActionResult {
  * Server Action: Sync a contract to Checkfront
  * Reads the contract from Firestore and triggers Checkfront sync
  */
+export interface CheckfrontDryRunResult {
+  configured: boolean
+  contractFound: boolean
+  existingBookingId?: string
+  payloadBuilt: boolean
+  payloadItemCount?: number
+  payloadErrors?: string[]
+  wouldAction?: 'create_booking' | 'update_booking'
+  warnings: string[]
+}
+
+/**
+ * Server Action: Dry-run Checkfront sync for a contract
+ * Checks config, loads contract, builds payload, and reports what would happen
+ * without making any real API calls or writing to Firestore.
+ */
+export async function dryRunCheckfrontSync(
+  contractId: string
+): Promise<CheckfrontDryRunResult> {
+  const warnings: string[] = []
+
+  const configured = isCheckfrontConfigured()
+  if (!configured) {
+    warnings.push('Checkfront is not configured - missing env vars CHECKFRONT_API_KEY, CHECKFRONT_API_SECRET, or CHECKFRONT_API_BASE_URL')
+  }
+
+  const contract = await getGroupContractByIdServer(contractId)
+  if (!contract) {
+    return { configured, contractFound: false, payloadBuilt: false, warnings }
+  }
+
+  const existingBookingId = contract.checkfrontSync?.bookingId
+  const wouldAction: 'create_booking' | 'update_booking' = existingBookingId ? 'update_booking' : 'create_booking'
+
+  if (contract.checkfrontSync?.manuallyLinked && existingBookingId) {
+    warnings.push(`Contract has a manually linked bookingId: ${existingBookingId}`)
+  }
+
+  // Try building the payload to check mappings
+  let payloadBuilt = false
+  let payloadItemCount: number | undefined
+  let payloadErrors: string[] | undefined
+
+  try {
+    const payload = await buildCheckfrontPayloadFromContract(contract)
+    if (payload) {
+      payloadBuilt = true
+      payloadItemCount = payload.items.length
+      if (!payload.customer.email) {
+        warnings.push('Contract has no customer email - Checkfront customer creation may fail or create incomplete records')
+      }
+      if (payload.items.length === 0) {
+        warnings.push('No bookable items resolved - check room/dive/meal Checkfront ID mappings')
+      }
+    } else {
+      payloadBuilt = false
+      payloadErrors = ['buildCheckfrontPayloadFromContract returned null - no items resolved from mappings']
+    }
+  } catch (err) {
+    payloadBuilt = false
+    payloadErrors = [err instanceof Error ? err.message : String(err)]
+  }
+
+  return {
+    configured,
+    contractFound: true,
+    existingBookingId,
+    payloadBuilt,
+    payloadItemCount,
+    payloadErrors,
+    wouldAction,
+    warnings,
+  }
+}
+
 export async function syncContractToCheckfrontAction(
   contractId: string
 ): Promise<CheckfrontSyncActionResult> {

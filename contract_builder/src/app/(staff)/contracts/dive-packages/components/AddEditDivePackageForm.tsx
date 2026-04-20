@@ -32,6 +32,7 @@ export default function AddEditDivePackageForm({
     description: "",
     price: 0,
     checkfrontItemId: null,
+    durationDays: undefined,
   });
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function AddEditDivePackageForm({
         description: divePackage.description || "",
         price: divePackage.price || 0,
         checkfrontItemId: divePackage.checkfrontItemId || null,
+        durationDays: divePackage.durationDays,
       });
     }
   }, [divePackage]);
@@ -51,7 +53,7 @@ export default function AddEditDivePackageForm({
     const { name, value } = e.target;
     setDivePackageData({
       ...divePackageData,
-      [name]: name === "price" || name === "duration" ? parseFloat(value) : value,
+      [name]: name === "price" ? parseFloat(value) : name === "durationDays" ? (value === "" ? undefined : parseInt(value, 10)) : value,
     });
   };
 
@@ -119,6 +121,18 @@ export default function AddEditDivePackageForm({
               value={divePackageData.checkfrontItemId || ""}
               onChange={handleInputChange}
               placeholder="Enter Checkfront Item ID (e.g., 284)"
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>Duration (Days)</FormLabel>
+            <Input
+              name="durationDays"
+              type="number"
+              min="1"
+              step="1"
+              value={divePackageData.durationDays ?? ""}
+              onChange={handleInputChange}
+              placeholder="e.g. 4 or 5"
             />
           </FormControl>
           <HStack spacing={4} mt={2} width={"100%"}>

@@ -83,8 +83,9 @@ export default function TotalCostCalculation({
   const [focOverrideIndex, setFocOverrideIndex] = useState<number | null>(null);
 
   // Checkfront integration state
+  // Prefer checkfrontSync.bookingId (written by live sync) over legacy checkfrontBookingId field
   const [checkfrontBookingId, setCheckfrontBookingId] = useState<string>(
-    contractData.checkfrontBookingId || ''
+    String(contractData.checkfrontSync?.bookingId || contractData.checkfrontBookingId || '')
   );
   const [dryRunLoading, setDryRunLoading] = useState(false);
   const [dryRunResult, setDryRunResult] = useState<CheckfrontDryRunResult | null>(null);
@@ -490,7 +491,7 @@ export default function TotalCostCalculation({
           } else {
             console.error('[Checkfront] Sync failed:', result.error);
             // Show non-fatal warning about sync failure
-            alert(`Contract saved, but Checkfront sync failed.\n\nError: ${result.error || 'Unknown error'}\n\nYou can retry the sync from the Checkfront Integration section.`);
+            alert(`Contract saved, but Checkfront sync failed.\n\nError: ${result.error || 'Unknown error'}\n\nUse the "Checkfront Dry Run" button to diagnose mapping issues, or retry with "Sync to Checkfront (Live)".\nContract save was successful - sync failure is non-fatal.`);
           }
         }).catch((syncError) => {
           console.error('[Checkfront] Sync error:', syncError);
