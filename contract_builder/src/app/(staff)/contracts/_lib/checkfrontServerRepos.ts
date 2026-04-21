@@ -116,7 +116,7 @@ export async function getDivePackageByIdServer(
       ...docSnap.data() 
     } as DivePackage
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to load dive package ${packageId}:`, error)
+    console.error('%s Failed to load dive package %s:', ADMIN_DB, packageId, error)
     throw error
   }
 }
