@@ -147,15 +147,22 @@ export async function buildCheckfrontPayloadFromContract(
   console.log('[Checkfront] Building payload for contract: %s (%s)', contract.groupName, contract.id || 'new')
   console.log('[Checkfront] Hotel ID: %s, Rooms: %d', contract.hotelId, contract.rooms?.length || 0)
 
+  // Cache room categories by ID to avoid repeated Firestore lookups for the same category
+  const categoryCache = new Map<string, Awaited<ReturnType<typeof getRoomCategoryByIdServer>>>()
+
   // Map rooms to Checkfront items using roomCategories.checkfrontItemIds
   if (contract.rooms && contract.rooms.length > 0) {
     console.log('[Checkfront] Resolving %d room lines...', contract.rooms.length)
-    
+
     for (const room of contract.rooms) {
       if (room.numRooms <= 0) continue
 
-      // Load room category directly from Firestore
-      const category = await getRoomCategoryByIdServer(room.categoryId)
+      // Load room category from cache or Firestore
+      let category = categoryCache.get(room.categoryId)
+      if (category === undefined) {
+        category = await getRoomCategoryByIdServer(room.categoryId)
+        categoryCache.set(room.categoryId, category)
+      }
 
       if (!category) {
         errors.push(`Room category not found: ${room.categoryId}`)
