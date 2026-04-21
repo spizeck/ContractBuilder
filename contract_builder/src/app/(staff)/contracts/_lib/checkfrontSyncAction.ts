@@ -104,15 +104,15 @@ export async function dryRunCheckfrontSync(
 export async function syncContractToCheckfrontAction(
   contractId: string
 ): Promise<CheckfrontSyncActionResult> {
-  console.log(`[CheckfrontSyncAction] Starting sync for contract: ${contractId}`)
+  console.log('[CheckfrontSyncAction] Starting sync for contract: %s', contractId)
 
   try {
     // Fetch the contract from Firestore using server-safe admin SDK
-    console.log(`[CheckfrontSyncAction] Loading contract from Firestore...`)
+    console.log('[CheckfrontSyncAction] Loading contract from Firestore...')
     const contract = await getGroupContractByIdServer(contractId)
 
     if (!contract) {
-      console.log(`[CheckfrontSyncAction] Contract not found: ${contractId}`)
+      console.log('[CheckfrontSyncAction] Contract not found: %s', contractId)
       return {
         success: false,
         error: 'Contract not found',

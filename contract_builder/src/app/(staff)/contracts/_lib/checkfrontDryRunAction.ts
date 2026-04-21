@@ -81,7 +81,7 @@ async function getRoomCategorySafe(categoryId: string) {
   try {
     return await getRoomCategoryByIdServer(categoryId)
   } catch (error) {
-    console.error(`[CheckfrontDryRun] Failed to load room category ${categoryId}:`, error)
+    console.error('[CheckfrontDryRun] Failed to load room category %s:', categoryId, error)
     return null
   }
 }
@@ -102,7 +102,7 @@ export async function checkfrontDryRunAction(
   const errors: string[] = []
   const resolvedLines: DryRunLineResult[] = []
 
-  console.log(`[CheckfrontDryRun] Starting dry-run for contract: ${contractId}`)
+  console.log('[CheckfrontDryRun] Starting dry-run for contract: %s', contractId)
 
   // Default result structure for early returns
   const createEmptyResult = (): CheckfrontDryRunResult => ({
@@ -132,12 +132,12 @@ export async function checkfrontDryRunAction(
 
   try {
     // 1. Load contract from Firestore using server-safe admin SDK
-    console.log(`[CheckfrontDryRun] Loading contract via admin SDK: ${contractId}`)
+    console.log('[CheckfrontDryRun] Loading contract via admin SDK: %s', contractId)
     const contract = await getGroupContractByIdServer(contractId)
 
     if (!contract) {
       errors.push(`Contract not found: ${contractId}`)
-      console.error(`[CheckfrontDryRun] Contract not found: ${contractId}`)
+      console.error('[CheckfrontDryRun] Contract not found: %s', contractId)
       return {
         ...createEmptyResult(),
         errors,

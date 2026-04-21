@@ -21,7 +21,7 @@ const ADMIN_DB = '[FirebaseAdmin]'
 export async function getGroupContractByIdServer(
   contractId: string
 ): Promise<GroupContract | null> {
-  console.log(`${ADMIN_DB} getGroupContractByIdServer: ${contractId}`)
+  console.log('%s getGroupContractByIdServer: %s', ADMIN_DB, contractId)
   
   try {
     const db = getAdminDb()
@@ -29,17 +29,17 @@ export async function getGroupContractByIdServer(
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
-      console.log(`${ADMIN_DB} Contract not found: ${contractId}`)
+      console.log('%s Contract not found: %s', ADMIN_DB, contractId)
       return null
     }
 
-    console.log(`${ADMIN_DB} Contract loaded successfully: ${contractId}`)
+    console.log('%s Contract loaded successfully: %s', ADMIN_DB, contractId)
     return { 
       id: docSnap.id, 
       ...docSnap.data() 
     } as GroupContract
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to load contract ${contractId}:`, error)
+    console.error('%s Failed to load contract %s:', ADMIN_DB, contractId, error)
     throw error
   }
 }
@@ -48,15 +48,15 @@ export async function updateGroupContractServer(
   contractId: string,
   contractData: Partial<GroupContract>
 ): Promise<void> {
-  console.log(`${ADMIN_DB} updateGroupContractServer: ${contractId}`, contractData)
+  console.log('%s updateGroupContractServer: %s', ADMIN_DB, contractId, contractData)
   
   try {
     const db = getAdminDb()
     const docRef = db.collection('groupContracts').doc(contractId)
     await docRef.update(contractData)
-    console.log(`${ADMIN_DB} Contract updated successfully: ${contractId}`)
+    console.log('%s Contract updated successfully: %s', ADMIN_DB, contractId)
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to update contract ${contractId}:`, error)
+    console.error('%s Failed to update contract %s:', ADMIN_DB, contractId, error)
     throw error
   }
 }
