@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
+  Badge,
   Box,
   Button,
   Divider,
@@ -463,6 +464,8 @@ export default function ViewContractPage () {
       <Box mt={6} className='no-print'>
         <ContractNotes contractId={id as string} isHotelStaff={isHotelStaff} />
       </Box>
+
+      {/* CHECKFRONT_DISABLED: entire Checkfront section commented out — re-enable by restoring JSX block */}
 
       {/* Signed Contract Upload */}
       {!isHotelStaff && (

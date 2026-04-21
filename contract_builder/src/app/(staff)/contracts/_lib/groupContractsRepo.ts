@@ -32,9 +32,16 @@ export async function updateGroupContract (
   await updateDoc(docRef, contractData)
 }
 
-export async function archiveGroupContract (contractId: string): Promise<void> {
+export async function archiveGroupContract (
+  contractId: string,
+  supersededBy?: string
+): Promise<void> {
   const docRef = doc(db, 'groupContracts', contractId)
-  await updateDoc(docRef, { archived: true })
+  await updateDoc(docRef, {
+    archived: true,
+    archivedAt: new Date(),
+    ...(supersededBy ? { supersededBy } : {}),
+  })
 }
 
 export async function getGroupContractById (

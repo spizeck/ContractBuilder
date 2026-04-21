@@ -8,7 +8,8 @@ import {
   VStack,
   HStack,
   CheckboxGroup,
-  Checkbox
+  Checkbox,
+  Text
 } from '@chakra-ui/react'
 import { addRoomCategory, updateRoomCategory } from '@/app/(staff)/contracts/_lib/roomCategoriesRepo'
 import { ensureRatesForCategory } from '@/app/(staff)/contracts/_lib/rateSyncRepo'
@@ -29,14 +30,17 @@ export default function AddEditRoomCategoryForm ({
     Omit<RoomCategory, 'id' | 'hotelId'>
   >({
     name: '',
-    occupancyTypes: []
+    occupancyTypes: [],
+    checkfrontItemIds: {}
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (category) {
       setCategoryData({
         name: category.name || '',
-        occupancyTypes: category.occupancyTypes || []
+        occupancyTypes: category.occupancyTypes || [],
+        checkfrontItemIds: category.checkfrontItemIds || {}
       })
     }
   }, [category])
@@ -45,6 +49,16 @@ export default function AddEditRoomCategoryForm ({
     setCategoryData({
       ...categoryData,
       [e.target.name]: e.target.value
+    })
+  }
+
+  const handleCheckfrontItemIdChange = (occupancy: string, value: string) => {
+    setCategoryData({
+      ...categoryData,
+      checkfrontItemIds: {
+        ...categoryData.checkfrontItemIds,
+        [occupancy]: value || undefined
+      }
     })
   }
 
@@ -57,29 +71,35 @@ export default function AddEditRoomCategoryForm ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
 
-    let savedCategory: RoomCategory
+    try {
+      let savedCategory: RoomCategory
 
-    if (category) {
-      await updateRoomCategory(category.id, categoryData)
-      savedCategory = { ...category, ...categoryData }
-    } else {
-      // addRoomCategory returns the new document ID (string)
-      const newId = await addRoomCategory({ ...categoryData, hotelId })
-      savedCategory = {
-        id: newId,
-        hotelId,
-        name: categoryData.name,
-        occupancyTypes: categoryData.occupancyTypes
+      if (category) {
+        await updateRoomCategory(category.id, categoryData)
+        savedCategory = { ...category, ...categoryData }
+      } else {
+        // addRoomCategory returns the new document ID (string)
+        const newId = await addRoomCategory({ ...categoryData, hotelId })
+        savedCategory = {
+          id: newId,
+          hotelId,
+          name: categoryData.name,
+          occupancyTypes: categoryData.occupancyTypes
+        }
       }
+
+      await ensureRatesForCategory(hotelId, {
+        id: savedCategory.id,
+        occupancyTypes: savedCategory.occupancyTypes
+      })
+
+      onSubmit()
+    } finally {
+      setIsSubmitting(false)
     }
-
-    await ensureRatesForCategory(hotelId, {
-      id: savedCategory.id,
-      occupancyTypes: savedCategory.occupancyTypes
-    })
-
-    onSubmit()
   }
 
   const occupancyOptions = ['Single', 'Double', 'Triple', 'Quad']
@@ -112,8 +132,35 @@ export default function AddEditRoomCategoryForm ({
               </HStack>
             </CheckboxGroup>
           </FormControl>
+
+          {/* Checkfront Item IDs - only show for selected occupancy types */}
+          {categoryData.occupancyTypes.length > 0 && (
+            <FormControl>
+              <FormLabel>Checkfront Item IDs</FormLabel>
+              <VStack spacing={2} align="stretch">
+                {categoryData.occupancyTypes.map((occupancy) => (
+                  <HStack key={occupancy} spacing={2}>
+                    <Text w="80px" fontSize="sm">{occupancy}:</Text>
+                    <Input
+                      size="sm"
+                      placeholder={`Checkfront Item ID for ${occupancy}`}
+                      value={categoryData.checkfrontItemIds?.[occupancy as keyof typeof categoryData.checkfrontItemIds] || ''}
+                      onChange={(e) => handleCheckfrontItemIdChange(occupancy, e.target.value)}
+                    />
+                  </HStack>
+                ))}
+              </VStack>
+            </FormControl>
+          )}
           <HStack spacing={4} mt={2} width={'100%'}>
-            <Button type='submit' colorScheme='teal' flex={'1'}>
+            <Button
+              type='submit'
+              colorScheme='teal'
+              flex={'1'}
+              isLoading={isSubmitting}
+              loadingText={category ? 'Updating...' : 'Adding...'}
+              isDisabled={isSubmitting}
+            >
               {category ? 'Update Category' : 'Add Category'}
             </Button>
             <Button onClick={onCancel} colorScheme='gray' flex={'1'}>

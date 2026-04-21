@@ -21,6 +21,9 @@ export interface ContractData {
   customRates?: Record<number, number>; // Custom room rates for this contract
   hasCustomRates?: boolean; // Flag to indicate if custom rates are used
   focOverrideIndex?: number | null; // Room cost index selected as FOC base rate override
+  // Checkfront integration
+  checkfrontBookingId?: string; // Manually entered Checkfront booking ID
+  checkfrontSync?: CheckfrontSyncInfo; // Synced from Firestore on edit
 }
 
 export interface RoomSelection {
@@ -35,6 +38,8 @@ export interface DivePackage {
   description: string;
   price: number;
   archived?: boolean;
+  checkfrontItemId?: string | null;
+  durationDays?: number;
 }
 
 export interface MealPackage {
@@ -45,6 +50,7 @@ export interface MealPackage {
   price: number; // Price per person total
   commissionRate: number; // Commission rate as a decimal (e.g., 0.1 for 10%)
   archived?: boolean;
+  checkfrontItemId?: string | null;
 }
 
 export interface Hotel {
@@ -69,6 +75,12 @@ export interface RoomCategory {
   name: string;
   occupancyTypes: string[]; // e.g., ["Single", "Double", "Triple", "Quad"]
   archived?: boolean;
+  checkfrontItemIds?: {
+    Single?: string;
+    Double?: string;
+    Triple?: string;
+    Quad?: string;
+  };
 }
 
 export interface Totals {
@@ -83,6 +95,9 @@ export interface GroupContract {
   revisionOfContractId?: string;
   rootContractId?: string;
   revisionNumber?: number;
+  supersedes?: string | null; // ID of the contract this one replaced
+  supersededBy?: string | null; // ID of the contract that replaced this one
+  archivedAt?: Date | null; // When this contract was archived
   groupName: string;
   startDate: string;
   endDate: string;
@@ -130,6 +145,8 @@ export interface GroupContract {
   paidInFullAt?: Date; // When contract was paid in full
   paidInFullBy?: string; // Who marked as paid in full
   paymentStatus?: 'unpaid' | 'deposit-paid' | 'paid-in-full'; // Overall payment status
+  // Checkfront integration
+  checkfrontSync?: CheckfrontSyncInfo;
 }
 
 export interface Rate {
@@ -259,3 +276,72 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeLogo: true,
   includeMealCommissionInfo: false,
 };
+
+// ============================================================================
+// Checkfront Integration Types
+// ============================================================================
+
+export type CheckfrontSyncStatus =
+  | 'not_linked'
+  | 'pending_create'
+  | 'linked'
+  | 'sync_error';
+
+export type CheckfrontSyncDirection =
+  | 'app_to_checkfront'
+  | 'checkfront_to_app'
+  | 'manual_link';
+
+export interface CheckfrontSyncInfo {
+  bookingId?: string;       // internal numeric API ID e.g. "7999"
+  bookingCode?: string;     // public booking reference e.g. "FTVG-200426"
+  bookingUrl?: string;
+  status?: CheckfrontSyncStatus;
+  lastSyncedAt?: Date | null;
+  lastSyncDirection?: CheckfrontSyncDirection;
+  lastError?: string | null;
+  sessionId?: string | null;
+  customerId?: string | null;
+  manuallyLinked?: boolean; // True if bookingId was manually entered by staff
+}
+
+// Default Checkfront sync state for new contracts
+export const defaultCheckfrontSync: CheckfrontSyncInfo = {
+  status: 'not_linked',
+  lastError: null,
+  lastSyncedAt: null,
+};
+
+export type CheckfrontMappingEntityType =
+  | 'hotel'
+  | 'roomCategory'
+  | 'roomType'
+  | 'mealPackage'
+  | 'divePackage'
+  | 'addon';
+
+export interface CheckfrontItemMapping {
+  id?: string;
+  hotelId?: string | null;
+  localEntityType: CheckfrontMappingEntityType;
+  localEntityId: string;
+  checkfrontItemId: string;
+  checkfrontCategoryId?: string | null;
+  itemType: 'room' | 'dive' | 'meal' | 'addon';
+  optionMappings?: Record<string, string>;
+  rateSource?: 'manual_map' | 'synced_catalog';
+  active: boolean;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface CheckfrontSyncLog {
+  id?: string;
+  action: 'create_booking' | 'update_booking';
+  success: boolean;
+  requestSummary?: Record<string, unknown>;
+  responseSummary?: Record<string, unknown>;
+  error?: string | null;
+  createdAt?: Date;
+}

@@ -1,0 +1,191 @@
+'use server'
+
+/**
+ * Server-safe Repository Functions for Checkfront Sync
+ * 
+ * These functions use Firebase Admin SDK to bypass client security rules.
+ * Use ONLY in server actions and server-side code.
+ * 
+ * This duplicates the client-side repo functionality but uses admin Firestore.
+ */
+
+import { getAdminDb } from '@/core/db/firebaseAdmin'
+import { GroupContract, RoomCategory, DivePackage, MealPackage } from '../_types'
+
+const ADMIN_DB = '[FirebaseAdmin]'
+
+// ============================================================================
+// Group Contracts
+// ============================================================================
+
+export async function getGroupContractByIdServer(
+  contractId: string
+): Promise<GroupContract | null> {
+  console.log('%s getGroupContractByIdServer: %s', ADMIN_DB, contractId)
+  
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('groupContracts').doc(contractId)
+    const docSnap = await docRef.get()
+
+    if (!docSnap.exists) {
+      console.log('%s Contract not found: %s', ADMIN_DB, contractId)
+      return null
+    }
+
+    console.log('%s Contract loaded successfully: %s', ADMIN_DB, contractId)
+    return { 
+      id: docSnap.id, 
+      ...docSnap.data() 
+    } as GroupContract
+  } catch (error) {
+    console.error('%s Failed to load contract %s:', ADMIN_DB, contractId, error)
+    throw error
+  }
+}
+
+export async function updateGroupContractServer(
+  contractId: string,
+  contractData: Partial<GroupContract>
+): Promise<void> {
+  console.log('%s updateGroupContractServer: %s', ADMIN_DB, contractId, contractData)
+  
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('groupContracts').doc(contractId)
+    await docRef.update(contractData)
+    console.log('%s Contract updated successfully: %s', ADMIN_DB, contractId)
+  } catch (error) {
+    console.error('%s Failed to update contract %s:', ADMIN_DB, contractId, error)
+    throw error
+  }
+}
+
+// ============================================================================
+// Room Categories
+// ============================================================================
+
+export async function getRoomCategoryByIdServer(
+  categoryId: string
+): Promise<RoomCategory | null> {
+  console.log('%s getRoomCategoryByIdServer: %s', ADMIN_DB, categoryId)
+  
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('roomCategories').doc(categoryId)
+    const docSnap = await docRef.get()
+
+    if (!docSnap.exists) {
+      console.log('%s Room category not found: %s', ADMIN_DB, categoryId)
+      return null
+    }
+
+    console.log('%s Room category loaded: %s', ADMIN_DB, categoryId)
+    return { 
+      id: docSnap.id, 
+      ...docSnap.data() 
+    } as RoomCategory
+  } catch (error) {
+    console.error('%s Failed to load room category %s:', ADMIN_DB, categoryId, error)
+    throw error
+  }
+}
+
+// ============================================================================
+// Dive Packages
+// ============================================================================
+
+export async function getDivePackageByIdServer(
+  packageId: string
+): Promise<DivePackage | null> {
+  console.log('%s getDivePackageByIdServer: %s', ADMIN_DB, packageId)
+  
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('divePackages').doc(packageId)
+    const docSnap = await docRef.get()
+
+    if (!docSnap.exists) {
+      console.log('%s Dive package not found: %s', ADMIN_DB, packageId)
+      return null
+    }
+
+    console.log('%s Dive package loaded: %s', ADMIN_DB, packageId)
+    return { 
+      id: docSnap.id, 
+      ...docSnap.data() 
+    } as DivePackage
+  } catch (error) {
+    console.error('%s Failed to load dive package %s:', ADMIN_DB, packageId, error)
+    throw error
+  }
+}
+
+// ============================================================================
+// Meal Packages
+// ============================================================================
+
+export async function getMealPackageByIdServer(
+  packageId: string
+): Promise<MealPackage | null> {
+  console.log('%s getMealPackageByIdServer: %s', ADMIN_DB, packageId)
+  
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('mealPackages').doc(packageId)
+    const docSnap = await docRef.get()
+
+    if (!docSnap.exists) {
+      console.log('%s Meal package not found: %s', ADMIN_DB, packageId)
+      return null
+    }
+
+    console.log('%s Meal package loaded: %s', ADMIN_DB, packageId)
+    return { 
+      id: docSnap.id, 
+      ...docSnap.data() 
+    } as MealPackage
+  } catch (error) {
+    console.error('%s Failed to load meal package %s:', ADMIN_DB, packageId, error)
+    throw error
+  }
+}
+
+// ============================================================================
+// Checkfront Sync Logs
+// ============================================================================
+
+export interface CheckfrontSyncLogData {
+  action: 'create_booking' | 'update_booking'
+  success: boolean
+  requestSummary?: Record<string, unknown>
+  responseSummary?: Record<string, unknown>
+  error?: string | null
+}
+
+export async function createCheckfrontSyncLogServer(
+  contractId: string,
+  logData: CheckfrontSyncLogData
+): Promise<string> {
+  console.log('%s createCheckfrontSyncLogServer for contract: %s', ADMIN_DB, contractId)
+  
+  try {
+    const db = getAdminDb()
+    const logsCollection = db
+      .collection('groupContracts')
+      .doc(contractId)
+      .collection('syncLogs')
+    
+    const docRef = await logsCollection.add({
+      ...logData,
+      createdAt: new Date(),
+    })
+    
+    console.log('%s Sync log created: %s', ADMIN_DB, docRef.id)
+    return docRef.id
+  } catch (error) {
+    console.error('%s Failed to create sync log for %s:', ADMIN_DB, contractId, error)
+    // Don't throw - sync logging should not break the main flow
+    return ''
+  }
+}

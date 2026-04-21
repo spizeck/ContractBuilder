@@ -6,10 +6,15 @@ const divePackagesCollection = collection(db, "divePackages");
 
 export async function getDivePackages(): Promise<DivePackage[]> {
   const querySnapshot = await getDocs(divePackagesCollection);
-  return querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...(doc.data() as Omit<DivePackage, "id">),
-  }));
+  return querySnapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<DivePackage, "id">),
+    }))
+    .sort((a, b) => {
+      const normalize = (s: string) => s.replace(/\u2013|\u2014/g, "-");
+      return normalize(a.name).localeCompare(normalize(b.name), undefined, { numeric: true, sensitivity: "base" });
+    });
 }
 
 export async function addDivePackage(divePackageData: Omit<DivePackage, "id">): Promise<string> {

@@ -43,6 +43,9 @@ import {
 } from "@/app/(staff)/contracts/_lib/contractCalculations";
 import { formatCurrency, formatDate, parseFocRule } from "@shared/utils/formatters";
 import { getRoomTypes } from "@/app/(staff)/contracts/_lib/roomTypesRepo";
+// CHECKFRONT_DISABLED: imports kept for future re-enable
+// import { syncContractToCheckfrontAction } from "@/app/(staff)/contracts/_lib/checkfrontSyncAction";
+// import { checkfrontDryRunAction, CheckfrontDryRunResult } from "@/app/(staff)/contracts/_lib/checkfrontDryRunAction";
 
 export default function TotalCostCalculation({
   contractData,
@@ -77,6 +80,8 @@ export default function TotalCostCalculation({
   const [tempRates, setTempRates] = useState<Record<number, number | undefined>>({});
   const [originalRates, setOriginalRates] = useState<Record<number, number>>({});
   const [focOverrideIndex, setFocOverrideIndex] = useState<number | null>(null);
+
+  // CHECKFRONT_DISABLED: state removed (checkfrontBookingId, dryRunLoading, dryRunResult)
 
   // Handler functions for rate editing
   const handleStartEditingRates = () => {
@@ -349,7 +354,7 @@ export default function TotalCostCalculation({
       let revisionOfContractId: string | undefined;
       let rootContractId: string | undefined;
       let revisionNumber: number | undefined;
-
+    // CHECKFRONT_DISABLED: sync data not inherited on revision
       if (contractData.id) {
         const previousContract = await getGroupContractById(contractData.id);
         revisionOfContractId = contractData.id;
@@ -384,6 +389,7 @@ export default function TotalCostCalculation({
       const groupContract: Omit<GroupContract, "id"> = {
         archived: false,
         ...(revisionOfContractId && { revisionOfContractId }),
+        ...(revisionOfContractId && { supersedes: revisionOfContractId }),
         ...(rootContractId && { rootContractId }),
         ...(revisionNumber !== undefined && { revisionNumber }),
         groupName: contractData.groupName!,
@@ -429,15 +435,18 @@ export default function TotalCostCalculation({
         hotelAddons: contractData.hotelAddons || [],
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
+        // CHECKFRONT_DISABLED: sync data not written on save
       };
 
       const newContractId = await addGroupContract(groupContract);
 
       if (contractData.id) {
-        await cloneContractDataForRevision(contractData.id, newContractId);
-        await archiveGroupContract(contractData.id);
+        const oldId = contractData.id;
+        await cloneContractDataForRevision(oldId, newContractId);
+        await archiveGroupContract(oldId, newContractId);
       }
 
+      // CHECKFRONT_DISABLED: no sync triggered on save
       alert("Contract saved successfully!");
       onConfirm();
     } catch (error) {
@@ -981,6 +990,8 @@ export default function TotalCostCalculation({
           <Text fontWeight="bold">Net: ${formatCurrency(overall.net)}</Text>
         </CardBody>
       </Card>
+
+      {/* CHECKFRONT_DISABLED: Checkfront Integration card hidden */}
 
       {/* Actions */}
       <HStack spacing={2}>
