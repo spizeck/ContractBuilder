@@ -33,6 +33,7 @@ export default function AddEditRoomCategoryForm ({
     occupancyTypes: [],
     checkfrontItemIds: {}
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (category) {
@@ -70,29 +71,35 @@ export default function AddEditRoomCategoryForm ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
 
-    let savedCategory: RoomCategory
+    try {
+      let savedCategory: RoomCategory
 
-    if (category) {
-      await updateRoomCategory(category.id, categoryData)
-      savedCategory = { ...category, ...categoryData }
-    } else {
-      // addRoomCategory returns the new document ID (string)
-      const newId = await addRoomCategory({ ...categoryData, hotelId })
-      savedCategory = {
-        id: newId,
-        hotelId,
-        name: categoryData.name,
-        occupancyTypes: categoryData.occupancyTypes
+      if (category) {
+        await updateRoomCategory(category.id, categoryData)
+        savedCategory = { ...category, ...categoryData }
+      } else {
+        // addRoomCategory returns the new document ID (string)
+        const newId = await addRoomCategory({ ...categoryData, hotelId })
+        savedCategory = {
+          id: newId,
+          hotelId,
+          name: categoryData.name,
+          occupancyTypes: categoryData.occupancyTypes
+        }
       }
+
+      await ensureRatesForCategory(hotelId, {
+        id: savedCategory.id,
+        occupancyTypes: savedCategory.occupancyTypes
+      })
+
+      onSubmit()
+    } finally {
+      setIsSubmitting(false)
     }
-
-    await ensureRatesForCategory(hotelId, {
-      id: savedCategory.id,
-      occupancyTypes: savedCategory.occupancyTypes
-    })
-
-    onSubmit()
   }
 
   const occupancyOptions = ['Single', 'Double', 'Triple', 'Quad']
@@ -146,7 +153,14 @@ export default function AddEditRoomCategoryForm ({
             </FormControl>
           )}
           <HStack spacing={4} mt={2} width={'100%'}>
-            <Button type='submit' colorScheme='teal' flex={'1'}>
+            <Button
+              type='submit'
+              colorScheme='teal'
+              flex={'1'}
+              isLoading={isSubmitting}
+              loadingText={category ? 'Updating...' : 'Adding...'}
+              isDisabled={isSubmitting}
+            >
               {category ? 'Update Category' : 'Add Category'}
             </Button>
             <Button onClick={onCancel} colorScheme='gray' flex={'1'}>
