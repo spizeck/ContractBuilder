@@ -144,7 +144,7 @@ export async function checkfrontDryRunAction(
       }
     }
 
-    console.log(`[CheckfrontDryRun] Contract loaded: ${contract.groupName} (${contract.hotelId})`)
+    console.log('[CheckfrontDryRun] Contract loaded: %s (%s)', contract.groupName, contract.hotelId)
 
     let categoriesLoaded = 0
     let divePackageLoaded = false
@@ -152,7 +152,7 @@ export async function checkfrontDryRunAction(
 
     // 2. Resolve room lines
     if (contract.rooms && contract.rooms.length > 0) {
-      console.log(`[CheckfrontDryRun] Resolving ${contract.rooms.length} room lines...`)
+      console.log('[CheckfrontDryRun] Resolving %d room lines...', contract.rooms.length)
 
       for (let i = 0; i < contract.rooms.length; i++) {
         const room = contract.rooms[i]
@@ -203,15 +203,18 @@ export async function checkfrontDryRunAction(
         })
 
         console.log(
-          `[CheckfrontDryRun] Room line ${i + 1}: ${category.name} / ${room.occupancyType} => ` +
-          `Item ID: ${checkfrontItemId || 'MISSING'}`
+          '[CheckfrontDryRun] Room line %d: %s / %s => Item ID: %s',
+          i + 1,
+          category.name,
+          room.occupancyType,
+          checkfrontItemId || 'MISSING'
         )
       }
     }
 
     // 3. Resolve dive package
     if (contract.divePackageId) {
-      console.log(`[CheckfrontDryRun] Resolving dive package: ${contract.divePackageId}`)
+      console.log('[CheckfrontDryRun] Resolving dive package: %s', contract.divePackageId)
 
       const divePackage = await getDivePackageByIdServer(contract.divePackageId)
       divePackageLoaded = true
@@ -237,15 +240,16 @@ export async function checkfrontDryRunAction(
         })
 
         console.log(
-          `[CheckfrontDryRun] Dive package: ${divePackage.name} => ` +
-          `Item ID: ${checkfrontItemId || 'MISSING'}`
+          '[CheckfrontDryRun] Dive package: %s => Item ID: %s',
+          divePackage.name,
+          checkfrontItemId || 'MISSING'
         )
       }
     }
 
     // 4. Resolve meal package
     if (contract.mealPackageId) {
-      console.log(`[CheckfrontDryRun] Resolving meal package: ${contract.mealPackageId}`)
+      console.log('[CheckfrontDryRun] Resolving meal package: %s', contract.mealPackageId)
 
       const mealPackage = await getMealPackageByIdServer(contract.mealPackageId)
       mealPackageLoaded = true
@@ -271,8 +275,9 @@ export async function checkfrontDryRunAction(
         })
 
         console.log(
-          `[CheckfrontDryRun] Meal package: ${mealPackage.name} => ` +
-          `Item ID: ${checkfrontItemId || 'MISSING'}`
+          '[CheckfrontDryRun] Meal package: %s => Item ID: %s',
+          mealPackage.name,
+          checkfrontItemId || 'MISSING'
         )
       }
     }
@@ -322,20 +327,20 @@ export async function checkfrontDryRunAction(
 
     // 7. Log full result to console for debugging
     console.log('[CheckfrontDryRun] === RESULT ===')
-    console.log(`Contract: ${result.contractName} (${result.contractId})`)
-    console.log(`Success: ${result.success}`)
-    console.log(`Total lines: ${result.totalLines}`)
-    console.log(`Missing mappings: ${result.missingMappingsCount}`)
-    console.log(`Room lines: ${result.roomLinesResolved}/${result.roomLines} resolved`)
-    console.log(`Dive package: ${result.divePackageResolved ? 'OK' : 'MISSING'}`)
-    console.log(`Meal package: ${result.mealPackageResolved ? 'OK' : 'MISSING'}`)
+    console.log('Contract: %s (%s)', result.contractName, result.contractId)
+    console.log('Success: %s', result.success)
+    console.log('Total lines: %d', result.totalLines)
+    console.log('Missing mappings: %d', result.missingMappingsCount)
+    console.log('Room lines: %d/%d resolved', result.roomLinesResolved, result.roomLines)
+    console.log('Dive package: %s', result.divePackageResolved ? 'OK' : 'MISSING')
+    console.log('Meal package: %s', result.mealPackageResolved ? 'OK' : 'MISSING')
     if (warnings.length > 0) {
-      console.log('Warnings:', warnings)
+      console.log('Warnings: %O', warnings)
     }
     if (errors.length > 0) {
-      console.log('Errors:', errors)
+      console.log('Errors: %O', errors)
     }
-    console.log('Full details:', result)
+    console.log('Full details: %O', result)
     console.log('[CheckfrontDryRun] === END ===')
 
     return result

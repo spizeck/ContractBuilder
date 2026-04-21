@@ -68,7 +68,7 @@ export async function updateGroupContractServer(
 export async function getRoomCategoryByIdServer(
   categoryId: string
 ): Promise<RoomCategory | null> {
-  console.log(`${ADMIN_DB} getRoomCategoryByIdServer: ${categoryId}`)
+  console.log('%s getRoomCategoryByIdServer: %s', ADMIN_DB, categoryId)
   
   try {
     const db = getAdminDb()
@@ -76,11 +76,11 @@ export async function getRoomCategoryByIdServer(
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
-      console.log(`${ADMIN_DB} Room category not found: ${categoryId}`)
+      console.log('%s Room category not found: %s', ADMIN_DB, categoryId)
       return null
     }
 
-    console.log(`${ADMIN_DB} Room category loaded: ${categoryId}`)
+    console.log('%s Room category loaded: %s', ADMIN_DB, categoryId)
     return { 
       id: docSnap.id, 
       ...docSnap.data() 
@@ -98,7 +98,7 @@ export async function getRoomCategoryByIdServer(
 export async function getDivePackageByIdServer(
   packageId: string
 ): Promise<DivePackage | null> {
-  console.log(`${ADMIN_DB} getDivePackageByIdServer: ${packageId}`)
+  console.log('%s getDivePackageByIdServer: %s', ADMIN_DB, packageId)
   
   try {
     const db = getAdminDb()
@@ -106,11 +106,11 @@ export async function getDivePackageByIdServer(
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
-      console.log(`${ADMIN_DB} Dive package not found: ${packageId}`)
+      console.log('%s Dive package not found: %s', ADMIN_DB, packageId)
       return null
     }
 
-    console.log(`${ADMIN_DB} Dive package loaded: ${packageId}`)
+    console.log('%s Dive package loaded: %s', ADMIN_DB, packageId)
     return { 
       id: docSnap.id, 
       ...docSnap.data() 
@@ -128,7 +128,7 @@ export async function getDivePackageByIdServer(
 export async function getMealPackageByIdServer(
   packageId: string
 ): Promise<MealPackage | null> {
-  console.log(`${ADMIN_DB} getMealPackageByIdServer: ${packageId}`)
+  console.log('%s getMealPackageByIdServer: %s', ADMIN_DB, packageId)
   
   try {
     const db = getAdminDb()
@@ -136,11 +136,11 @@ export async function getMealPackageByIdServer(
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
-      console.log(`${ADMIN_DB} Meal package not found: ${packageId}`)
+      console.log('%s Meal package not found: %s', ADMIN_DB, packageId)
       return null
     }
 
-    console.log(`${ADMIN_DB} Meal package loaded: ${packageId}`)
+    console.log('%s Meal package loaded: %s', ADMIN_DB, packageId)
     return { 
       id: docSnap.id, 
       ...docSnap.data() 
@@ -167,7 +167,7 @@ export async function createCheckfrontSyncLogServer(
   contractId: string,
   logData: CheckfrontSyncLogData
 ): Promise<string> {
-  console.log(`${ADMIN_DB} createCheckfrontSyncLogServer for contract: ${contractId}`)
+  console.log('%s createCheckfrontSyncLogServer for contract: %s', ADMIN_DB, contractId)
   
   try {
     const db = getAdminDb()
@@ -181,10 +181,10 @@ export async function createCheckfrontSyncLogServer(
       createdAt: new Date(),
     })
     
-    console.log(`${ADMIN_DB} Sync log created: ${docRef.id}`)
+    console.log('%s Sync log created: %s', ADMIN_DB, docRef.id)
     return docRef.id
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to create sync log for ${contractId}:`, error)
+    console.error('%s Failed to create sync log for %s:', ADMIN_DB, contractId, error)
     // Don't throw - sync logging should not break the main flow
     return ''
   }

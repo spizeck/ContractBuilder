@@ -119,13 +119,13 @@ export async function syncContractToCheckfrontAction(
       }
     }
 
-    console.log(`[CheckfrontSyncAction] Contract loaded: ${contract.groupName}`)
-    console.log(`[CheckfrontSyncAction] Calling Checkfront sync...`)
+    console.log('[CheckfrontSyncAction] Contract loaded: %s', contract.groupName)
+    console.log('[CheckfrontSyncAction] Calling Checkfront sync...')
 
     // Call the Checkfront sync function (server-side only)
     const syncResult = await syncContractToCheckfront(contractId, contract)
 
-    console.log(`[CheckfrontSyncAction] Sync result:`, {
+    console.log('[CheckfrontSyncAction] Sync result: %O', {
       success: syncResult.status === 'linked',
       status: syncResult.status,
       bookingId: syncResult.bookingId,
@@ -140,8 +140,8 @@ export async function syncContractToCheckfrontAction(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error(`[CheckfrontSyncAction] Error during sync:`, errorMessage)
-    console.error(`[CheckfrontSyncAction] Full error:`, error)
+    console.error('[CheckfrontSyncAction] Error during sync: %s', errorMessage)
+    console.error('[CheckfrontSyncAction] Full error: %O', error)
 
     return {
       success: false,

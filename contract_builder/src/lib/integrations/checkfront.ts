@@ -144,12 +144,12 @@ export async function buildCheckfrontPayloadFromContract(
   const items: CheckfrontPayloadItem[] = []
   const errors: string[] = []
 
-  console.log(`[Checkfront] Building payload for contract: ${contract.groupName} (${contract.id || 'new'})`)
-  console.log(`[Checkfront] Hotel ID: ${contract.hotelId}, Rooms: ${contract.rooms?.length || 0}`)
+  console.log('[Checkfront] Building payload for contract: %s (%s)', contract.groupName, contract.id || 'new')
+  console.log('[Checkfront] Hotel ID: %s, Rooms: %d', contract.hotelId, contract.rooms?.length || 0)
 
   // Map rooms to Checkfront items using roomCategories.checkfrontItemIds
   if (contract.rooms && contract.rooms.length > 0) {
-    console.log(`[Checkfront] Resolving ${contract.rooms.length} room lines...`)
+    console.log('[Checkfront] Resolving %d room lines...', contract.rooms.length)
     
     for (const room of contract.rooms) {
       if (room.numRooms <= 0) continue
@@ -159,7 +159,7 @@ export async function buildCheckfrontPayloadFromContract(
 
       if (!category) {
         errors.push(`Room category not found: ${room.categoryId}`)
-        console.error(`[Checkfront] Room category not found: ${room.categoryId}`)
+        console.error('[Checkfront] Room category not found: %s', room.categoryId)
         continue
       }
 
@@ -171,14 +171,19 @@ export async function buildCheckfrontPayloadFromContract(
           `Missing Checkfront room mapping for category "${category.name}" occupancy "${room.occupancyType}"`
         )
         console.error(
-          `[Checkfront] Missing mapping: ${category.name} / ${room.occupancyType} => ` +
-          `category.checkfrontItemIds = ${JSON.stringify(category.checkfrontItemIds)}`
+          '[Checkfront] Missing mapping: %s / %s => category.checkfrontItemIds = %s',
+          category.name,
+          room.occupancyType,
+          JSON.stringify(category.checkfrontItemIds)
         )
         continue
       }
 
       console.log(
-        `[Checkfront] Room resolved: ${category.name} / ${room.occupancyType} => Item ID: ${checkfrontItemId}`
+        '[Checkfront] Room resolved: %s / %s => Item ID: %s',
+        category.name,
+        room.occupancyType,
+        checkfrontItemId
       )
 
       items.push({
@@ -192,19 +197,19 @@ export async function buildCheckfrontPayloadFromContract(
 
   // Map dive package if present using divePackages.checkfrontItemId
   if (contract.divePackageId) {
-    console.log(`[Checkfront] Resolving dive package: ${contract.divePackageId}`)
+    console.log('[Checkfront] Resolving dive package: %s', contract.divePackageId)
     
     const divePackage = await getDivePackageByIdServer(contract.divePackageId)
 
     if (!divePackage) {
       errors.push(`Dive package not found: ${contract.divePackageId}`)
-      console.error(`[Checkfront] Dive package not found: ${contract.divePackageId}`)
+      console.error('[Checkfront] Dive package not found: %s', contract.divePackageId)
     } else {
       const checkfrontItemId = divePackage.checkfrontItemId
 
       if (!checkfrontItemId) {
         errors.push(`Missing Checkfront mapping for dive package "${divePackage.name}"`)
-        console.error(`[Checkfront] Dive package missing checkfrontItemId: ${divePackage.name}`)
+        console.error('[Checkfront] Dive package missing checkfrontItemId: %s', divePackage.name)
       } else {
         // Dive package dates: start = arrival + 1 day, end = diveStart + (durationDays - 1)
         // This matches Checkfront's duration limits (e.g. 5-Day package = exactly 5 days)
@@ -215,13 +220,14 @@ export async function buildCheckfrontPayloadFromContract(
           if (match) {
             durationDays = parseInt(match[1], 10)
             console.warn(
-              `[Checkfront] Dive package "${divePackage.name}" has no durationDays field. ` +
-              `Parsed ${durationDays} from name. Set durationDays in the dive package editor to remove this warning.`
+              '[Checkfront] Dive package "%s" has no durationDays field. Parsed %d from name. Set durationDays in the dive package editor to remove this warning.',
+              divePackage.name,
+              durationDays
             )
           } else {
             console.warn(
-              `[Checkfront] Dive package "${divePackage.name}" has no durationDays and name could not be parsed. ` +
-              `Falling back to full contract date range. This may cause INVALID_DURATION errors.`
+              '[Checkfront] Dive package "%s" has no durationDays and name could not be parsed. Falling back to full contract date range. This may cause INVALID_DURATION errors.',
+              divePackage.name
             )
           }
         }
@@ -243,8 +249,12 @@ export async function buildCheckfrontPayloadFromContract(
         }
 
         console.log(
-          `[Checkfront] Dive package resolved: "${divePackage.name}" => Item ID: ${checkfrontItemId} ` +
-          `durationDays=${durationDays ?? 'unknown'} diveStart=${diveStartDate} diveEnd=${diveEndDate}`
+          '[Checkfront] Dive package resolved: "%s" => Item ID: %s durationDays=%s diveStart=%s diveEnd=%s',
+          divePackage.name,
+          checkfrontItemId,
+          durationDays ?? 'unknown',
+          diveStartDate,
+          diveEndDate
         )
 
         items.push({
@@ -259,21 +269,21 @@ export async function buildCheckfrontPayloadFromContract(
 
   // Map meal package if present using mealPackages.checkfrontItemId
   if (contract.mealPackageId) {
-    console.log(`[Checkfront] Resolving meal package: ${contract.mealPackageId}`)
+    console.log('[Checkfront] Resolving meal package: %s', contract.mealPackageId)
     
     const mealPackage = await getMealPackageByIdServer(contract.mealPackageId)
 
     if (!mealPackage) {
       errors.push(`Meal package not found: ${contract.mealPackageId}`)
-      console.error(`[Checkfront] Meal package not found: ${contract.mealPackageId}`)
+      console.error('[Checkfront] Meal package not found: %s', contract.mealPackageId)
     } else {
       const checkfrontItemId = mealPackage.checkfrontItemId
 
       if (!checkfrontItemId) {
         errors.push(`Missing Checkfront mapping for meal package "${mealPackage.name}"`)
-        console.error(`[Checkfront] Meal package missing checkfrontItemId: ${mealPackage.name}`)
+        console.error('[Checkfront] Meal package missing checkfrontItemId: %s', mealPackage.name)
       } else {
-        console.log(`[Checkfront] Meal package resolved: ${mealPackage.name} => Item ID: ${checkfrontItemId}`)
+        console.log('[Checkfront] Meal package resolved: %s => Item ID: %s', mealPackage.name, checkfrontItemId)
         
         items.push({
           checkfrontItemId,
@@ -288,10 +298,10 @@ export async function buildCheckfrontPayloadFromContract(
   // TODO: Map hotelAddons, diveAddons, mealAddons as additional items
 
   if (errors.length > 0) {
-    console.warn('[Checkfront] Payload build warnings:', errors)
+    console.warn('[Checkfront] Payload build warnings: %O', errors)
   }
 
-  console.log(`[Checkfront] Payload complete: ${items.length} items, ${errors.length} errors`)
+  console.log('[Checkfront] Payload complete: %d items, %d errors', items.length, errors.length)
 
   if (items.length === 0) {
     return null
@@ -320,7 +330,7 @@ async function checkfrontApiRequest<T>(
 ): Promise<CheckfrontApiResult<T>> {
   const url = buildCheckfrontUrl(endpoint)
 
-  console.log(`[Checkfront] ${options.method || 'GET'} ${url}`)
+  console.log('[Checkfront] %s %s', options.method || 'GET', url)
 
   let response: Response
   try {
@@ -333,7 +343,7 @@ async function checkfrontApiRequest<T>(
     })
   } catch (networkError) {
     const msg = networkError instanceof Error ? networkError.message : String(networkError)
-    console.error(`[Checkfront] Network error for ${endpoint}:`, msg)
+    console.error('[Checkfront] Network error for %s: %s', endpoint, msg)
     return { success: false, error: `Network error: ${msg}` }
   }
 
@@ -342,11 +352,11 @@ async function checkfrontApiRequest<T>(
   try {
     rawBody = await response.text()
   } catch (readError) {
-    console.error(`[Checkfront] Failed to read response body for ${endpoint}`)
+    console.error('[Checkfront] Failed to read response body for %s', endpoint)
     return { success: false, error: `Checkfront API ${response.status}: (unreadable response)` }
   }
 
-  console.log(`[Checkfront] ${endpoint} => HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
+  console.log('[Checkfront] %s => HTTP %d: %s', endpoint, response.status, rawBody.substring(0, 500))
 
   // Parse JSON
   let data: any
@@ -397,7 +407,7 @@ async function ensureCheckfrontCustomer(
 
   // Defensive stub: return error indicating need for manual customer handling
   // or implement actual customer/create endpoint when API details confirmed
-  console.log('[Checkfront] Customer ensure called for:', name, email)
+  console.log('[Checkfront] Customer ensure called for: %s %s', name, email)
 
   // TODO: Implement actual customer create/lookup
   // For now, return a placeholder indicating customer handling needed
@@ -435,28 +445,28 @@ async function getRatedItemSlip(
   })
   const endpoint = `item/${item.checkfrontItemId}?${params.toString()}`
   const url = buildCheckfrontUrl(endpoint)
-  console.log(`[Checkfront][Step: rated_item] GET ${url}`)
+  console.log('[Checkfront][Step: rated_item] GET %s', url)
 
   const result = await checkfrontApiRequest<any>(`item/${item.checkfrontItemId}?${params.toString()}`)
 
   if (!result.success) {
-    console.error(`[Checkfront][Step: rated_item] FAILED item=${item.checkfrontItemId}: ${result.error}`)
+    console.error('[Checkfront][Step: rated_item] FAILED item=%s: %s', item.checkfrontItemId, result.error)
     return { success: false, error: `[rated_item item=${item.checkfrontItemId}] ${result.error}` }
   }
 
-  console.log(`[Checkfront][Step: rated_item] Raw response item=${item.checkfrontItemId}:`, JSON.stringify(result.data).substring(0, 500))
+  console.log('[Checkfront][Step: rated_item] Raw response item=%s: %s', item.checkfrontItemId, JSON.stringify(result.data).substring(0, 500))
 
   const slip: string | undefined = result.data?.item?.rate?.slip
   if (!slip) {
     const status = result.data?.item?.rate?.status
-    console.error(`[Checkfront][Step: rated_item] No slip returned for item=${item.checkfrontItemId} rate.status=${status}`)
+    console.error('[Checkfront][Step: rated_item] No slip returned for item=%s rate.status=%s', item.checkfrontItemId, status)
     return {
       success: false,
       error: `[rated_item item=${item.checkfrontItemId}] No slip in response (rate.status=${status}). Check availability and date range.`,
     }
   }
 
-  console.log(`[Checkfront][Step: rated_item] OK item=${item.checkfrontItemId} slip=${slip}`)
+  console.log('[Checkfront][Step: rated_item] OK item=%s slip=%s', item.checkfrontItemId, slip)
   return { success: true, data: { slip } }
 }
 
@@ -470,7 +480,7 @@ async function createBookingSession(
 ): Promise<CheckfrontApiResult<{ session_id: string }>> {
   // Build form-encoded body: slip[]=value&slip[]=value
   const body = slips.map(s => `slip[]=${encodeURIComponent(s)}`).join('&')
-  console.log(`[Checkfront][Step: booking_session] POST booking/session slips=${slips.length} body=${body.substring(0, 200)}`)
+  console.log('[Checkfront][Step: booking_session] POST booking/session slips=%d body=%s', slips.length, body.substring(0, 200))
 
   const { apiKey, apiSecret } = getCheckfrontConfig()
   const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
@@ -489,12 +499,12 @@ async function createBookingSession(
     })
   } catch (networkError) {
     const msg = networkError instanceof Error ? networkError.message : String(networkError)
-    console.error(`[Checkfront][Step: booking_session] Network error: ${msg}`)
+    console.error('[Checkfront][Step: booking_session] Network error: %s', msg)
     return { success: false, error: `[booking_session] Network error: ${msg}` }
   }
 
   const rawBody = await response.text()
-  console.log(`[Checkfront][Step: booking_session] HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
+  console.log('[Checkfront][Step: booking_session] HTTP %d: %s', response.status, rawBody.substring(0, 500))
 
   let data: any
   try { data = JSON.parse(rawBody) } catch {
@@ -513,14 +523,14 @@ async function createBookingSession(
     data?.request?.session_id
 
   if (!sessionId) {
-    console.error(`[Checkfront][Step: booking_session] No session_id in response:`, JSON.stringify(data).substring(0, 300))
+    console.error('[Checkfront][Step: booking_session] No session_id in response: %s', JSON.stringify(data).substring(0, 300))
     return {
       success: false,
       error: `[booking_session] No session_id in response: ${JSON.stringify(data).substring(0, 300)}`,
     }
   }
 
-  console.log(`[Checkfront][Step: booking_session] OK session_id=${sessionId} (from booking.session.id)`)
+  console.log('[Checkfront][Step: booking_session] OK session_id=%s (from booking.session.id)', sessionId)
   return { success: true, data: { session_id: sessionId } }
 }
 
@@ -543,7 +553,7 @@ async function createBookingFromSession(
   sessionId: string,
   customerName: string
 ): Promise<CheckfrontApiResult<CheckfrontBooking>> {
-  console.log(`[Checkfront][Step: create_booking] session_id=${sessionId} customer="${customerName}"`)
+  console.log('[Checkfront][Step: create_booking] session_id=%s customer="%s"', sessionId, customerName)
 
   // booking/create requires form-encoded body with form[] fields
   const body = new URLSearchParams({
@@ -554,7 +564,7 @@ async function createBookingFromSession(
   const { apiKey, apiSecret, baseUrl } = getCheckfrontConfig()
   const credentials = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
   const url = buildCheckfrontUrl('booking/create')
-  console.log(`[Checkfront][Step: create_booking] POST ${url}`)
+  console.log('[Checkfront][Step: create_booking] POST %s', url)
 
   let response: Response
   try {
@@ -569,12 +579,12 @@ async function createBookingFromSession(
     })
   } catch (networkError) {
     const msg = networkError instanceof Error ? networkError.message : String(networkError)
-    console.error(`[Checkfront][Step: create_booking] Network error: ${msg}`)
+    console.error('[Checkfront][Step: create_booking] Network error: %s', msg)
     return { success: false, error: `[create_booking] Network error: ${msg}` }
   }
 
   const rawBody = await response.text()
-  console.log(`[Checkfront][Step: create_booking] HTTP ${response.status}: ${rawBody.substring(0, 500)}`)
+  console.log('[Checkfront][Step: create_booking] HTTP %d: %s', response.status, rawBody.substring(0, 500))
 
   let data: any
   try { data = JSON.parse(rawBody) } catch {
@@ -583,7 +593,7 @@ async function createBookingFromSession(
 
   if (!response.ok) {
     const errMsg = data?.error || data?.message || data?.errors?.[0] || `HTTP ${response.status}`
-    console.error(`[Checkfront][Step: create_booking] FAILED: ${errMsg}`)
+    console.error('[Checkfront][Step: create_booking] FAILED: %s', errMsg)
     return { success: false, error: `[create_booking] ${errMsg}` }
   }
 
@@ -599,14 +609,14 @@ async function createBookingFromSession(
   const bookingUrl = bookingCode ? `${frontendBase}/booking/${bookingCode}` : undefined
 
   if (!bookingId) {
-    console.error('[Checkfront][Step: create_booking] No booking_id in response:', JSON.stringify(data).substring(0, 300))
+    console.error('[Checkfront][Step: create_booking] No booking_id in response: %s', JSON.stringify(data).substring(0, 300))
     return {
       success: false,
       error: `[create_booking] No booking_id in response: ${JSON.stringify(data).substring(0, 300)}`,
     }
   }
 
-  console.log(`[Checkfront][Step: create_booking] OK booking_id=${bookingId} code=${bookingCode || 'none'}`)
+  console.log('[Checkfront][Step: create_booking] OK booking_id=%s code=%s', bookingId, bookingCode || 'none')
   return { success: true, bookingId, bookingCode, bookingUrl, data }
 }
 
@@ -668,11 +678,11 @@ export async function createBookingFromContract(
   contract: GroupContract,
   _mappings?: CheckfrontItemMapping[] // Optional: pre-fetched mappings
 ): Promise<CheckfrontApiResult & { lastStep?: string }> {
-  console.log(`[Checkfront][createBookingFromContract] START contract=${contract.id} group="${contract.groupName}"`)
+  console.log('[Checkfront][createBookingFromContract] START contract=%s group="%s"', contract.id, contract.groupName)
 
   // Check if already has a booking ID (manual link)
   if (contract.checkfrontSync?.bookingId) {
-    console.log('[Checkfront][createBookingFromContract] Already has bookingId:', contract.checkfrontSync.bookingId, '- use update flow')
+    console.log('[Checkfront][createBookingFromContract] Already has bookingId: %s - use update flow', contract.checkfrontSync.bookingId)
     return {
       success: false,
       error: 'Contract already has a linked Checkfront booking. Use update flow instead.',
@@ -691,7 +701,7 @@ export async function createBookingFromContract(
       lastStep: 'build_payload',
     }
   }
-  console.log(`[Checkfront][Step: build_payload] OK - ${payload.items.length} items, customer="${payload.customer.name}"`)
+  console.log('[Checkfront][Step: build_payload] OK - %d items, customer="%s"', payload.items.length, payload.customer.name)
 
   try {
     // Step 1: Rated item calls - GET /item/{id}?start_date=...&end_date=...&param[qty]=N
@@ -709,16 +719,16 @@ export async function createBookingFromContract(
 
     if (slips.length === 0) {
       const combinedErrors = slipErrors.join('; ')
-      console.error(`[Checkfront][Step: rated_items] FAILED - no slips obtained. Errors: ${combinedErrors}`)
+      console.error('[Checkfront][Step: rated_items] FAILED - no slips obtained. Errors: %s', combinedErrors)
       return {
         success: false,
         error: `[rated_items] No slips returned for any item. Errors: ${combinedErrors}`,
         lastStep: 'rated_items',
       }
     }
-    console.log(`[Checkfront][Step: rated_items] OK - ${slips.length}/${payload.items.length} slips obtained`)
+    console.log('[Checkfront][Step: rated_items] OK - %d/%d slips obtained', slips.length, payload.items.length)
     if (slipErrors.length > 0) {
-      console.warn(`[Checkfront][Step: rated_items] ${slipErrors.length} item(s) failed: ${slipErrors.join('; ')}`)
+      console.warn('[Checkfront][Step: rated_items] %d item(s) failed: %s', slipErrors.length, slipErrors.join('; '))
     }
 
     // Step 2: POST /booking/session with slip[]=... (form-encoded)
@@ -746,7 +756,7 @@ export async function createBookingFromContract(
       }
     }
 
-    console.log(`[Checkfront][createBookingFromContract] SUCCESS booking_id=${bookingResult.bookingId}`)
+    console.log('[Checkfront][createBookingFromContract] SUCCESS booking_id=%s', bookingResult.bookingId)
     return {
       success: true,
       bookingId: bookingResult.bookingId,
@@ -787,8 +797,8 @@ export async function updateBookingFromContract(
 ): Promise<CheckfrontApiResult & { lastStep?: string }> {
   const oldBookingId = contract.checkfrontSync?.bookingId
 
-  console.log(`[Checkfront][updateBookingFromContract] START contract=${contract.id} group="${contract.groupName}"`)
-  console.log(`[Checkfront][updateBookingFromContract] Old bookingId=${oldBookingId || 'none'}`)
+  console.log('[Checkfront][updateBookingFromContract] START contract=%s group="%s"', contract.id, contract.groupName)
+  console.log('[Checkfront][updateBookingFromContract] Old bookingId=%s', oldBookingId || 'none')
 
   if (!oldBookingId) {
     return {
@@ -809,14 +819,14 @@ export async function updateBookingFromContract(
       lastStep: 'build_payload',
     }
   }
-  console.log(`[Checkfront][Step: build_payload] OK - ${payload.items.length} items, customer="${payload.customer.name}"`)
+  console.log('[Checkfront][Step: build_payload] OK - %d items, customer="%s"', payload.items.length, payload.customer.name)
 
   try {
     // Step 1: Get rated-item slips for each item (encodes current dates + quantities from app)
     const slips: string[] = []
     const slipErrors: string[] = []
     for (const item of payload.items) {
-      console.log(`[Checkfront][Step: rated_items] item=${item.checkfrontItemId} qty=${item.quantity} start=${item.startDate} end=${item.endDate}`)
+      console.log('[Checkfront][Step: rated_items] item=%s qty=%d start=%s end=%s', item.checkfrontItemId, item.quantity, item.startDate, item.endDate)
       const ratedResult = await getRatedItemSlip(item)
       if (ratedResult.success && ratedResult.data?.slip) {
         slips.push(ratedResult.data.slip)
@@ -827,16 +837,16 @@ export async function updateBookingFromContract(
 
     if (slips.length === 0) {
       const combinedErrors = slipErrors.join('; ')
-      console.error(`[Checkfront][Step: rated_items] FAILED - no slips. Errors: ${combinedErrors}`)
+      console.error('[Checkfront][Step: rated_items] FAILED - no slips. Errors: %s', combinedErrors)
       return {
         success: false,
         error: `[rated_items] No slips returned. Errors: ${combinedErrors}`,
         lastStep: 'rated_items',
       }
     }
-    console.log(`[Checkfront][Step: rated_items] OK - ${slips.length}/${payload.items.length} slips obtained`)
+    console.log('[Checkfront][Step: rated_items] OK - %d/%d slips obtained', slips.length, payload.items.length)
     if (slipErrors.length > 0) {
-      console.warn(`[Checkfront][Step: rated_items] ${slipErrors.length} item(s) failed: ${slipErrors.join('; ')}`)
+      console.warn('[Checkfront][Step: rated_items] %d item(s) failed: %s', slipErrors.length, slipErrors.join('; '))
     }
 
     // Step 2: Create a new booking session with the updated slips
@@ -863,16 +873,16 @@ export async function updateBookingFromContract(
     const newBookingId = bookingResult.bookingId!
     const newBookingCode = bookingResult.bookingCode
     const newBookingUrl = bookingResult.bookingUrl
-    console.log(`[Checkfront][updateBookingFromContract] New booking created: id=${newBookingId} code=${newBookingCode || 'none'}`)
+    console.log('[Checkfront][updateBookingFromContract] New booking created: id=%s code=%s', newBookingId, newBookingCode || 'none')
 
     // Step 4: Mark the old booking with a note that it has been superseded (best-effort, non-fatal)
     try {
       await updateCheckfrontBooking(oldBookingId, {
         notes: `SUPERSEDED: This booking was replaced by booking #${newBookingId}${newBookingCode ? ` (${newBookingCode})` : ''} when the contract was updated on ${new Date().toISOString().slice(0, 10)}.`,
       })
-      console.log(`[Checkfront][updateBookingFromContract] Old booking ${oldBookingId} marked as superseded`)
+      console.log('[Checkfront][updateBookingFromContract] Old booking %s marked as superseded', oldBookingId)
     } catch (noteError) {
-      console.warn(`[Checkfront][updateBookingFromContract] Could not add superseded note to old booking ${oldBookingId}:`, noteError)
+      console.warn('[Checkfront][updateBookingFromContract] Could not add superseded note to old booking %s: %O', oldBookingId, noteError)
     }
 
     return {
@@ -910,7 +920,7 @@ export async function syncContractToCheckfront(
   contract: GroupContract
 ): Promise<CheckfrontSyncInfo> {
   const now = new Date()
-  console.log(`[Checkfront][syncContractToCheckfront] START contractId=${contractId} group="${contract.groupName}"`)
+  console.log('[Checkfront][syncContractToCheckfront] START contractId=%s group="%s"', contractId, contract.groupName)
 
   // Check if Checkfront is configured
   if (!isCheckfrontConfigured()) {
@@ -940,15 +950,20 @@ export async function syncContractToCheckfront(
   try {
     if (existingBookingId) {
       action = 'update_booking'
-      console.log(`[Checkfront][syncContractToCheckfront] Action=update_booking bookingId=${existingBookingId}`)
+      console.log('[Checkfront][syncContractToCheckfront] Action=update_booking bookingId=%s', existingBookingId)
       result = await updateBookingFromContract(contract)
     } else {
       action = 'create_booking'
-      console.log(`[Checkfront][syncContractToCheckfront] Action=create_booking contractId=${contractId}`)
+      console.log('[Checkfront][syncContractToCheckfront] Action=create_booking contractId=%s', contractId)
       result = await createBookingFromContract(contract)
     }
 
-    console.log(`[Checkfront][syncContractToCheckfront] Result: success=${result.success} lastStep=${(result as any).lastStep} bookingId=${result.bookingId} error=${result.error}`)
+    console.log('[Checkfront][syncContractToCheckfront] Result: success=%s lastStep=%s bookingId=%s error=%s',
+      result.success,
+      (result as any).lastStep,
+      result.bookingId,
+      result.error
+    )
 
     // Log the sync attempt with step detail
     await createCheckfrontSyncLogServer(contractId, {
@@ -1083,7 +1098,7 @@ export async function testCheckfrontConnection(): Promise<{
     for (const endpoint of endpoints) {
       try {
         const url = `${config.baseUrl}/${endpoint}`
-        console.log(`[Checkfront Test] Trying endpoint: ${url}`)
+        console.log('[Checkfront Test] Trying endpoint: %s', url)
 
         const response = await fetch(url, {
           method: 'GET',
@@ -1094,11 +1109,11 @@ export async function testCheckfrontConnection(): Promise<{
           },
         })
 
-        console.log(`[Checkfront Test] Response status: ${response.status}`)
+        console.log('[Checkfront Test] Response status: %d', response.status)
 
         if (response.ok) {
           const data = await response.json()
-          console.log(`[Checkfront Test] Success! Response:`, JSON.stringify(data).substring(0, 500))
+          console.log('[Checkfront Test] Success! Response: %s', JSON.stringify(data).substring(0, 500))
 
           return {
             success: true,
@@ -1107,10 +1122,10 @@ export async function testCheckfrontConnection(): Promise<{
           }
         } else {
           const errorText = await response.text()
-          console.log(`[Checkfront Test] Error from ${endpoint}:`, errorText.substring(0, 200))
+          console.log('[Checkfront Test] Error from %s: %s', endpoint, errorText.substring(0, 200))
         }
       } catch (endpointError) {
-        console.log(`[Checkfront Test] Failed to fetch ${endpoint}:`, endpointError)
+        console.log('[Checkfront Test] Failed to fetch %s: %O', endpoint, endpointError)
       }
     }
 
