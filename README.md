@@ -39,6 +39,7 @@ The Sea Saba Business App is an integrated management system that combines multi
 - **PDF Generation**: Professional contract documents with client confirmation sections
 - **Hotel Price Sheet Generator**: Generate branded printable hotel price & info sheets with seasonal room rates, dive packages, and meal packages
 - **Permission-Based Access**: Contract creation and management controlled by granular permissions
+- **Checkfront Integration**: Two-way sync with Checkfront booking system for automated reservation management
 
 ### 🔧 **Maintenance & Asset Tracking**
 - **Maintenance Dashboard**: Overview of all maintenance activities and upcoming services
@@ -70,9 +71,12 @@ The Sea Saba Business App is an integrated management system that combines multi
 ### **Backend & Infrastructure**
 - **Database**: Firebase Firestore (NoSQL document database)
 - **Authentication**: Firebase Auth with role-based access control
+- **Admin SDK**: Firebase Admin SDK for server-side operations with explicit credential support
 - **File Storage**: Firebase Storage for PDFs and assets
 - **API Layer**: Next.js API routes with Firebase integration
+- **Server Actions**: Next.js Server Actions for secure backend operations
 - **Real-time Updates**: Firestore real-time listeners for live data
+- **External Integrations**: Checkfront API for booking synchronization
 
 ### **Development Tools**
 - **Package Manager**: npm
@@ -171,13 +175,23 @@ npm install
 ### **3. Environment Configuration**
 Create a `.env.local` file in the root directory:
 ```bash
-# Firebase Configuration
+# Firebase Configuration (Client)
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+
+# Firebase Admin SDK (Server-side)
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour Private Key Here\n-----END PRIVATE KEY-----\n"
+
+# Checkfront API (Optional - for booking integration)
+CHECKFRONT_API_KEY=cf_your_api_key
+CHECKFRONT_API_SECRET=your_api_secret
+CHECKFRONT_HOST=your_subdomain.checkfront.com
 ```
 
 ### **4. Run Development Server**
@@ -212,11 +226,33 @@ The application will be available at `http://localhost:3000`
 - Implement proper fallback UI for unauthorized access
 - Test all permission levels (view/create/edit) for each role
 
+### **Server Actions & Firebase Admin**
+- Use `'use server'` directive for server-only code
+- Server Actions can bypass Firestore Security Rules using Firebase Admin SDK
+- Admin SDK credentials configured via `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
+- Admin SDK falls back to default credentials (GOOGLE_APPLICATION_CREDENTIALS) if env vars incomplete
+- **Never import Admin SDK files in client components** - use only in Server Actions
+
+### **External Integrations**
+- Checkfront API integration uses Server Actions for secure credential handling
+- API credentials (`CHECKFRONT_API_KEY`, `CHECKFRONT_API_SECRET`) stay server-side only
+- Integration supports both create and update booking flows
+- Failed bookings are logged to Firestore for debugging
+
 ---
 
 ## Recent Updates & Improvements
 
-### **Permission System Overhaul (Latest)**
+### **Checkfront Integration (Latest)**
+- ✅ **Two-Way Booking Sync**: Automated contract-to-Checkfront booking synchronization
+- ✅ **Dry-Run Testing**: Safe testing mode to validate mappings without creating bookings
+- ✅ **Firebase Admin SDK**: Server-side Firestore access for Checkfront operations
+- ✅ **Server Actions**: Secure `'use server'` actions for external API calls
+- ✅ **Booking Lifecycle**: Create new bookings and update existing ones with history tracking
+- ✅ **Error Logging**: Detailed sync logs stored in Firestore for troubleshooting
+- ✅ **Room Category Caching**: Performance optimization to reduce Firestore round-trips
+
+### **Permission System Overhaul**
 - ✅ **Granular Access Control**: Implemented module-based permissions with view/create/edit levels
 - ✅ **Real-Time Permission Updates**: Live permission updates via Firestore listeners
 - ✅ **User Archiving**: Added user archiving functionality with access blocking
@@ -279,6 +315,56 @@ For debugging permission issues, check browser console for detailed permission c
 
 ---
 
+## Checkfront Integration
+
+The application now integrates with [Checkfront](https://www.checkfront.com/) for automated booking management.
+
+### **Features**
+- **Automated Booking Sync**: Contracts automatically create or update Checkfront bookings
+- **Dry-Run Testing**: Test contract-to-booking mappings without creating actual bookings
+- **Item Mapping**: Room categories, dive packages, and meal packages map to Checkfront inventory items
+- **Booking History**: Track all sync attempts with detailed logs in Firestore
+- **Update Flow**: Revising a contract creates a new booking and marks the old one as superseded
+
+### **File Structure**
+```
+src/
+├── core/db/firebaseAdmin.ts           # Firebase Admin SDK initialization
+├── lib/integrations/checkfront.ts     # Core Checkfront API client
+└── app/(staff)/contracts/_lib/
+    ├── checkfrontServerRepos.ts     # Server-safe Firestore repositories
+    ├── checkfrontSyncAction.ts      # Server Action: sync to Checkfront
+    └── checkfrontDryRunAction.ts    # Server Action: dry-run testing
+```
+
+### **Environment Variables**
+```bash
+# Required for Checkfront integration
+CHECKFRONT_API_KEY="cf_your_key"           # From Checkfront: Manage > Setup > API
+CHECKFRONT_API_SECRET="your_secret"        # API secret for authentication
+CHECKFRONT_HOST="yoursite.checkfront.com"  # Your Checkfront subdomain
+
+# Required for Firebase Admin (Server Actions)
+FIREBASE_PROJECT_ID="your_project"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk@..."
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+### **API Flow**
+1. **Build Payload** (`buildCheckfrontPayloadFromContract`): Resolve room categories, dive packages, meal packages → Checkfront item IDs
+2. **Rated Item Calls** (`getRatedItemSlip`): Get pricing/availability "slip" tokens for each item
+3. **Booking Session** (`createBookingSession`): Combine slips into a booking session
+4. **Create Booking** (`createBookingFromSession`): Finalize booking with customer name
+5. **Update Flow**: Creates new booking, marks old as superseded with notes
+
+### **Security**
+- All Checkfront API calls use Server Actions (`'use server'`)
+- API credentials never exposed to client
+- Firebase Admin SDK bypasses Firestore Security Rules for server operations
+- Sync logs stored in `groupContracts/{id}/syncLogs` subcollection
+
+---
+
 ## Current Status & Roadmap
 
 ### **✅ Completed Features**
@@ -292,13 +378,15 @@ For debugging permission issues, check browser console for detailed permission c
 - Asset and technician management
 - Dive operations dashboard
 - Real-time data synchronization
+- **Checkfront booking integration** (NEW)
+- **Firebase Admin SDK for server operations** (NEW)
 
 ### **🚀 In Development**
 - Advanced reporting and export features
 - Mobile app companion
 - Multi-language support (English/Dutch)
 - Enhanced notification system
-- Integration with external booking platforms
+- ~~Integration with external booking platforms~~ ✅ Completed (Checkfront)
 
 ### **📋 Planned Enhancements**
 - AI-powered dive site recommendations
@@ -306,7 +394,7 @@ For debugging permission issues, check browser console for detailed permission c
 - Customer relationship management
 - Inventory management system
 - Advanced financial analytics
-- API integrations with partners
+- Additional API integrations (payment processors, email services)
 
 ---
 
