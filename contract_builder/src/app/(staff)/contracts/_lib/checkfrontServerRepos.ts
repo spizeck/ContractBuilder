@@ -86,7 +86,7 @@ export async function getRoomCategoryByIdServer(
       ...docSnap.data() 
     } as RoomCategory
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to load room category ${categoryId}:`, error)
+    console.error('%s Failed to load room category %s:', ADMIN_DB, categoryId, error)
     throw error
   }
 }
