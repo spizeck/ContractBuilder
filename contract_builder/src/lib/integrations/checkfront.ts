@@ -101,6 +101,7 @@ export interface CheckfrontApiResult<T = unknown> {
   data?: T
   error?: string
   bookingId?: string
+  bookingCode?: string  // public booking reference e.g. FTVG-200426
   bookingUrl?: string
 }
 
@@ -606,7 +607,7 @@ async function createBookingFromSession(
   }
 
   console.log(`[Checkfront][Step: create_booking] OK booking_id=${bookingId} code=${bookingCode || 'none'}`)
-  return { success: true, bookingId, bookingUrl, data }
+  return { success: true, bookingId, bookingCode, bookingUrl, data }
 }
 
 /**
@@ -765,55 +766,129 @@ export async function createBookingFromContract(
 
 /**
  * Update an existing Checkfront booking from a GroupContract.
+ *
+ * The Checkfront API does not expose an "update items" endpoint — the only way
+ * to push revised items, dates, and quantities is to build new slips from the
+ * current contract data and create a new booking.
+ *
+ * Flow:
+ *  1. Build payload from the current contract (app is source of truth)
+ *  2. Get rated-item slips for each item (validates availability + encodes pricing)
+ *  3. Create a new booking session with the new slips
+ *  4. Create a new booking from that session
+ *  5. Mark the old booking with a note that it has been superseded
+ *
+ * The old bookingId is stored alongside the new one in the sync result so the
+ * Firestore writeback can record the full history.
  */
 export async function updateBookingFromContract(
   contract: GroupContract,
   _mappings?: CheckfrontItemMapping[] // Optional: pre-fetched mappings
-): Promise<CheckfrontApiResult> {
-  const bookingId = contract.checkfrontSync?.bookingId
+): Promise<CheckfrontApiResult & { lastStep?: string }> {
+  const oldBookingId = contract.checkfrontSync?.bookingId
 
-  console.log('[Checkfront] updateBookingFromContract called for contract:', contract.id)
-  console.log('[Checkfront] Existing bookingId:', bookingId || 'none')
+  console.log(`[Checkfront][updateBookingFromContract] START contract=${contract.id} group="${contract.groupName}"`)
+  console.log(`[Checkfront][updateBookingFromContract] Old bookingId=${oldBookingId || 'none'}`)
 
-  if (!bookingId) {
+  if (!oldBookingId) {
     return {
       success: false,
       error: 'Cannot update: contract has no linked Checkfront bookingId',
+      lastStep: 'pre_check',
     }
   }
 
-  // TODO: Implement full update flow
-  // Checkfront limitations:
-  // - Some fields may not be updatable after booking creation
-  // - Item changes may require delete/recreate of slips
-  // - Customer changes may be limited
+  // Build payload from current contract data — app is the source of truth
+  console.log('[Checkfront][Step: build_payload] Building updated payload from contract...')
+  const payload = await buildCheckfrontPayloadFromContract(contract)
+  if (!payload) {
+    console.error('[Checkfront][Step: build_payload] FAILED: returned null')
+    return {
+      success: false,
+      error: '[build_payload] Could not build Checkfront payload: missing item mappings or no bookable items',
+      lastStep: 'build_payload',
+    }
+  }
+  console.log(`[Checkfront][Step: build_payload] OK - ${payload.items.length} items, customer="${payload.customer.name}"`)
 
   try {
-    // Conservative first-pass: update notes and track that we attempted update
-    const updateResult = await updateCheckfrontBooking(bookingId, {
-      notes: `Updated from Group Contract: ${contract.groupName} (${contract.totalGuests} guests)`,
-      // TODO: Add other updatable fields as API capabilities are confirmed
-    })
-
-    if (!updateResult.success) {
-      return {
-        success: false,
-        error: updateResult.error,
+    // Step 1: Get rated-item slips for each item (encodes current dates + quantities from app)
+    const slips: string[] = []
+    const slipErrors: string[] = []
+    for (const item of payload.items) {
+      console.log(`[Checkfront][Step: rated_items] item=${item.checkfrontItemId} qty=${item.quantity} start=${item.startDate} end=${item.endDate}`)
+      const ratedResult = await getRatedItemSlip(item)
+      if (ratedResult.success && ratedResult.data?.slip) {
+        slips.push(ratedResult.data.slip)
+      } else {
+        slipErrors.push(ratedResult.error || `item=${item.checkfrontItemId} no slip returned`)
       }
     }
 
-    console.log('[Checkfront] Booking updated:', bookingId)
+    if (slips.length === 0) {
+      const combinedErrors = slipErrors.join('; ')
+      console.error(`[Checkfront][Step: rated_items] FAILED - no slips. Errors: ${combinedErrors}`)
+      return {
+        success: false,
+        error: `[rated_items] No slips returned. Errors: ${combinedErrors}`,
+        lastStep: 'rated_items',
+      }
+    }
+    console.log(`[Checkfront][Step: rated_items] OK - ${slips.length}/${payload.items.length} slips obtained`)
+    if (slipErrors.length > 0) {
+      console.warn(`[Checkfront][Step: rated_items] ${slipErrors.length} item(s) failed: ${slipErrors.join('; ')}`)
+    }
+
+    // Step 2: Create a new booking session with the updated slips
+    const sessionResult = await createBookingSession(slips)
+    if (!sessionResult.success) {
+      return {
+        success: false,
+        error: sessionResult.error,
+        lastStep: 'booking_session',
+      }
+    }
+    const sessionId = sessionResult.data!.session_id
+
+    // Step 3: Create a new booking from the session
+    const bookingResult = await createBookingFromSession(sessionId, payload.customer.name)
+    if (!bookingResult.success) {
+      return {
+        success: false,
+        error: bookingResult.error,
+        lastStep: 'create_booking',
+      }
+    }
+
+    const newBookingId = bookingResult.bookingId!
+    const newBookingCode = bookingResult.bookingCode
+    const newBookingUrl = bookingResult.bookingUrl
+    console.log(`[Checkfront][updateBookingFromContract] New booking created: id=${newBookingId} code=${newBookingCode || 'none'}`)
+
+    // Step 4: Mark the old booking with a note that it has been superseded (best-effort, non-fatal)
+    try {
+      await updateCheckfrontBooking(oldBookingId, {
+        notes: `SUPERSEDED: This booking was replaced by booking #${newBookingId}${newBookingCode ? ` (${newBookingCode})` : ''} when the contract was updated on ${new Date().toISOString().slice(0, 10)}.`,
+      })
+      console.log(`[Checkfront][updateBookingFromContract] Old booking ${oldBookingId} marked as superseded`)
+    } catch (noteError) {
+      console.warn(`[Checkfront][updateBookingFromContract] Could not add superseded note to old booking ${oldBookingId}:`, noteError)
+    }
+
     return {
       success: true,
-      bookingId,
-      bookingUrl: updateResult.bookingUrl,
+      bookingId: newBookingId,
+      bookingCode: newBookingCode,
+      bookingUrl: newBookingUrl,
+      lastStep: 'create_booking',
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('[Checkfront] Update booking error:', errorMessage)
+    console.error('[Checkfront][updateBookingFromContract] EXCEPTION:', errorMessage)
     return {
       success: false,
-      error: errorMessage,
+      error: `[exception] ${errorMessage}`,
+      lastStep: 'exception',
     }
   }
 }
@@ -902,7 +977,8 @@ export async function syncContractToCheckfront(
     if (result.success && result.bookingId) {
       const syncInfo: CheckfrontSyncInfo = {
         bookingId: result.bookingId,
-        // Only include bookingUrl if it has a real value - Firestore rejects undefined
+        // Only include optional fields if defined - Firestore rejects undefined values
+        ...(result.bookingCode ? { bookingCode: result.bookingCode } : {}),
         ...(result.bookingUrl ? { bookingUrl: result.bookingUrl } : {}),
         status: 'linked',
         lastSyncedAt: now,

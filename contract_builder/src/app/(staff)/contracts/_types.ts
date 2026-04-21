@@ -293,7 +293,8 @@ export type CheckfrontSyncDirection =
   | 'manual_link';
 
 export interface CheckfrontSyncInfo {
-  bookingId?: string;
+  bookingId?: string;       // internal numeric API ID e.g. "7999"
+  bookingCode?: string;     // public booking reference e.g. "FTVG-200426"
   bookingUrl?: string;
   status?: CheckfrontSyncStatus;
   lastSyncedAt?: Date | null;

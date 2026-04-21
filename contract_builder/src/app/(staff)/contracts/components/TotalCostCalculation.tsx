@@ -10,7 +10,6 @@ import {
   CardBody,
   Flex,
   Input,
-  Badge,
 } from "@chakra-ui/react";
 import {
   ContractData,
@@ -21,7 +20,6 @@ import {
   RoomCategory,
   RoomType,
   Season,
-  defaultCheckfrontSync,
 } from "@/app/(staff)/contracts/_types";
 import { getSeasons } from "@/app/(staff)/contracts/_lib/seasonsRepo";
 import { getRates } from "@/app/(staff)/contracts/_lib/ratesRepo";
@@ -45,8 +43,9 @@ import {
 } from "@/app/(staff)/contracts/_lib/contractCalculations";
 import { formatCurrency, formatDate, parseFocRule } from "@shared/utils/formatters";
 import { getRoomTypes } from "@/app/(staff)/contracts/_lib/roomTypesRepo";
-import { syncContractToCheckfrontAction } from "@/app/(staff)/contracts/_lib/checkfrontSyncAction";
-import { checkfrontDryRunAction, CheckfrontDryRunResult } from "@/app/(staff)/contracts/_lib/checkfrontDryRunAction";
+// CHECKFRONT_DISABLED: imports kept for future re-enable
+// import { syncContractToCheckfrontAction } from "@/app/(staff)/contracts/_lib/checkfrontSyncAction";
+// import { checkfrontDryRunAction, CheckfrontDryRunResult } from "@/app/(staff)/contracts/_lib/checkfrontDryRunAction";
 
 export default function TotalCostCalculation({
   contractData,
@@ -82,13 +81,7 @@ export default function TotalCostCalculation({
   const [originalRates, setOriginalRates] = useState<Record<number, number>>({});
   const [focOverrideIndex, setFocOverrideIndex] = useState<number | null>(null);
 
-  // Checkfront integration state
-  // Prefer checkfrontSync.bookingId (written by live sync) over legacy checkfrontBookingId field
-  const [checkfrontBookingId, setCheckfrontBookingId] = useState<string>(
-    String(contractData.checkfrontSync?.bookingId || contractData.checkfrontBookingId || '')
-  );
-  const [dryRunLoading, setDryRunLoading] = useState(false);
-  const [dryRunResult, setDryRunResult] = useState<CheckfrontDryRunResult | null>(null);
+  // CHECKFRONT_DISABLED: state removed (checkfrontBookingId, dryRunLoading, dryRunResult)
 
   // Handler functions for rate editing
   const handleStartEditingRates = () => {
@@ -361,21 +354,12 @@ export default function TotalCostCalculation({
       let revisionOfContractId: string | undefined;
       let rootContractId: string | undefined;
       let revisionNumber: number | undefined;
-      let existingCheckfrontSync = defaultCheckfrontSync;
-
+    // CHECKFRONT_DISABLED: sync data not inherited on revision
       if (contractData.id) {
-        console.log(`[ContractSave] Editing existing contract id=${contractData.id} - will create new version and archive old`);
         const previousContract = await getGroupContractById(contractData.id);
         revisionOfContractId = contractData.id;
         rootContractId = previousContract?.rootContractId || contractData.id;
         revisionNumber = (previousContract?.revisionNumber || 0) + 1;
-        // Preserve existing Checkfront sync data when editing (revising) a contract
-        if (previousContract?.checkfrontSync?.bookingId) {
-          existingCheckfrontSync = {
-            ...previousContract.checkfrontSync,
-            status: previousContract.checkfrontSync.status || 'linked',
-          };
-        }
       }
 
       // Clean customRates data
@@ -451,66 +435,19 @@ export default function TotalCostCalculation({
         hotelAddons: contractData.hotelAddons || [],
         diveAddons: contractData.diveAddons || [],
         mealAddons: contractData.mealAddons || [],
-        // Checkfront integration: handle manual booking ID entry
-        checkfrontSync: (() => {
-          const trimmedBookingId = checkfrontBookingId.trim();
-
-          // If user manually entered a booking ID
-          if (trimmedBookingId) {
-            return {
-              bookingId: trimmedBookingId,
-              status: 'linked' as const,
-              lastSyncedAt: new Date(),
-              lastSyncDirection: 'manual_link' as const,
-              lastError: null,
-              manuallyLinked: true,
-            };
-          }
-
-          // Otherwise preserve existing sync data or use default
-          return existingCheckfrontSync;
-        })(),
+        // CHECKFRONT_DISABLED: sync data not written on save
       };
 
       const newContractId = await addGroupContract(groupContract);
-      console.log(`[ContractSave] New contract created id=${newContractId}`);
 
       if (contractData.id) {
         const oldId = contractData.id;
-        console.log(`[ContractSave] Archiving old contract id=${oldId} supersededBy=${newContractId}`);
         await cloneContractDataForRevision(oldId, newContractId);
         await archiveGroupContract(oldId, newContractId);
-        console.log(`[ContractSave] Archive complete - old=${oldId} archived=true supersededBy=${newContractId} new=${newContractId} supersedes=${oldId}`);
       }
 
-      // Trigger Checkfront sync after successful contract save (non-blocking)
-      // Only auto-sync if not a first-time manual link
-      const previousBookingId = contractData.checkfrontBookingId;
-      const currentBookingId = checkfrontBookingId.trim();
-      const isFirstTimeManualLink = currentBookingId && !previousBookingId;
-
-      if (!isFirstTimeManualLink) {
-        // Call server action for sync (server-side only, no secrets exposed to client)
-        syncContractToCheckfrontAction(newContractId).then((result) => {
-          if (result.success) {
-            console.log('[Checkfront] Sync completed:', result);
-          } else {
-            console.error('[Checkfront] Sync failed:', result.error);
-            // Show non-fatal warning about sync failure
-            alert(`Contract saved, but Checkfront sync failed.\n\nError: ${result.error || 'Unknown error'}\n\nUse the "Checkfront Dry Run" button to diagnose mapping issues, or retry with "Sync to Checkfront (Live)".\nContract save was successful - sync failure is non-fatal.`);
-          }
-        }).catch((syncError) => {
-          console.error('[Checkfront] Sync error:', syncError);
-          alert('Contract saved, but Checkfront sync encountered an error. You can retry the sync manually.');
-        });
-      } else {
-        console.log('[Checkfront] First-time manual link - skipping auto-sync');
-      }
-
-      // Only show success alert if sync didn't already show a message
-      if (isFirstTimeManualLink) {
-        alert("Contract saved successfully!");
-      }
+      // CHECKFRONT_DISABLED: no sync triggered on save
+      alert("Contract saved successfully!");
       onConfirm();
     } catch (error) {
       console.error("Error saving contract:", error);
@@ -1054,102 +991,7 @@ export default function TotalCostCalculation({
         </CardBody>
       </Card>
 
-      {/* Checkfront Integration - Staff Only */}
-      <Card>
-        <CardHeader py={2} px={3}>
-          <Text fontWeight="bold">Checkfront Integration</Text>
-        </CardHeader>
-        <CardBody>
-          <VStack align="stretch" spacing={3}>
-            <Text fontSize="sm" color="textMuted">
-              Link this contract to a Checkfront booking for automatic sync.
-            </Text>
-            <HStack spacing={2}>
-              <Input
-                placeholder="Checkfront Booking ID (e.g., ABC123)"
-                value={checkfrontBookingId}
-                onChange={(e) => setCheckfrontBookingId(e.target.value)}
-                size="sm"
-              />
-              {contractData.checkfrontBookingId && (
-                <Badge colorScheme="blue" variant="outline" size="sm">
-                  Linked
-                </Badge>
-              )}
-            </HStack>
-            <Text fontSize="xs" color="textMuted">
-              Enter an existing Checkfront booking ID to link, or leave blank to create a new booking on save.
-            </Text>
-
-            {/* Dry Run Button - only shown if contract is saved (has an ID) */}
-            {contractData.id && (
-              <Button
-                size="sm"
-                variant="outline"
-                colorScheme="teal"
-                isLoading={dryRunLoading}
-                loadingText="Testing..."
-                onClick={async () => {
-                  if (!contractData.id) return;
-                  setDryRunLoading(true);
-                  setDryRunResult(null);
-                  try {
-                    const result = await checkfrontDryRunAction(contractData.id);
-                    setDryRunResult(result);
-                    console.log('[CheckfrontDryRun] Result:', result);
-
-                    // Build summary message
-                    const summary = [
-                      `Dry Run Result: ${result.success ? 'SUCCESS' : 'FAILED'}`,
-                      ``,
-                      `Room Lines: ${result.roomLinesResolved}/${result.roomLines} resolved`,
-                      `Dive Package: ${result.divePackageResolved ? 'OK' : 'Not mapped'}`,
-                      `Meal Package: ${result.mealPackageResolved ? 'OK' : 'Not mapped'}`,
-                      `Missing Mappings: ${result.missingMappingsCount}`,
-                      ``,
-                      result.errors.length > 0 ? `Errors:\n${result.errors.join('\n')}` : '',
-                    ].filter(Boolean).join('\n');
-
-                    alert(summary);
-                  } catch (error) {
-                    console.error('[CheckfrontDryRun] Error:', error);
-                    alert('Dry run failed. See console for details.');
-                  } finally {
-                    setDryRunLoading(false);
-                  }
-                }}
-              >
-                Checkfront Dry Run
-              </Button>
-            )}
-
-            {/* Explicit Sync Button - only shown if contract has a booking ID and is saved */}
-            {contractData.id && checkfrontBookingId.trim() && (
-              <Button
-                size="sm"
-                variant="outline"
-                colorScheme="blue"
-                onClick={async () => {
-                  if (!contractData.id) return;
-                  try {
-                    const result = await syncContractToCheckfrontAction(contractData.id);
-                    if (result.success) {
-                      alert(`Checkfront sync successful! Booking ID: ${result.bookingId}`);
-                    } else {
-                      alert(`Checkfront sync failed: ${result.error}`);
-                    }
-                  } catch (error) {
-                    alert('Checkfront sync error. See console for details.');
-                    console.error(error);
-                  }
-                }}
-              >
-                Sync to Checkfront (Live)
-              </Button>
-            )}
-          </VStack>
-        </CardBody>
-      </Card>
+      {/* CHECKFRONT_DISABLED: Checkfront Integration card hidden */}
 
       {/* Actions */}
       <HStack spacing={2}>
