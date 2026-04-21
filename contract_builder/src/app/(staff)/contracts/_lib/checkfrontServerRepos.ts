@@ -146,7 +146,7 @@ export async function getMealPackageByIdServer(
       ...docSnap.data() 
     } as MealPackage
   } catch (error) {
-    console.error(`${ADMIN_DB} Failed to load meal package ${packageId}:`, error)
+    console.error('%s Failed to load meal package %s:', ADMIN_DB, packageId, error)
     throw error
   }
 }
