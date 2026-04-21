@@ -364,6 +364,7 @@ export default function TotalCostCalculation({
       let existingCheckfrontSync = defaultCheckfrontSync;
 
       if (contractData.id) {
+        console.log(`[ContractSave] Editing existing contract id=${contractData.id} - will create new version and archive old`);
         const previousContract = await getGroupContractById(contractData.id);
         revisionOfContractId = contractData.id;
         rootContractId = previousContract?.rootContractId || contractData.id;
@@ -404,6 +405,7 @@ export default function TotalCostCalculation({
       const groupContract: Omit<GroupContract, "id"> = {
         archived: false,
         ...(revisionOfContractId && { revisionOfContractId }),
+        ...(revisionOfContractId && { supersedes: revisionOfContractId }),
         ...(rootContractId && { rootContractId }),
         ...(revisionNumber !== undefined && { revisionNumber }),
         groupName: contractData.groupName!,
@@ -471,10 +473,14 @@ export default function TotalCostCalculation({
       };
 
       const newContractId = await addGroupContract(groupContract);
+      console.log(`[ContractSave] New contract created id=${newContractId}`);
 
       if (contractData.id) {
-        await cloneContractDataForRevision(contractData.id, newContractId);
-        await archiveGroupContract(contractData.id);
+        const oldId = contractData.id;
+        console.log(`[ContractSave] Archiving old contract id=${oldId} supersededBy=${newContractId}`);
+        await cloneContractDataForRevision(oldId, newContractId);
+        await archiveGroupContract(oldId, newContractId);
+        console.log(`[ContractSave] Archive complete - old=${oldId} archived=true supersededBy=${newContractId} new=${newContractId} supersedes=${oldId}`);
       }
 
       // Trigger Checkfront sync after successful contract save (non-blocking)

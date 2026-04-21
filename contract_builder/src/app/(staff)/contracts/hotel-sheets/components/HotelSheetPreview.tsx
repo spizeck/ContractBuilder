@@ -131,7 +131,7 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
               </Text>
             )}
             <Text fontSize="10px" color="textMuted">
-              Generated {generatedAt}
+              Generated {generatedAt} - Published Rates
             </Text>
           </Box>
 

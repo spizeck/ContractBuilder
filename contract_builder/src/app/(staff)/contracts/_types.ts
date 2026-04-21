@@ -95,6 +95,9 @@ export interface GroupContract {
   revisionOfContractId?: string;
   rootContractId?: string;
   revisionNumber?: number;
+  supersedes?: string | null; // ID of the contract this one replaced
+  supersededBy?: string | null; // ID of the contract that replaced this one
+  archivedAt?: Date | null; // When this contract was archived
   groupName: string;
   startDate: string;
   endDate: string;
