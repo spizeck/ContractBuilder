@@ -110,6 +110,8 @@ export default function HotelSheetForm({
     | 'includeRestrictions'
     | 'includeLogo'
     | 'includeMealCommissionInfo'
+    | 'includeCancellationPolicy'
+    | 'includePaymentTerms'
   >) => {
     onConfigChange({ ...config, [key]: !config[key] })
   }
@@ -293,6 +295,20 @@ export default function HotelSheetForm({
             colorScheme="teal"
           >
             <Text fontSize="sm">Include restrictions</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includeCancellationPolicy}
+            onChange={() => handleToggleOption('includeCancellationPolicy')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include cancellation policy</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includePaymentTerms}
+            onChange={() => handleToggleOption('includePaymentTerms')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include payment terms</Text>
           </Checkbox>
           <Checkbox
             isChecked={config.includeMealCommissionInfo}

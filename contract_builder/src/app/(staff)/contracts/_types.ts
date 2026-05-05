@@ -67,6 +67,8 @@ export interface Hotel {
   mealCommissionRate?: number; // Commission rate for meal packages
   logoUrl?: string; // Hotel logo URL (recommended: 300x100px)
   archived?: boolean;
+  cancellationPolicy?: string; // Cancellation/refund terms
+  paymentTerms?: string; // Payment schedule/deadlines
 }
 
 export interface RoomCategory {
@@ -215,6 +217,8 @@ export interface HotelSheetConfig {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeCancellationPolicy: boolean;
+  includePaymentTerms: boolean;
 }
 
 export interface HotelSheetRoomInventoryRow {
@@ -251,6 +255,8 @@ export interface HotelSheetOptions {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeCancellationPolicy: boolean;
+  includePaymentTerms: boolean;
 }
 
 export interface HotelSheetViewModel {
@@ -275,6 +281,8 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeRestrictions: false,
   includeLogo: true,
   includeMealCommissionInfo: false,
+  includeCancellationPolicy: true,
+  includePaymentTerms: true,
 };
 
 // ============================================================================

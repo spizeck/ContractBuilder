@@ -33,7 +33,9 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
     (options.includeContactInfo && !!hotel.contactInfo) ||
     (options.includeAmenities && !!hotel.amenities) ||
     (options.includePolicies && !!hotel.policies) ||
-    (options.includeRestrictions && !!hotel.restrictions)
+    (options.includeRestrictions && !!hotel.restrictions) ||
+    (options.includeCancellationPolicy && !!hotel.cancellationPolicy) ||
+    (options.includePaymentTerms && !!hotel.paymentTerms)
 
   if (!hasAnyContent) return null
 
@@ -72,6 +74,12 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
           )}
           {options.includeRestrictions && hotel.restrictions && (
             <InfoBlock label="Restrictions" value={hotel.restrictions} />
+          )}
+          {options.includeCancellationPolicy && hotel.cancellationPolicy && (
+            <InfoBlock label="Cancellation Policy" value={hotel.cancellationPolicy} />
+          )}
+          {options.includePaymentTerms && hotel.paymentTerms && (
+            <InfoBlock label="Payment Terms" value={hotel.paymentTerms} />
           )}
         </Box>
       </Grid>

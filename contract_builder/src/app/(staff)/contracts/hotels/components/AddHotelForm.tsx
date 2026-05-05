@@ -32,7 +32,9 @@ export default function AddHotelForm ({
     contactInfo: '',
     amenities: '',
     policies: '',
-    restrictions: ''
+    restrictions: '',
+    cancellationPolicy: '',
+    paymentTerms: ''
   })
 
   useEffect(() => {
@@ -46,7 +48,9 @@ export default function AddHotelForm ({
         contactInfo: editingHotel.contactInfo || '',
         amenities: editingHotel.amenities || '',
         policies: editingHotel.policies || '',
-        restrictions: editingHotel.restrictions || ''
+        restrictions: editingHotel.restrictions || '',
+        cancellationPolicy: editingHotel.cancellationPolicy || '',
+        paymentTerms: editingHotel.paymentTerms || ''
       })
     }
   }, [editingHotel])
@@ -195,6 +199,32 @@ export default function AddHotelForm ({
             />
             <FormHelperText>
               List any restrictions or conditions the hotel may have.
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Cancellation Policy</FormLabel>
+            <Textarea
+              name='cancellationPolicy'
+              value={hotelData.cancellationPolicy}
+              onChange={handleInputChange}
+              placeholder='e.g., 50% refund if cancelled 30+ days before arrival. No refund within 30 days.'
+            />
+            <FormHelperText>
+              Specify cancellation and refund terms for this hotel.
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Payment Terms</FormLabel>
+            <Textarea
+              name='paymentTerms'
+              value={hotelData.paymentTerms}
+              onChange={handleInputChange}
+              placeholder='e.g., 50% deposit due within 14 days of booking. Balance due 30 days before arrival.'
+            />
+            <FormHelperText>
+              Specify payment schedule, deposit requirements, and due dates.
             </FormHelperText>
           </FormControl>
 
