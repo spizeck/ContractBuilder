@@ -65,6 +65,8 @@
   },
   "overrides": {
     "minimatch": "^10.2.1",
-    "ajv": "^8.18.0"
+    "ajv": "^8.18.0",
+    "@tootallnate/once": "^3.0.1",
+    "postcss": "^8.5.10"
   }
 }
