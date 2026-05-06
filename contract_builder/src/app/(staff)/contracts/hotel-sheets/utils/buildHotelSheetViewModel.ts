@@ -142,8 +142,13 @@ export function buildHotelSheetViewModel(
       includeRestrictions: config.includeRestrictions,
       includeLogo: config.includeLogo,
       includeMealCommissionInfo: config.includeMealCommissionInfo,
+      includeOperationalNotes: config.includeOperationalNotes,
       includeCancellationPolicy: config.includeCancellationPolicy,
       includePaymentTerms: config.includePaymentTerms,
+      includeForceMajeure: config.includeForceMajeure,
+      includeTravelInsurance: config.includeTravelInsurance,
+      includeFitnessToDive: config.includeFitnessToDive,
+      includeUnusedServices: config.includeUnusedServices,
     },
   }
 }

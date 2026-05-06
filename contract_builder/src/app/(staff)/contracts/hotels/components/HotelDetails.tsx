@@ -145,50 +145,106 @@ export default function HotelDetails ({
       <Box p={5} shadow='md' borderWidth='1px'>
         <VStack align='start' spacing={2}>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Name:
             </Text>
             <Text flex='1'>{currentHotel.name}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Location:
             </Text>
             <Text flex='1'>{currentHotel.location}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Description:
             </Text>
             <Text flex='1'>{currentHotel.description}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Contact Info:
             </Text>
             <Text flex='1'>{currentHotel.contactInfo}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Amenities:
             </Text>
             <Text flex='1'>{currentHotel.amenities}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Policies:
             </Text>
             <Text flex='1'>{currentHotel.policies}</Text>
           </HStack>
           <HStack align='start'>
-            <Text fontWeight='bold' minW='120px'>
+            <Text fontWeight='bold' minW='160px'>
               Restrictions:
             </Text>
             <Text flex='1'>{currentHotel.restrictions}</Text>
           </HStack>
+          {currentHotel.operationalNotes && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Operational Notes:
+              </Text>
+              <Text flex='1'>{currentHotel.operationalNotes}</Text>
+            </HStack>
+          )}
+          {currentHotel.cancellationPolicy && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Cancellation Policy:
+              </Text>
+              <Text flex='1'>{currentHotel.cancellationPolicy}</Text>
+            </HStack>
+          )}
+          {currentHotel.paymentTerms && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Payment Terms:
+              </Text>
+              <Text flex='1'>{currentHotel.paymentTerms}</Text>
+            </HStack>
+          )}
+          {currentHotel.forceMajeure && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Force Majeure:
+              </Text>
+              <Text flex='1'>{currentHotel.forceMajeure}</Text>
+            </HStack>
+          )}
+          {currentHotel.travelInsurance && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Travel Insurance:
+              </Text>
+              <Text flex='1'>{currentHotel.travelInsurance}</Text>
+            </HStack>
+          )}
+          {currentHotel.fitnessToDive && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Fitness to Dive:
+              </Text>
+              <Text flex='1'>{currentHotel.fitnessToDive}</Text>
+            </HStack>
+          )}
+          {currentHotel.unusedServices && (
+            <HStack align='start'>
+              <Text fontWeight='bold' minW='160px'>
+                Unused Services:
+              </Text>
+              <Text flex='1'>{currentHotel.unusedServices}</Text>
+            </HStack>
+          )}
           {currentHotel.focRule && (
             <HStack align='start'>
-              <Text fontWeight='bold' minW='120px'>
+              <Text fontWeight='bold' minW='160px'>
                 FOC Rule:
               </Text>
               <Text flex='1'>{formatFocRule(currentHotel.focRule)}</Text>
@@ -196,7 +252,7 @@ export default function HotelDetails ({
           )}
           {currentHotel.focBaseRate && (
             <HStack align='start'>
-              <Text fontWeight='bold' minW='120px'>
+              <Text fontWeight='bold' minW='160px'>
                 FOC Base Rate:
               </Text>
               <Text flex='1'>{getFocBaseRoomName()}</Text>
@@ -204,7 +260,7 @@ export default function HotelDetails ({
           )}
           {typeof currentHotel.mealCommissionRate === 'number' && (
             <HStack align='start'>
-              <Text fontWeight='bold' minW='120px'>
+              <Text fontWeight='bold' minW='160px'>
                 Meal Commission Rate:
               </Text>
               <Text flex='1'>

@@ -110,8 +110,13 @@ export default function HotelSheetForm({
     | 'includeRestrictions'
     | 'includeLogo'
     | 'includeMealCommissionInfo'
+    | 'includeOperationalNotes'
     | 'includeCancellationPolicy'
     | 'includePaymentTerms'
+    | 'includeForceMajeure'
+    | 'includeTravelInsurance'
+    | 'includeFitnessToDive'
+    | 'includeUnusedServices'
   >) => {
     onConfigChange({ ...config, [key]: !config[key] })
   }
@@ -297,6 +302,13 @@ export default function HotelSheetForm({
             <Text fontSize="sm">Include restrictions</Text>
           </Checkbox>
           <Checkbox
+            isChecked={config.includeOperationalNotes}
+            onChange={() => handleToggleOption('includeOperationalNotes')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include operational notes</Text>
+          </Checkbox>
+          <Checkbox
             isChecked={config.includeCancellationPolicy}
             onChange={() => handleToggleOption('includeCancellationPolicy')}
             colorScheme="teal"
@@ -309,6 +321,34 @@ export default function HotelSheetForm({
             colorScheme="teal"
           >
             <Text fontSize="sm">Include payment terms</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includeForceMajeure}
+            onChange={() => handleToggleOption('includeForceMajeure')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include force majeure</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includeTravelInsurance}
+            onChange={() => handleToggleOption('includeTravelInsurance')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include travel insurance</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includeFitnessToDive}
+            onChange={() => handleToggleOption('includeFitnessToDive')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include fitness to dive</Text>
+          </Checkbox>
+          <Checkbox
+            isChecked={config.includeUnusedServices}
+            onChange={() => handleToggleOption('includeUnusedServices')}
+            colorScheme="teal"
+          >
+            <Text fontSize="sm">Include unused services</Text>
           </Checkbox>
           <Checkbox
             isChecked={config.includeMealCommissionInfo}

@@ -67,8 +67,13 @@ export interface Hotel {
   mealCommissionRate?: number; // Commission rate for meal packages
   logoUrl?: string; // Hotel logo URL (recommended: 300x100px)
   archived?: boolean;
+  operationalNotes?: string; // Internal operational notes
   cancellationPolicy?: string; // Cancellation/refund terms
   paymentTerms?: string; // Payment schedule/deadlines
+  forceMajeure?: string; // Force majeure clause
+  travelInsurance?: string; // Travel insurance requirements
+  fitnessToDive?: string; // Fitness to dive requirements
+  unusedServices?: string; // Policy on unused/forfeited services
 }
 
 export interface RoomCategory {
@@ -217,8 +222,13 @@ export interface HotelSheetConfig {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeOperationalNotes: boolean;
   includeCancellationPolicy: boolean;
   includePaymentTerms: boolean;
+  includeForceMajeure: boolean;
+  includeTravelInsurance: boolean;
+  includeFitnessToDive: boolean;
+  includeUnusedServices: boolean;
 }
 
 export interface HotelSheetRoomInventoryRow {
@@ -255,8 +265,13 @@ export interface HotelSheetOptions {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeOperationalNotes: boolean;
   includeCancellationPolicy: boolean;
   includePaymentTerms: boolean;
+  includeForceMajeure: boolean;
+  includeTravelInsurance: boolean;
+  includeFitnessToDive: boolean;
+  includeUnusedServices: boolean;
 }
 
 export interface HotelSheetViewModel {
@@ -281,8 +296,13 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeRestrictions: false,
   includeLogo: true,
   includeMealCommissionInfo: false,
+  includeOperationalNotes: true,
   includeCancellationPolicy: true,
   includePaymentTerms: true,
+  includeForceMajeure: true,
+  includeTravelInsurance: true,
+  includeFitnessToDive: true,
+  includeUnusedServices: true,
 };
 
 // ============================================================================

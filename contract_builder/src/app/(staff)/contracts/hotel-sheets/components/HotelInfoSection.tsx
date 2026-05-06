@@ -34,8 +34,13 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
     (options.includeAmenities && !!hotel.amenities) ||
     (options.includePolicies && !!hotel.policies) ||
     (options.includeRestrictions && !!hotel.restrictions) ||
+    (options.includeOperationalNotes && !!hotel.operationalNotes) ||
     (options.includeCancellationPolicy && !!hotel.cancellationPolicy) ||
-    (options.includePaymentTerms && !!hotel.paymentTerms)
+    (options.includePaymentTerms && !!hotel.paymentTerms) ||
+    (options.includeForceMajeure && !!hotel.forceMajeure) ||
+    (options.includeTravelInsurance && !!hotel.travelInsurance) ||
+    (options.includeFitnessToDive && !!hotel.fitnessToDive) ||
+    (options.includeUnusedServices && !!hotel.unusedServices)
 
   if (!hasAnyContent) return null
 
@@ -75,11 +80,26 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
           {options.includeRestrictions && hotel.restrictions && (
             <InfoBlock label="Restrictions" value={hotel.restrictions} />
           )}
+          {options.includeOperationalNotes && hotel.operationalNotes && (
+            <InfoBlock label="Operational Notes" value={hotel.operationalNotes} />
+          )}
           {options.includeCancellationPolicy && hotel.cancellationPolicy && (
             <InfoBlock label="Cancellation Policy" value={hotel.cancellationPolicy} />
           )}
           {options.includePaymentTerms && hotel.paymentTerms && (
             <InfoBlock label="Payment Terms" value={hotel.paymentTerms} />
+          )}
+          {options.includeForceMajeure && hotel.forceMajeure && (
+            <InfoBlock label="Force Majeure" value={hotel.forceMajeure} />
+          )}
+          {options.includeTravelInsurance && hotel.travelInsurance && (
+            <InfoBlock label="Travel Insurance" value={hotel.travelInsurance} />
+          )}
+          {options.includeFitnessToDive && hotel.fitnessToDive && (
+            <InfoBlock label="Fitness to Dive" value={hotel.fitnessToDive} />
+          )}
+          {options.includeUnusedServices && hotel.unusedServices && (
+            <InfoBlock label="Unused Services" value={hotel.unusedServices} />
           )}
         </Box>
       </Grid>
