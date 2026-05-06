@@ -107,25 +107,24 @@ export default function HotelSheetForm({
     })
   }
 
-  const handleToggleOption = (key: keyof Pick<
-    HotelSheetConfig,
-    | 'includeDescription'
-    | 'includeContactInfo'
-    | 'includeAmenities'
-    | 'includePolicies'
-    | 'includeRestrictions'
-    | 'includeLogo'
-    | 'includeMealCommissionInfo'
-    | 'includeOperationalNotes'
-    | 'includeCancellationPolicy'
-    | 'includePaymentTerms'
-    | 'includeForceMajeure'
-    | 'includeTravelInsurance'
-    | 'includeFitnessToDive'
-    | 'includeUnusedServices'
-  >) => {
+  const handleToggleOption = (key: keyof HotelSheetConfig) => {
     onConfigChange({ ...config, [key]: !config[key] })
   }
+
+  const CONTENT_CHECKBOXES: Array<{ key: keyof HotelSheetConfig; label: string }> = [
+    { key: 'includeDescription',      label: 'Include description'       },
+    { key: 'includeContactInfo',      label: 'Include contact info'      },
+    { key: 'includeAmenities',        label: 'Include amenities'         },
+    { key: 'includePolicies',         label: 'Include policies'          },
+    { key: 'includeRestrictions',     label: 'Include restrictions'      },
+    { key: 'includeOperationalNotes', label: 'Include operational notes' },
+    { key: 'includeCancellationPolicy', label: 'Include cancellation policy' },
+    { key: 'includePaymentTerms',     label: 'Include payment terms'     },
+    { key: 'includeForceMajeure',     label: 'Include force majeure'     },
+    { key: 'includeTravelInsurance',  label: 'Include travel insurance'  },
+    { key: 'includeFitnessToDive',    label: 'Include fitness to dive'   },
+    { key: 'includeUnusedServices',   label: 'Include unused services'   },
+  ]
 
   const handleReset = () => {
     onConfigChange({ ...defaultHotelSheetConfig })
@@ -282,6 +281,7 @@ export default function HotelSheetForm({
           <FormHelperText>Rates will be shown as a total for this many nights.</FormHelperText>
         </FormControl>
         <Stack spacing={2}>
+          {/* Hotel logo — standalone since it's not a hotel-field toggle */}
           <Checkbox
             isChecked={config.includeLogo}
             onChange={() => handleToggleOption('includeLogo')}
@@ -289,90 +289,20 @@ export default function HotelSheetForm({
           >
             <Text fontSize="sm">Include hotel logo</Text>
           </Checkbox>
-          <Checkbox
-            isChecked={config.includeDescription}
-            onChange={() => handleToggleOption('includeDescription')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include description</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeContactInfo}
-            onChange={() => handleToggleOption('includeContactInfo')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include contact info</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeAmenities}
-            onChange={() => handleToggleOption('includeAmenities')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include amenities</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includePolicies}
-            onChange={() => handleToggleOption('includePolicies')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include policies</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeRestrictions}
-            onChange={() => handleToggleOption('includeRestrictions')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include restrictions</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeOperationalNotes}
-            onChange={() => handleToggleOption('includeOperationalNotes')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include operational notes</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeCancellationPolicy}
-            onChange={() => handleToggleOption('includeCancellationPolicy')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include cancellation policy</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includePaymentTerms}
-            onChange={() => handleToggleOption('includePaymentTerms')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include payment terms</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeForceMajeure}
-            onChange={() => handleToggleOption('includeForceMajeure')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include force majeure</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeTravelInsurance}
-            onChange={() => handleToggleOption('includeTravelInsurance')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include travel insurance</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeFitnessToDive}
-            onChange={() => handleToggleOption('includeFitnessToDive')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include fitness to dive</Text>
-          </Checkbox>
-          <Checkbox
-            isChecked={config.includeUnusedServices}
-            onChange={() => handleToggleOption('includeUnusedServices')}
-            colorScheme="teal"
-          >
-            <Text fontSize="sm">Include unused services</Text>
-          </Checkbox>
+
+          {/* Content field checkboxes — driven from shared array */}
+          {CONTENT_CHECKBOXES.map(({ key, label }) => (
+            <Checkbox
+              key={key}
+              isChecked={!!config[key]}
+              onChange={() => handleToggleOption(key)}
+              colorScheme="teal"
+            >
+              <Text fontSize="sm">{label}</Text>
+            </Checkbox>
+          ))}
+
+          {/* Meal commission — internal-only note warrants custom label */}
           <Checkbox
             isChecked={config.includeMealCommissionInfo}
             onChange={() => handleToggleOption('includeMealCommissionInfo')}

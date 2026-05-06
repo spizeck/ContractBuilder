@@ -16,6 +16,27 @@ import {
 import { addHotel, updateHotel } from '@/app/(staff)/contracts/_lib/hotelsRepo'
 import { Hotel } from '@/app/(staff)/contracts/_types'
 
+function getInitialHotelData(editingHotel?: Hotel | null) {
+  return {
+    name: editingHotel?.name ?? '',
+    location: editingHotel?.location ?? '',
+    focRule: editingHotel?.focRule ?? '',
+    focBaseRate: editingHotel?.focBaseRate ?? '',
+    description: editingHotel?.description ?? '',
+    contactInfo: editingHotel?.contactInfo ?? '',
+    amenities: editingHotel?.amenities ?? '',
+    policies: editingHotel?.policies ?? '',
+    restrictions: editingHotel?.restrictions ?? '',
+    operationalNotes: editingHotel?.operationalNotes ?? '',
+    cancellationPolicy: editingHotel?.cancellationPolicy ?? '',
+    paymentTerms: editingHotel?.paymentTerms ?? '',
+    forceMajeure: editingHotel?.forceMajeure ?? '',
+    travelInsurance: editingHotel?.travelInsurance ?? '',
+    fitnessToDive: editingHotel?.fitnessToDive ?? '',
+    unusedServices: editingHotel?.unusedServices ?? '',
+  }
+}
+
 export default function AddHotelForm ({
   editingHotel,
   onCancel,
@@ -25,46 +46,10 @@ export default function AddHotelForm ({
   onCancel: () => void
   onSubmit: (updatedHotel: Hotel) => void
 }) {
-  const [hotelData, setHotelData] = useState({
-    name: '',
-    location: '',
-    focRule: '',
-    focBaseRate: '',
-    description: '',
-    contactInfo: '',
-    amenities: '',
-    policies: '',
-    restrictions: '',
-    operationalNotes: '',
-    cancellationPolicy: '',
-    paymentTerms: '',
-    forceMajeure: '',
-    travelInsurance: '',
-    fitnessToDive: '',
-    unusedServices: ''
-  })
+  const [hotelData, setHotelData] = useState(() => getInitialHotelData(editingHotel))
 
   useEffect(() => {
-    if (editingHotel) {
-      setHotelData({
-        name: editingHotel.name || '',
-        location: editingHotel.location || '',
-        focRule: editingHotel.focRule || '',
-        focBaseRate: editingHotel.focBaseRate || '',
-        description: editingHotel.description || '',
-        contactInfo: editingHotel.contactInfo || '',
-        amenities: editingHotel.amenities || '',
-        policies: editingHotel.policies || '',
-        restrictions: editingHotel.restrictions || '',
-        operationalNotes: editingHotel.operationalNotes || '',
-        cancellationPolicy: editingHotel.cancellationPolicy || '',
-        paymentTerms: editingHotel.paymentTerms || '',
-        forceMajeure: editingHotel.forceMajeure || '',
-        travelInsurance: editingHotel.travelInsurance || '',
-        fitnessToDive: editingHotel.fitnessToDive || '',
-        unusedServices: editingHotel.unusedServices || ''
-      })
-    }
+    setHotelData(getInitialHotelData(editingHotel))
   }, [editingHotel])
 
   interface FocRuleSelectProps {

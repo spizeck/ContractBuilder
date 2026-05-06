@@ -84,7 +84,8 @@ export function buildHotelSheetViewModel(
         seen.add(key)
 
         const personCount = Math.max(1, getOccupancyCountFromLabel(rate.occupancyType))
-        const nightsTotal = rate.price * config.numNights
+        const nights = config.numNights ?? 7
+        const nightsTotal = rate.price * nights
 
         categoryRates.push({
           roomCategoryId: rate.categoryId,
@@ -149,7 +150,7 @@ export function buildHotelSheetViewModel(
       includeTravelInsurance: config.includeTravelInsurance,
       includeFitnessToDive: config.includeFitnessToDive,
       includeUnusedServices: config.includeUnusedServices,
-      numNights: config.numNights,
+      numNights: config.numNights ?? 7,
     },
   }
 }
