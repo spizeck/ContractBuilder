@@ -295,7 +295,7 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeContactInfo: true,
   includeAmenities: true,
   includePolicies: true,
-  includeRestrictions: false,
+  includeRestrictions: true,
   includeLogo: true,
   includeMealCommissionInfo: false,
   includeOperationalNotes: true,
