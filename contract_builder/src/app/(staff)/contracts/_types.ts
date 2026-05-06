@@ -229,6 +229,7 @@ export interface HotelSheetConfig {
   includeTravelInsurance: boolean;
   includeFitnessToDive: boolean;
   includeUnusedServices: boolean;
+  numNights: number;
 }
 
 export interface HotelSheetRoomInventoryRow {
@@ -245,8 +246,8 @@ export interface HotelSheetCategoryRateRow {
   roomCategoryName: string;
   occupancyType: string;
   nightlyRate: number;
-  sevenNightTotal: number;
-  sevenNightPerPerson: number;
+  nightsTotal: number;
+  nightsPerPerson: number;
 }
 
 export interface HotelSheetSeasonRates {
@@ -272,6 +273,7 @@ export interface HotelSheetOptions {
   includeTravelInsurance: boolean;
   includeFitnessToDive: boolean;
   includeUnusedServices: boolean;
+  numNights: number;
 }
 
 export interface HotelSheetViewModel {
@@ -303,6 +305,7 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeTravelInsurance: true,
   includeFitnessToDive: true,
   includeUnusedServices: true,
+  numNights: 7,
 };
 
 // ============================================================================

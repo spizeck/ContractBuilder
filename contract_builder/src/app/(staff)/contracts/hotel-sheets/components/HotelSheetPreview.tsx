@@ -278,7 +278,7 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
                 Warning: No room rates found for the selected seasons.
               </Text>
             )}
-            <SeasonRatesSection seasons={seasons} />
+            <SeasonRatesSection seasons={seasons} numNights={options.numNights} />
           </>
         )}
 

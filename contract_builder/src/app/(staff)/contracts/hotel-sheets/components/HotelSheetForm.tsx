@@ -7,8 +7,14 @@ import {
   Checkbox,
   Divider,
   FormControl,
+  FormHelperText,
   FormLabel,
   Heading,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Select,
   Stack,
   Text,
@@ -258,6 +264,23 @@ export default function HotelSheetForm({
         <Heading as="h4" size="sm" mb={3}>
           Display Options
         </Heading>
+        <FormControl mb={4}>
+          <FormLabel fontSize="sm" fontWeight="semibold">Number of Nights</FormLabel>
+          <NumberInput
+            min={1}
+            max={30}
+            value={config.numNights}
+            onChange={(_str, val) => onConfigChange({ ...config, numNights: isNaN(val) ? 1 : val })}
+            maxW="120px"
+          >
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
+          <FormHelperText>Rates will be shown as a total for this many nights.</FormHelperText>
+        </FormControl>
         <Stack spacing={2}>
           <Checkbox
             isChecked={config.includeLogo}
