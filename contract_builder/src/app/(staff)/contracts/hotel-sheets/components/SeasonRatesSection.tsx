@@ -5,9 +5,10 @@ import { formatCurrency, formatDateRange } from '@shared/utils/formatters'
 
 interface SeasonRatesSectionProps {
   seasons: HotelSheetSeasonRates[]
+  numNights: number
 }
 
-export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps) {
+export default function SeasonRatesSection({ seasons, numNights }: SeasonRatesSectionProps) {
   if (seasons.length === 0) return null
 
   return (
@@ -25,7 +26,7 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
         Room Rates by Season
       </Heading>
       <Text fontSize="xs" color="textMuted" fontStyle="italic" mb={6}>
-        Rates shown per person, based on a 7-night stay.
+        Rates shown per person, based on a {numNights}-night stay.
       </Text>
 
       <VStack align="stretch" spacing={10}>
@@ -57,7 +58,7 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
                     <th style={thLeft}>Occupancy</th>
                     <th style={thRight}>Nightly Rate</th>
                     <th style={{ ...thRight, color: '#2b6cb0', fontWeight: 700 }}>
-                      7-Night / Person
+                      {numNights}-Night / Person
                     </th>
                   </tr>
                 </thead>
@@ -71,7 +72,7 @@ export default function SeasonRatesSection({ seasons }: SeasonRatesSectionProps)
                       <td style={tdLeft}>{row.occupancyType}</td>
                       <td style={tdRight}>${formatCurrency(row.nightlyRate)}</td>
                       <td style={{ ...tdRight, fontWeight: 600, color: '#2b6cb0' }}>
-                        ${formatCurrency(row.sevenNightPerPerson)}
+                        ${formatCurrency(row.nightsPerPerson)}
                       </td>
                     </tr>
                   ))}

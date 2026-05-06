@@ -67,6 +67,13 @@ export interface Hotel {
   mealCommissionRate?: number; // Commission rate for meal packages
   logoUrl?: string; // Hotel logo URL (recommended: 300x100px)
   archived?: boolean;
+  operationalNotes?: string; // Internal operational notes
+  cancellationPolicy?: string; // Cancellation/refund terms
+  paymentTerms?: string; // Payment schedule/deadlines
+  forceMajeure?: string; // Force majeure clause
+  travelInsurance?: string; // Travel insurance requirements
+  fitnessToDive?: string; // Fitness to dive requirements
+  unusedServices?: string; // Policy on unused/forfeited services
 }
 
 export interface RoomCategory {
@@ -215,6 +222,14 @@ export interface HotelSheetConfig {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeOperationalNotes: boolean;
+  includeCancellationPolicy: boolean;
+  includePaymentTerms: boolean;
+  includeForceMajeure: boolean;
+  includeTravelInsurance: boolean;
+  includeFitnessToDive: boolean;
+  includeUnusedServices: boolean;
+  numNights: number;
 }
 
 export interface HotelSheetRoomInventoryRow {
@@ -231,8 +246,8 @@ export interface HotelSheetCategoryRateRow {
   roomCategoryName: string;
   occupancyType: string;
   nightlyRate: number;
-  sevenNightTotal: number;
-  sevenNightPerPerson: number;
+  nightsTotal: number;
+  nightsPerPerson: number;
 }
 
 export interface HotelSheetSeasonRates {
@@ -251,6 +266,14 @@ export interface HotelSheetOptions {
   includeRestrictions: boolean;
   includeLogo: boolean;
   includeMealCommissionInfo: boolean;
+  includeOperationalNotes: boolean;
+  includeCancellationPolicy: boolean;
+  includePaymentTerms: boolean;
+  includeForceMajeure: boolean;
+  includeTravelInsurance: boolean;
+  includeFitnessToDive: boolean;
+  includeUnusedServices: boolean;
+  numNights: number;
 }
 
 export interface HotelSheetViewModel {
@@ -272,9 +295,17 @@ export const defaultHotelSheetConfig: HotelSheetConfig = {
   includeContactInfo: true,
   includeAmenities: true,
   includePolicies: true,
-  includeRestrictions: false,
+  includeRestrictions: true,
   includeLogo: true,
   includeMealCommissionInfo: false,
+  includeOperationalNotes: true,
+  includeCancellationPolicy: true,
+  includePaymentTerms: true,
+  includeForceMajeure: true,
+  includeTravelInsurance: true,
+  includeFitnessToDive: true,
+  includeUnusedServices: true,
+  numNights: 7,
 };
 
 // ============================================================================

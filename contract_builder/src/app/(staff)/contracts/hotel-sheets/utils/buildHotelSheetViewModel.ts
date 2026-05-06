@@ -84,15 +84,16 @@ export function buildHotelSheetViewModel(
         seen.add(key)
 
         const personCount = Math.max(1, getOccupancyCountFromLabel(rate.occupancyType))
-        const sevenNightTotal = rate.price * 7
+        const nights = config.numNights ?? 7
+        const nightsTotal = rate.price * nights
 
         categoryRates.push({
           roomCategoryId: rate.categoryId,
           roomCategoryName: categoryMap.get(rate.categoryId)?.name ?? 'Unknown',
           occupancyType: rate.occupancyType,
           nightlyRate: rate.price,
-          sevenNightTotal,
-          sevenNightPerPerson: sevenNightTotal / personCount,
+          nightsTotal,
+          nightsPerPerson: nightsTotal / personCount,
         })
       }
 
@@ -142,6 +143,14 @@ export function buildHotelSheetViewModel(
       includeRestrictions: config.includeRestrictions,
       includeLogo: config.includeLogo,
       includeMealCommissionInfo: config.includeMealCommissionInfo,
+      includeOperationalNotes: config.includeOperationalNotes,
+      includeCancellationPolicy: config.includeCancellationPolicy,
+      includePaymentTerms: config.includePaymentTerms,
+      includeForceMajeure: config.includeForceMajeure,
+      includeTravelInsurance: config.includeTravelInsurance,
+      includeFitnessToDive: config.includeFitnessToDive,
+      includeUnusedServices: config.includeUnusedServices,
+      numNights: config.numNights ?? 7,
     },
   }
 }

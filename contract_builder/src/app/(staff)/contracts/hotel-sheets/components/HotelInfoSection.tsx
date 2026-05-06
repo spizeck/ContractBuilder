@@ -6,6 +6,35 @@ interface HotelInfoSectionProps {
   options: HotelSheetOptions
 }
 
+/** Maps each option key → hotel field key + display label, in render order. */
+const LEFT_COLUMN_FIELDS: Array<{
+  optionKey: keyof HotelSheetOptions
+  hotelKey: keyof Hotel
+  label: string
+}> = [
+  { optionKey: 'includeDescription',   hotelKey: 'description',  label: 'Description'         },
+  { optionKey: 'includeContactInfo',   hotelKey: 'contactInfo',  label: 'Contact Information'  },
+]
+
+const RIGHT_COLUMN_FIELDS: Array<{
+  optionKey: keyof HotelSheetOptions
+  hotelKey: keyof Hotel
+  label: string
+}> = [
+  { optionKey: 'includeAmenities',          hotelKey: 'amenities',         label: 'Amenities'         },
+  { optionKey: 'includePolicies',           hotelKey: 'policies',          label: 'Hotel Policies'    },
+  { optionKey: 'includeRestrictions',       hotelKey: 'restrictions',      label: 'Restrictions'      },
+  { optionKey: 'includeOperationalNotes',   hotelKey: 'operationalNotes',  label: 'Operational Notes' },
+  { optionKey: 'includeCancellationPolicy', hotelKey: 'cancellationPolicy',label: 'Cancellation Policy'},
+  { optionKey: 'includePaymentTerms',       hotelKey: 'paymentTerms',      label: 'Payment Terms'     },
+  { optionKey: 'includeForceMajeure',       hotelKey: 'forceMajeure',      label: 'Force Majeure'     },
+  { optionKey: 'includeTravelInsurance',    hotelKey: 'travelInsurance',   label: 'Travel Insurance'  },
+  { optionKey: 'includeFitnessToDive',      hotelKey: 'fitnessToDive',     label: 'Fitness to Dive'   },
+  { optionKey: 'includeUnusedServices',     hotelKey: 'unusedServices',    label: 'Unused Services'   },
+]
+
+const ALL_FIELDS = [...LEFT_COLUMN_FIELDS, ...RIGHT_COLUMN_FIELDS]
+
 /** A single labelled content block within the hotel overview */
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
@@ -28,12 +57,9 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
 }
 
 export default function HotelInfoSection({ hotel, options }: HotelInfoSectionProps) {
-  const hasAnyContent =
-    (options.includeDescription && !!hotel.description) ||
-    (options.includeContactInfo && !!hotel.contactInfo) ||
-    (options.includeAmenities && !!hotel.amenities) ||
-    (options.includePolicies && !!hotel.policies) ||
-    (options.includeRestrictions && !!hotel.restrictions)
+  const hasAnyContent = ALL_FIELDS.some(
+    ({ optionKey, hotelKey }) => options[optionKey] && !!hotel[hotelKey]
+  )
 
   if (!hasAnyContent) return null
 
@@ -54,25 +80,20 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
       <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
         {/* Left column */}
         <Box>
-          {options.includeDescription && hotel.description && (
-            <InfoBlock label="Description" value={hotel.description} />
-          )}
-          {options.includeContactInfo && hotel.contactInfo && (
-            <InfoBlock label="Contact Information" value={hotel.contactInfo} />
-          )}
+          {LEFT_COLUMN_FIELDS.map(({ optionKey, hotelKey, label }) => {
+            const value = hotel[hotelKey]
+            if (!options[optionKey] || !value) return null
+            return <InfoBlock key={optionKey} label={label} value={value as string} />
+          })}
         </Box>
 
         {/* Right column */}
         <Box>
-          {options.includeAmenities && hotel.amenities && (
-            <InfoBlock label="Amenities" value={hotel.amenities} />
-          )}
-          {options.includePolicies && hotel.policies && (
-            <InfoBlock label="Hotel Policies" value={hotel.policies} />
-          )}
-          {options.includeRestrictions && hotel.restrictions && (
-            <InfoBlock label="Restrictions" value={hotel.restrictions} />
-          )}
+          {RIGHT_COLUMN_FIELDS.map(({ optionKey, hotelKey, label }) => {
+            const value = hotel[hotelKey]
+            if (!options[optionKey] || !value) return null
+            return <InfoBlock key={optionKey} label={label} value={value as string} />
+          })}
         </Box>
       </Grid>
     </Box>
