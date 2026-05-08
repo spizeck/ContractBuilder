@@ -46,6 +46,7 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
         paddingBottom={1}
         borderBottom="1px solid"
         borderColor="gray.300"
+        style={{ pageBreakAfter: 'avoid', breakAfter: 'avoid' }}
       >
         {label}
       </Text>
