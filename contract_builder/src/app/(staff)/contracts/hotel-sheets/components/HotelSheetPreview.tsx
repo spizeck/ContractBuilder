@@ -215,9 +215,9 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
               About This Hotel
             </Text>
 
-            {shortDescription && (
-              <Text fontSize="sm" color="gray.700" lineHeight="tall" mb={4}>
-                {shortDescription}
+            {options.includeDescription && hotel.description && (
+              <Text fontSize="sm" color="gray.700" whiteSpace="pre-wrap" lineHeight="tall" mb={4}>
+                {hotel.description}
               </Text>
             )}
 

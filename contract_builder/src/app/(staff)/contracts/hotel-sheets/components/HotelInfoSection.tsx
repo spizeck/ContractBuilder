@@ -11,10 +11,7 @@ const LEFT_COLUMN_FIELDS: Array<{
   optionKey: keyof HotelSheetOptions
   hotelKey: keyof Hotel
   label: string
-}> = [
-  { optionKey: 'includeDescription',   hotelKey: 'description',  label: 'Description'         },
-  { optionKey: 'includeContactInfo',   hotelKey: 'contactInfo',  label: 'Contact Information'  },
-]
+}> = []
 
 const RIGHT_COLUMN_FIELDS: Array<{
   optionKey: keyof HotelSheetOptions
@@ -38,14 +35,17 @@ const ALL_FIELDS = [...LEFT_COLUMN_FIELDS, ...RIGHT_COLUMN_FIELDS]
 /** A single labelled content block within the hotel overview */
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <Box mb={5} style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+    <Box mb={5}>
       <Text
-        fontSize="10px"
+        fontSize="xs"
         fontWeight="semibold"
         letterSpacing="widest"
         textTransform="uppercase"
         color="textMuted"
         mb={1}
+        paddingBottom={1}
+        borderBottom="1px solid"
+        borderColor="gray.300"
       >
         {label}
       </Text>
@@ -77,25 +77,14 @@ export default function HotelInfoSection({ hotel, options }: HotelInfoSectionPro
         Hotel Overview
       </Heading>
 
-      <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
-        {/* Left column */}
-        <Box>
-          {LEFT_COLUMN_FIELDS.map(({ optionKey, hotelKey, label }) => {
-            const value = hotel[hotelKey]
-            if (!options[optionKey] || !value) return null
-            return <InfoBlock key={optionKey} label={label} value={value as string} />
-          })}
-        </Box>
-
-        {/* Right column */}
-        <Box>
-          {RIGHT_COLUMN_FIELDS.map(({ optionKey, hotelKey, label }) => {
-            const value = hotel[hotelKey]
-            if (!options[optionKey] || !value) return null
-            return <InfoBlock key={optionKey} label={label} value={value as string} />
-          })}
-        </Box>
-      </Grid>
+      {/* Single column layout */}
+      <Box>
+        {ALL_FIELDS.map(({ optionKey, hotelKey, label }) => {
+          const value = hotel[hotelKey]
+          if (!options[optionKey] || !value) return null
+          return <InfoBlock key={optionKey} label={label} value={value as string} />
+        })}
+      </Box>
     </Box>
   )
 }
