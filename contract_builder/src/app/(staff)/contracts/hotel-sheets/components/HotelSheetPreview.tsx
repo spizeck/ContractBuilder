@@ -168,7 +168,7 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
             At a Glance
           </Text>
           {/* Use a plain inline-flex row so numbers never split across columns */}
-          <div style={{ display: 'flex', gap: '0', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', gap: '0', border: '1px solid #e2e8f0' }}>
             {[
               { label: 'Room Types', value: roomInventory.length },
               { label: 'Total Units', value: totalRooms },
@@ -176,15 +176,14 @@ export default function HotelSheetPreview({ viewModel, isReady }: HotelSheetPrev
               { label: 'Seasons', value: seasons.length },
               { label: 'Dive Packages', value: divePackages.length },
               { label: 'Meal Packages', value: mealPackages.length },
-            ].map(({ label, value }) => (
+            ].map(({ label, value }, idx) => (
               <div
                 key={label}
                 style={{
                   flex: '1',
                   textAlign: 'center',
                   padding: '14px 8px 12px',
-                  borderRight: '1px solid #e2e8f0',
-                  borderBottom: '1px solid #e2e8f0',
+                  borderLeft: idx > 0 ? '1px solid #e2e8f0' : undefined,
                 }}
               >
                 <div style={{ fontSize: '22px', fontWeight: 700, color: '#2c7a7b', lineHeight: 1 }}>
