@@ -12,7 +12,7 @@ import {
   Text
 } from '@chakra-ui/react'
 import { addRoomCategory, updateRoomCategory } from '@/app/(staff)/contracts/_lib/roomCategoriesRepo'
-import { ensureRatesForCategory } from '@/app/(staff)/contracts/_lib/rateSyncRepo'
+import { ensureRatesForCategory, cleanupStaleRatesForCategory } from '@/app/(staff)/contracts/_lib/rateSyncRepo'
 import { RoomCategory } from '@/app/(staff)/contracts/_types'
 
 export default function AddEditRoomCategoryForm ({
@@ -78,8 +78,20 @@ export default function AddEditRoomCategoryForm ({
       let savedCategory: RoomCategory
 
       if (category) {
+        // Detect removed occupancy types and clean up stale rates
+        const previousOccupancyTypes = category.occupancyTypes || []
+        const currentOccupancyTypes = categoryData.occupancyTypes || []
+
         await updateRoomCategory(category.id, categoryData)
         savedCategory = { ...category, ...categoryData }
+
+        // Delete rate records for occupancy types that were removed
+        await cleanupStaleRatesForCategory(
+          hotelId,
+          category.id,
+          previousOccupancyTypes,
+          currentOccupancyTypes
+        )
       } else {
         // addRoomCategory returns the new document ID (string)
         const newId = await addRoomCategory({ ...categoryData, hotelId })
@@ -91,6 +103,7 @@ export default function AddEditRoomCategoryForm ({
         }
       }
 
+      // Create rates for any new occupancy types (idempotent)
       await ensureRatesForCategory(hotelId, {
         id: savedCategory.id,
         occupancyTypes: savedCategory.occupancyTypes

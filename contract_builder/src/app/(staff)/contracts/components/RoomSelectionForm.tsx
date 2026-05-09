@@ -276,6 +276,9 @@ export default function RoomSelectionForm ({
               <MenuList maxHeight='500px' overflowY='auto'>
                 {(() => {
                   const occupancyOrder = ['Single', 'Double', 'Triple', 'Quad']
+                  // Only show occupancy types currently allowed by the selected room category
+                  const selectedCategory = roomCategories.find(c => c.id === selection.categoryId)
+                  const allowedOccupancies = selectedCategory?.occupancyTypes || []
                   return rates
                     .filter(
                       rate =>
@@ -284,6 +287,7 @@ export default function RoomSelectionForm ({
                     )
                     .map(rate => rate.occupancyType)
                     .filter((value, idx, self) => self.indexOf(value) === idx)
+                    .filter(type => allowedOccupancies.includes(type))
                     .sort((a, b) => {
                       const indexA = occupancyOrder.indexOf(a)
                       const indexB = occupancyOrder.indexOf(b)

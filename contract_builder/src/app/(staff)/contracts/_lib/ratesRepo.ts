@@ -7,10 +7,13 @@ export async function getRates(hotelId: string): Promise<Rate[]> {
   const q = query(ratesRef, where("hotelId", "==", hotelId));
   const querySnapshot = await getDocs(q);
 
-  const rates: Rate[] = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...(doc.data() as Omit<Rate, "id">),
-  }));
+  // Filter out archived rates (stale rates from removed occupancy types)
+  const rates: Rate[] = querySnapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Rate, "id">),
+    }))
+    .filter((rate) => !rate.archived);
 
   // 🔹 Load categories for names
   const categoriesRef = collection(db, "roomCategories");

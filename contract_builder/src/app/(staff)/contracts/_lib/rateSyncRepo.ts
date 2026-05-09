@@ -88,6 +88,69 @@ export async function ensureRatesForCategory(
   }
 }
 
+/**
+ * Clean up stale rate records when occupancy types are removed from a room category.
+ * Deletes rate documents whose occupancyType is no longer in the category's allowed list.
+ *
+ * @param hotelId - The hotel ID
+ * @param categoryId - The room category ID being edited
+ * @param previousOccupancyTypes - The occupancy types before the edit
+ * @param currentOccupancyTypes - The occupancy types after the edit
+ * @returns The number of stale rate records deleted
+ */
+export async function cleanupStaleRatesForCategory(
+  hotelId: string,
+  categoryId: string,
+  previousOccupancyTypes: string[],
+  currentOccupancyTypes: string[]
+): Promise<number> {
+  const removedTypes = previousOccupancyTypes.filter(
+    (t) => !currentOccupancyTypes.includes(t)
+  );
+
+  console.log('[RateSync] cleanupStaleRatesForCategory');
+  console.log('[RateSync]   Previous occupancy types: %O', previousOccupancyTypes);
+  console.log('[RateSync]   Current occupancy types: %O', currentOccupancyTypes);
+  console.log('[RateSync]   Removed occupancy types: %O', removedTypes);
+
+  if (removedTypes.length === 0) {
+    console.log('[RateSync]   No occupancy types removed — nothing to clean up.');
+    return 0;
+  }
+
+  // Query all rates for this category in this hotel
+  const ratesRef = collection(db, "rates");
+  const ratesSnap = await getDocs(
+    query(
+      ratesRef,
+      where("hotelId", "==", hotelId),
+      where("categoryId", "==", categoryId)
+    )
+  );
+
+  // Find rates with occupancy types that were removed
+  const staleDocs = ratesSnap.docs.filter((rateDoc) => {
+    const data = rateDoc.data() as Omit<Rate, "id">;
+    return removedTypes.includes(data.occupancyType);
+  });
+
+  if (staleDocs.length === 0) {
+    console.log('[RateSync]   No stale rate records found.');
+    return 0;
+  }
+
+  // Delete stale rate records
+  const deletePromises = staleDocs.map((rateDoc) =>
+    deleteDoc(doc(db, "rates", rateDoc.id))
+  );
+  await Promise.all(deletePromises);
+
+  console.log('[RateSync]   Deleted %d stale rate record(s) for removed occupancy types: %O',
+    staleDocs.length, removedTypes);
+
+  return staleDocs.length;
+}
+
 export async function ensureRatesForSeason(
   hotelId: string,
   seasonId: string
