@@ -389,22 +389,19 @@ export default function ViewContractPage () {
         <Heading size='md' mb={2}>
           Hotel Information
         </Heading>
-        <VStack mb={4} align='start'>
-        <Text>
-          <b>Location:</b> {hotel.location}
-        </Text>
-        <Text>
-          <b>Description:</b> {hotel.description}
-        </Text>
-        <Text>
-          <b>Amenities:</b> {hotel.amenities}
-        </Text>
-        <Text>
-          <b>Policies:</b> {hotel.policies}
-        </Text>
-        <Text>
-          <b>Restrictions:</b> {hotel.restrictions}
-        </Text>
+        <VStack mb={4} align='start' spacing={2}>
+          <Text><b>Location:</b> {hotel.location}</Text>
+          <Text><b>Description:</b> {hotel.description}</Text>
+          <Text><b>Amenities:</b> {hotel.amenities}</Text>
+          {hotel.policies && <Text><b>Policies:</b> {hotel.policies}</Text>}
+          {hotel.restrictions && <Text><b>Restrictions:</b> {hotel.restrictions}</Text>}
+          {hotel.operationalNotes && <Text><b>Operational Notes:</b> {hotel.operationalNotes}</Text>}
+          {hotel.cancellationPolicy && <Text><b>Cancellation Policy:</b> {hotel.cancellationPolicy}</Text>}
+          {hotel.paymentTerms && <Text><b>Payment Terms:</b> {hotel.paymentTerms}</Text>}
+          {hotel.forceMajeure && <Text><b>Force Majeure:</b> {hotel.forceMajeure}</Text>}
+          {hotel.travelInsurance && <Text><b>Travel Insurance:</b> {hotel.travelInsurance}</Text>}
+          {hotel.fitnessToDive && <Text><b>Fitness to Dive:</b> {hotel.fitnessToDive}</Text>}
+          {hotel.unusedServices && <Text><b>Unused Services:</b> {hotel.unusedServices}</Text>}
         </VStack>
       </Box>
 
@@ -509,8 +506,12 @@ if (typeof window !== 'undefined') {
     
     @media print {
       @page {
-        margin: 0.25in;
+        margin: 0.75in 0.75in 0.75in 0.75in;
         size: Letter;
+      }
+
+      @page :first {
+        margin-top: 0.5in;
       }
       
       body {
@@ -531,7 +532,9 @@ if (typeof window !== 'undefined') {
       
       /* Logo header styling */
       .logo-header {
+        break-inside: avoid;
         page-break-inside: avoid;
+        break-after: avoid;
         page-break-after: avoid;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
@@ -544,36 +547,30 @@ if (typeof window !== 'undefined') {
         object-fit: contain;
       }
       
-      /* Reduce top margin for first page */
-      main {
-        padding: 1rem 2rem !important;
+      /* Strip all framework padding so @page margins are the sole source of spacing */
+      main,
+      .print-container,
+      .chakra-vstack {
+        padding: 0 !important;
+        margin: 0 !important;
       }
       
-      /* Target the main print container specifically */
-      .print-container {
-        padding: 0.5rem !important;
-        padding-top: 0.25rem !important;
+      /* Keep individual content boxes breathing room */
+      .print-container > * {
+        margin-bottom: 0.6rem;
       }
-      
-      /* Reduce padding on other vstacks */
-      .chakra-vstack:not(.print-container) {
-        padding: 1rem !important;
-      }
-      
-      /* Ensure text doesn't break awkwardly */
-      * {
-        page-break-inside: avoid;
-      }
-      
-      /* Force proper spacing */
-      h1, h2, h3 {
+
+      /* Headings stay with their content */
+      h1, h2, h3, h4 {
+        break-after: avoid;
         page-break-after: avoid;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
+        margin-top: 0.4rem;
+        margin-bottom: 0.3rem;
       }
       
-      /* Ensure signatures are on the same page */
+      /* Signatures stay together */
       .signature-section {
+        break-inside: avoid;
         page-break-inside: avoid;
         margin-top: 2rem;
         width: 100%;
@@ -587,11 +584,6 @@ if (typeof window !== 'undefined') {
         display: flex !important;
         width: 100%;
         align-items: center;
-      }
-      
-      /* Reduce spacing between sections */
-      .chakra-stack {
-        margin-top: 0.5rem !important;
       }
     }
   `
