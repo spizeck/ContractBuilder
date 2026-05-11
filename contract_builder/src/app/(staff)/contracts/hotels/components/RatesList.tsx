@@ -70,6 +70,13 @@ export default function RatesList ({
       filtered = ratesData.filter(rate => rate.seasonId === seasonId)
     }
 
+    // Filter rates to only include occupancy types configured for each category
+    filtered = filtered.filter(rate => {
+      const category = categories.find(cat => cat.id === rate.categoryId)
+      if (!category) return false
+      return category.occupancyTypes.includes(rate.occupancyType)
+    })
+
     // Group rates by season
     const groupedRates = seasons
       .map(season => ({

@@ -70,8 +70,14 @@ export function buildHotelSheetViewModel(
       const season = seasons.find(s => s.id === seasonId)
       if (!season) return null
 
-      // Rates for this season, excluding archived
-      const seasonRates = rates.filter(r => r.seasonId === seasonId && !r.archived)
+      // Rates for this season, excluding archived and filtering by category's configured occupancy types
+      const seasonRates = rates.filter(r => {
+        if (r.seasonId !== seasonId || r.archived) return false
+        const category = categoryMap.get(r.categoryId)
+        if (!category) return false
+        // Only include rates for occupancy types configured for this category
+        return category.occupancyTypes.includes(r.occupancyType)
+      })
 
       // Deduplicate by categoryId+occupancyType — keep the first price found if
       // duplicates exist (data integrity issue, not expected in practice)
