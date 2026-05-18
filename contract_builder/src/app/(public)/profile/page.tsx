@@ -182,11 +182,10 @@ export default function ProfilePage () {
             />
           </FormControl>
 
-          {/* Unit Preferences - Admin only */}
-          {role === 'admin' && (
-            <>
-              <FormControl>
-                <FormLabel>Depth Units</FormLabel>
+          {/* Unit Preferences */}
+          <>
+            <FormControl>
+              <FormLabel>Depth Units</FormLabel>
                 <Select
                   value={userProfile?.preferences.units.depth}
                   onChange={e =>
@@ -263,7 +262,6 @@ export default function ProfilePage () {
                 </Select>
               </FormControl>
             </>
-          )}
 
           <FormControl>
             <FormLabel>Role</FormLabel>
