@@ -29,7 +29,8 @@ const defaultPrefs: UserPreferences = {
     depth: 'meters',
     temp: 'celsius',
     pressure: 'bar'
-  }
+  },
+  theme: 'system'
 }
 
 export default function ProfilePage () {
@@ -259,6 +260,30 @@ export default function ProfilePage () {
                 >
                   <option value='bar'>Bar</option>
                   <option value='psi'>PSI</option>
+                </Select>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Theme</FormLabel>
+                <Select
+                  value={userProfile?.preferences.theme}
+                  onChange={e =>
+                    setUserProfile(prev =>
+                      prev
+                        ? {
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              theme: e.target.value as 'light' | 'dark' | 'system'
+                            }
+                          }
+                        : prev
+                    )
+                  }
+                >
+                  <option value='system'>System</option>
+                  <option value='light'>Light</option>
+                  <option value='dark'>Dark</option>
                 </Select>
               </FormControl>
             </>
