@@ -4,6 +4,7 @@ import { UserProfile, UserPreferences } from "@core/types/userTypes";
 
 const defaultPrefs: UserPreferences = {
   units: { depth: "meters", temp: "celsius", pressure: "bar" },
+  theme: "system",
 };
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
