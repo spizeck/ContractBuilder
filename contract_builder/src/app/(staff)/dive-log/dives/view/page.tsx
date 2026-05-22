@@ -71,7 +71,8 @@ export default function ViewDivesPage () {
         const profile = await getUserProfile(user.uid)
         setPrefs(
           profile?.preferences || {
-            units: { depth: 'meters', temp: 'celsius', pressure: 'bar' }
+            units: { depth: 'meters', temp: 'celsius', pressure: 'bar' },
+            theme: 'system' as const
           }
         )
       }
