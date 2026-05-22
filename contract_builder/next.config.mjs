@@ -14,8 +14,14 @@ const nextConfig = {
     return config;
   },
 
-  // Turbopack config (empty since we're using webpack alias)
-  turbopack: {},
+  // Turbopack alias config (mirrors webpack aliases above)
+  turbopack: {
+    resolveAlias: {
+      "@": path.resolve(__dirname, "src"),
+      "@core": path.resolve(__dirname, "src/core"),
+      "@shared": path.resolve(__dirname, "src/shared"),
+    },
+  },
 
   async redirects() {
     return [
