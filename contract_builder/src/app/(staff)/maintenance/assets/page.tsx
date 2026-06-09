@@ -26,6 +26,7 @@ import {
   getCurrentReading,
   getNextDueDisplay,
 } from "@/app/(staff)/maintenance/_lib/maintenanceSelectors";
+import { formatDate } from "@shared/utils/formatters";
 
 // Allowed categories going forward — use these for filters and parent assignment
 const ALLOWED_CATEGORIES = [
@@ -200,6 +201,9 @@ export default function AssetsPage() {
                     Next Due
                   </Th>
                   <Th position="sticky" top={0} bg="tableHeader">
+                    Last Updated
+                  </Th>
+                  <Th position="sticky" top={0} bg="tableHeader">
                     Actions
                   </Th>
                 </Tr>
@@ -299,6 +303,11 @@ function ParentRow({
         <Td>{getTrackingLabel(asset)}</Td>
         <Td>{getCurrentReading(asset) ?? "-"}</Td>
         <Td>{getNextDueDisplay(asset)}</Td>
+        <Td>
+          {(asset.updatedAt || asset.lastServiceDate)
+            ? formatDate((asset.updatedAt || asset.lastServiceDate) as any)
+            : "-"}
+        </Td>
         <Td>
           <Button size="sm" onClick={() => onEdit(asset)}>
             Edit

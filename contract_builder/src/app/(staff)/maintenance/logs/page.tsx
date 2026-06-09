@@ -457,7 +457,13 @@ function ParentRow({
     .filter((l) => l.assetId === asset.id)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const lastLog = assetLogs[0];
-  const lastDate = lastLog?.date || asset.lastServiceDate;
+  // Consider both maintenance logs AND asset updates (hour/km updates set updatedAt)
+  const lastLogDate = lastLog?.date;
+  const assetUpdateDate = asset.updatedAt;
+  const lastServiceDate = asset.lastServiceDate;
+  const lastDate = [lastLogDate, assetUpdateDate, lastServiceDate]
+    .filter((d): d is Date => !!d)
+    .sort((a, b) => +b - +a)[0];
   const nextDue = lastLog?.nextServiceDue ?? asset.nextServiceDue;
 
   // Current hours: prefer most recent log hours, fall back to asset.hours or asset.currentHours

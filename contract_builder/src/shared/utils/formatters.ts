@@ -27,14 +27,21 @@ export function parseDateOnly(dateStr: string): Date {
   return new Date(year, month - 1, day); // Local midnight, no UTC shift
 }
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | { toDate(): Date } | null | undefined): string {
+  if (!date) return "-";
+
   let d: Date;
 
   if (typeof date === "string") {
     const [year, month, day] = date.split("-").map(Number);
     d = new Date(year, month - 1, day); // 👈 month is 0-based
-  } else {
+  } else if (date instanceof Date) {
     d = date;
+  } else if (typeof date === "object" && "toDate" in date && typeof date.toDate === "function") {
+    // Handle Firebase Timestamp
+    d = date.toDate();
+  } else {
+    return "-";
   }
 
   const options: Intl.DateTimeFormatOptions = {

@@ -22,6 +22,7 @@ import {
   getAssetStatus,
   getStatusColor,
 } from "@/app/(staff)/maintenance/_lib/maintenanceSelectors";
+import { formatDate } from "@shared/utils/formatters";
 
 export interface CategoryPanelsProps {
   assets: Asset[];
@@ -104,6 +105,9 @@ export default function CategoryPanels({
             <Th position="sticky" top={0} bg="tableHeader">
               Status
             </Th>
+            <Th position="sticky" top={0} bg="tableHeader">
+              Last Updated
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -181,6 +185,11 @@ function AssetRow({
         <Td>{getNextDueDisplay(asset)}</Td>
         <Td>
           <Tag colorScheme={getStatusColor(status)}>{status}</Tag>
+        </Td>
+        <Td>
+          {(asset.updatedAt || asset.lastServiceDate)
+            ? formatDate((asset.updatedAt || asset.lastServiceDate) as any)
+            : "-"}
         </Td>
       </Tr>
 
