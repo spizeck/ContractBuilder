@@ -1067,6 +1067,96 @@ export async function syncContractToCheckfront(
 }
 
 // ============================================================================
+// Inbound: Fetch Booking from Checkfront
+// ============================================================================
+
+export interface CheckfrontBookingItem {
+  item_id: string
+  cat_id: string
+  name: string
+  qty: number
+  start_date: string  // YYYYMMDD
+  end_date: string    // YYYYMMDD
+  slip?: string
+}
+
+export interface CheckfrontInboundBooking {
+  booking_id: string
+  code?: string
+  status?: string
+  total?: number
+  start_date: string   // YYYYMMDD
+  end_date: string     // YYYYMMDD
+  customer_name?: string
+  customer_id?: string
+  items: CheckfrontBookingItem[]
+  raw?: Record<string, unknown>
+}
+
+/**
+ * Fetch a single booking from the Checkfront API by booking ID.
+ * Returns a normalized CheckfrontInboundBooking or null on error.
+ */
+export async function fetchCheckfrontBooking(
+  bookingId: string
+): Promise<CheckfrontApiResult<CheckfrontInboundBooking>> {
+  console.log('[Checkfront][fetchBooking] Fetching booking %s', bookingId)
+
+  const result = await checkfrontApiRequest<any>(`booking/${bookingId}`)
+
+  if (!result.success) {
+    console.error('[Checkfront][fetchBooking] FAILED booking=%s: %s', bookingId, result.error)
+    return { success: false, error: result.error }
+  }
+
+  const raw = result.data
+  const b = raw?.booking
+
+  if (!b) {
+    console.error('[Checkfront][fetchBooking] No booking object in response for %s: %s', bookingId, JSON.stringify(raw).substring(0, 300))
+    return { success: false, error: `No booking object in Checkfront response for booking ${bookingId}` }
+  }
+
+  // Checkfront nests items under booking.items as an object keyed by slip_id
+  // Normalise to a flat array
+  const rawItems: Record<string, any> = b.items ?? {}
+  const items: CheckfrontBookingItem[] = Object.values(rawItems).map((i: any) => ({
+    item_id: String(i.item_id ?? i.id ?? ''),
+    cat_id: String(i.cat_id ?? i.category_id ?? ''),
+    name: String(i.name ?? ''),
+    qty: Number(i.qty ?? i.quantity ?? 1),
+    start_date: String(i.start_date ?? b.start_date ?? ''),
+    end_date: String(i.end_date ?? b.end_date ?? ''),
+    slip: i.slip,
+  }))
+
+  const customer = b.customer ?? {}
+
+  const booking: CheckfrontInboundBooking = {
+    booking_id: String(b.booking_id ?? bookingId),
+    code: b.code,
+    status: b.status,
+    total: b.total !== undefined ? Number(b.total) : undefined,
+    start_date: String(b.start_date ?? ''),
+    end_date: String(b.end_date ?? ''),
+    customer_name: customer.name ?? b.customer_name,
+    customer_id: customer.customer_id ? String(customer.customer_id) : undefined,
+    items,
+    raw,
+  }
+
+  console.log(
+    '[Checkfront][fetchBooking] OK booking=%s code=%s items=%d customer="%s"',
+    booking.booking_id,
+    booking.code ?? 'none',
+    booking.items.length,
+    booking.customer_name ?? 'unknown'
+  )
+
+  return { success: true, data: booking }
+}
+
+// ============================================================================
 // Test Function - Checkfront API Connection
 // ============================================================================
 

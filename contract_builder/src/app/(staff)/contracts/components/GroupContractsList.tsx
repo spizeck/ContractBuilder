@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import NextLink from "next/link";
 import {
+  Badge,
   Box,
   Button,
   Flex,
@@ -11,6 +12,7 @@ import {
   Select,
   Stack,
   Text,
+  Tooltip,
   VStack,
   Heading,
 } from "@chakra-ui/react";
@@ -291,12 +293,19 @@ export default function GroupContractsList({
                   {parseDate(contract.createdAt).toLocaleString()}
                 </Text>
 
-                <HStack mt={2} spacing={2}>
+                <HStack mt={2} spacing={2} flexWrap="wrap">
                   <PaymentStatusBadge contract={contract} size="sm" />
                   {contract.totalCost && (
                     <Text fontSize="sm" fontWeight="medium" color="gray.600">
                       {formatCurrency(contract.totalCost)}
                     </Text>
+                  )}
+                  {contract.checkfrontSync?.lastSyncDirection === 'checkfront_to_app' && (
+                    <Tooltip label={`Synced from Checkfront booking #${contract.checkfrontSync.bookingId ?? ''}`}>
+                      <Badge colorScheme="purple" fontSize="xs" variant="subtle">
+                        CF→App
+                      </Badge>
+                    </Tooltip>
                   )}
                 </HStack>
 

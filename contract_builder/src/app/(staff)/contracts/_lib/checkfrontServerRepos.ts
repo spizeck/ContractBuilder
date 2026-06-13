@@ -10,7 +10,7 @@
  */
 
 import { getAdminDb } from '@/core/db/firebaseAdmin'
-import { GroupContract, RoomCategory, DivePackage, MealPackage } from '../_types'
+import { GroupContract, RoomCategory, DivePackage, MealPackage, Season, Hotel } from '../_types'
 
 const ADMIN_DB = '[FirebaseAdmin]'
 
@@ -152,11 +152,123 @@ export async function getMealPackageByIdServer(
 }
 
 // ============================================================================
+// Bulk Fetch for Inbound Reverse Lookup
+// ============================================================================
+
+export async function getAllRoomCategoriesServer(): Promise<RoomCategory[]> {
+  console.log('%s getAllRoomCategoriesServer', ADMIN_DB)
+  try {
+    const db = getAdminDb()
+    const snapshot = await db.collection('roomCategories').get()
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as RoomCategory))
+  } catch (error) {
+    console.error('%s Failed to fetch all room categories:', ADMIN_DB, error)
+    throw error
+  }
+}
+
+export async function getAllDivePackagesServer(): Promise<DivePackage[]> {
+  console.log('%s getAllDivePackagesServer', ADMIN_DB)
+  try {
+    const db = getAdminDb()
+    const snapshot = await db.collection('divePackages').get()
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as DivePackage))
+  } catch (error) {
+    console.error('%s Failed to fetch all dive packages:', ADMIN_DB, error)
+    throw error
+  }
+}
+
+export async function getAllMealPackagesServer(): Promise<MealPackage[]> {
+  console.log('%s getAllMealPackagesServer', ADMIN_DB)
+  try {
+    const db = getAdminDb()
+    const snapshot = await db.collection('mealPackages').get()
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as MealPackage))
+  } catch (error) {
+    console.error('%s Failed to fetch all meal packages:', ADMIN_DB, error)
+    throw error
+  }
+}
+
+export async function getSeasonsForHotelServer(hotelId: string): Promise<Season[]> {
+  console.log('%s getSeasonsForHotelServer: %s', ADMIN_DB, hotelId)
+  try {
+    const db = getAdminDb()
+    const snapshot = await db
+      .collection('seasons')
+      .where('hotelId', '==', hotelId)
+      .get()
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Season))
+  } catch (error) {
+    console.error('%s Failed to fetch seasons for hotel %s:', ADMIN_DB, hotelId, error)
+    throw error
+  }
+}
+
+export async function getHotelByIdServer(hotelId: string): Promise<Hotel | null> {
+  console.log('%s getHotelByIdServer: %s', ADMIN_DB, hotelId)
+  try {
+    const db = getAdminDb()
+    const docRef = db.collection('hotels').doc(hotelId)
+    const docSnap = await docRef.get()
+    if (!docSnap.exists) return null
+    return { id: docSnap.id, ...docSnap.data() } as Hotel
+  } catch (error) {
+    console.error('%s Failed to fetch hotel %s:', ADMIN_DB, hotelId, error)
+    throw error
+  }
+}
+
+export async function getGroupContractByCheckfrontBookingIdServer(
+  bookingId: string
+): Promise<GroupContract | null> {
+  console.log('%s getGroupContractByCheckfrontBookingIdServer: %s', ADMIN_DB, bookingId)
+
+  try {
+    const db = getAdminDb()
+    const snapshot = await db
+      .collection('groupContracts')
+      .where('checkfrontSync.bookingId', '==', bookingId)
+      .limit(1)
+      .get()
+
+    if (snapshot.empty) {
+      console.log('%s No contract found for checkfront bookingId: %s', ADMIN_DB, bookingId)
+      return null
+    }
+
+    const doc = snapshot.docs[0]
+    console.log('%s Contract found for checkfront bookingId %s: %s', ADMIN_DB, bookingId, doc.id)
+    return { id: doc.id, ...doc.data() } as GroupContract
+  } catch (error) {
+    console.error('%s Failed to query by checkfront bookingId %s:', ADMIN_DB, bookingId, error)
+    throw error
+  }
+}
+
+export async function createGroupContractServer(
+  contractData: Omit<GroupContract, 'id'>
+): Promise<string> {
+  console.log('%s createGroupContractServer for group: %s', ADMIN_DB, contractData.groupName)
+
+  try {
+    const db = getAdminDb()
+    const docRef = await db.collection('groupContracts').add(contractData)
+    console.log('%s GroupContract created: %s', ADMIN_DB, docRef.id)
+    return docRef.id
+  } catch (error) {
+    console.error('%s Failed to create GroupContract:', ADMIN_DB, error)
+    throw error
+  }
+}
+
+// ============================================================================
 // Checkfront Sync Logs
 // ============================================================================
 
 export interface CheckfrontSyncLogData {
-  action: 'create_booking' | 'update_booking'
+  action: 'create_booking' | 'update_booking' | 'inbound_create' | 'inbound_update'
   success: boolean
   requestSummary?: Record<string, unknown>
   responseSummary?: Record<string, unknown>

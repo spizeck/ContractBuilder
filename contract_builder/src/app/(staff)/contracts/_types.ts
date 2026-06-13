@@ -369,7 +369,7 @@ export interface CheckfrontItemMapping {
 
 export interface CheckfrontSyncLog {
   id?: string;
-  action: 'create_booking' | 'update_booking';
+  action: 'create_booking' | 'update_booking' | 'inbound_create' | 'inbound_update';
   success: boolean;
   requestSummary?: Record<string, unknown>;
   responseSummary?: Record<string, unknown>;
