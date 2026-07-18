@@ -14,8 +14,10 @@ const nextConfig = {
     return config;
   },
 
-  // Turbopack config (empty since we're using webpack alias)
-  turbopack: {},
+  // Turbopack config
+  turbopack: {
+    root: __dirname,
+  },
 
   async redirects() {
     return [
