@@ -12,7 +12,11 @@ const STATIC_ASSETS = [
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith('sea-saba-pwa-'))
+          .map((key) => caches.delete(key))
+      ))
       .then(() => caches.open(CACHE_NAME))
       .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => self.clients.claim())
