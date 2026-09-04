@@ -16,7 +16,7 @@ declare global {
 
 export default function PwaManager() {
   const toast = useToast()
-  const refreshing = useRef(false)
+  const reloadRequested = useRef(false)
 
   useEffect(() => {
     const captureInstallPrompt = (event: Event) => {
@@ -39,8 +39,8 @@ export default function PwaManager() {
     }
 
     const handleControllerChange = () => {
-      if (refreshing.current) return
-      refreshing.current = true
+      if (!reloadRequested.current) return
+      reloadRequested.current = false
       window.location.reload()
     }
 
@@ -56,7 +56,14 @@ export default function PwaManager() {
           render: ({ onClose }) => (
             <HStack bg="teal.700" color="white" borderRadius="md" boxShadow="lg" p={4} spacing={4}>
               <Text>An update is available.</Text>
-              <Button size="sm" colorScheme="whiteAlpha" onClick={() => worker.postMessage({ type: 'SKIP_WAITING' })}>
+              <Button
+                size="sm"
+                colorScheme="whiteAlpha"
+                onClick={() => {
+                  reloadRequested.current = true
+                  worker.postMessage({ type: 'SKIP_WAITING' })
+                }}
+              >
                 Refresh to update
               </Button>
               <Button size="sm" variant="ghost" color="white" onClick={onClose}>
