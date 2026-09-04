@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   cloneNoteForRevision,
   clonePaymentForRevision
-} from '../contractRevisions'
+} from '@/app/(staff)/contracts/_lib/contractRevisions'
 
 describe('contractRevisions helpers', () => {
   it('clones payment data to a new contract while preserving original fields', () => {

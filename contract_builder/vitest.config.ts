@@ -10,7 +10,9 @@ export default defineConfig({
     setupFiles: './vitest.setup.ts',
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'],
     alias: {
-      '@': '/src', // same as your Next.js import alias
+      '@/': '/src/',
+      '@core/': '/src/core/',
+      '@shared/': '/src/shared/',
     },
   },
 })

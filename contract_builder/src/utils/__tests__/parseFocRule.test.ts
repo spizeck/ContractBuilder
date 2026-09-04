@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseFocRule } from '../formatters'
+import { parseFocRule } from '@/shared/utils/formatters'
 
 describe('parseFocRule', () => {
   it('handles "7+1"', () => {

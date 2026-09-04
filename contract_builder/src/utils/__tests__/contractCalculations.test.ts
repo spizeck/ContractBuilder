@@ -5,7 +5,7 @@ import {
   getOccupancyNumber,
   getCommissionRate,
   calculateTotalCost,
-} from "../contractCalculations";
+} from "@/app/(staff)/contracts/_lib/contractCalculations";
 
 const mockSeason = {
   id: "SEASON1",
