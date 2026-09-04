@@ -60,6 +60,7 @@ export default function NavLinks() {
 
   const userLinksData: NavLinkItem[] = [
     { href: '/profile', label: 'Profile' },
+    { href: '/install', label: 'Install Sea Saba' },
     ...(role === 'admin' ? [{ href: '/admin/users', label: 'Manage Users' }] : []),
   ]
 
@@ -155,6 +156,9 @@ export default function NavLinks() {
           </>
         ) : (
           <>
+            <Link as={NextLink} href="/install" _hover={{ textDecoration: 'underline' }}>
+              Install
+            </Link>
             <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
               Login
             </Link>
@@ -177,7 +181,8 @@ export default function NavLinks() {
             border="none"
           />
           <MenuList color="teal" p={0}>
-            <MenuItem><NextLink href="/">Home</NextLink></MenuItem>
+            <MenuItem as={NextLink} href="/">Home</MenuItem>
+            <MenuItem as={NextLink} href="/install">Install Sea Saba</MenuItem>
 
             {loading ? (
               <Box p={4}>Loading...</Box>

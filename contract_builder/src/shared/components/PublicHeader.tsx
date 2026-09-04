@@ -11,6 +11,9 @@ export default function PublicHeader() {
 
   const rightContent = !loading && !user ? (
     <HStack spacing={4}>
+      <Link as={NextLink} href="/install" _hover={{ textDecoration: 'underline' }}>
+        Install
+      </Link>
       <Link as={NextLink} href="/login" _hover={{ textDecoration: 'underline' }}>
         Login
       </Link>

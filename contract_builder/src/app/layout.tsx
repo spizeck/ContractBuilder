@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
@@ -7,14 +7,31 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport: Viewport = {
+  themeColor: '#319795',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
-  title: "Sea Saba Business App",
-  description: "App to assemble dive group contracts and manage Dive Logs",
+  metadataBase: new URL('https://seasaba.app'),
+  applicationName: 'Sea Saba Business',
+  title: "Sea Saba Business",
+  description: "Sea Saba staff business operations application",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Sea Saba',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
       { url: '/apple-icon-57x57.png', sizes: '57x57', type: 'image/png' },
       { url: '/apple-icon-60x60.png', sizes: '60x60', type: 'image/png' },
       { url: '/apple-icon-72x72.png', sizes: '72x72', type: 'image/png' },
@@ -26,7 +43,6 @@ export const metadata: Metadata = {
     ],
     other: [
       { rel: 'apple-touch-icon-precomposed', url: '/apple-icon-precomposed.png' },
-      { rel: 'manifest', url: '/manifest.json' },
       { rel: 'shortcut icon', url: '/favicon.ico' },
       { rel: 'icon', type: 'image/png', sizes: '16x16', url: '/favicon-16x16.png' },
       { rel: 'icon', type: 'image/png', sizes: '32x32', url: '/favicon-32x32.png' },
@@ -36,7 +52,8 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   other: {
-    'msapplication-TileColor': '#ffffff',
+    'apple-mobile-web-app-capable': 'yes',
+    'msapplication-TileColor': '#319795',
   },
 };
 
