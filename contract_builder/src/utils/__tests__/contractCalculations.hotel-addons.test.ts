@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   calculateTotalCost,
-} from "../contractCalculations";
+} from "@/app/(staff)/contracts/_lib/contractCalculations";
 
 // Test data matching actual business logic
 const mockSeason = {
